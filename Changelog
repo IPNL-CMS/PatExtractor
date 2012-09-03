@@ -1,0 +1,14 @@
+2012-02-13 Viret <viret@in2p3.fr>
+
+       *Added some clarifications in Extractor_trigger_test.py
+
+2012-02-10 Viret <viret@in2p3.fr>
+
+       *Added an analysis class for trigger studies
+
+2011-11-10 Viret <viret@in2p3.fr>
+
+       *First version of the new PatExtractor package
+
+	-->See the tutorial at:
+	http://sviret.web.cern.ch/sviret/Welcome.php?n=CMS.PHYTuto

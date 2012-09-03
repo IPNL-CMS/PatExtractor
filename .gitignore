@@ -1,0 +1,9 @@
+/CVS/*
+*/CVS/*
+.cvsignore
+*/.cvsignore
+
+*.pyc
+*.list
+
+__init__.py
