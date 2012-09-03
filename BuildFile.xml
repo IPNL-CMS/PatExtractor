@@ -43,4 +43,3 @@
 <use   name="JetMETCorrections/Objects" />
 <lib   name="MathMore"/>
 <flags EDM_PLUGIN="1"/>
-

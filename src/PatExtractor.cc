@@ -1,9 +1,9 @@
-#include "../interface/PatExtractor2.h"
+#include "../interface/PatExtractor.h"
 
 using namespace std;
 using namespace edm;
 
-PatExtractor2::PatExtractor2(const edm::ParameterSet& config) :
+PatExtractor::PatExtractor(const edm::ParameterSet& config) :
   do_fill_       (config.getUntrackedParameter<bool>("fillTree", true)),
   do_HLT_        (config.getUntrackedParameter<bool>("doHLT", false)),
   do_MC_         (config.getUntrackedParameter<bool>("doMC", false)),
@@ -43,7 +43,7 @@ PatExtractor2::PatExtractor2(const edm::ParameterSet& config) :
 
 // Job initialization
 
-void PatExtractor2::beginJob()
+void PatExtractor::beginJob()
 {
   // Initializations
 
@@ -53,8 +53,8 @@ void PatExtractor2::beginJob()
   // from a file already extracted (inFilename_)
 
   (do_fill_) 
-    ? PatExtractor2::initialize()
-    : PatExtractor2::retrieve();
+    ? PatExtractor::initialize()
+    : PatExtractor::retrieve();
 
 
   // Analysis is done on request, if the infos are there
@@ -75,7 +75,7 @@ void PatExtractor2::beginJob()
 
 // What to do at the start of a new run
 
-void PatExtractor2::beginRun(Run const& run, EventSetup const& setup) 
+void PatExtractor::beginRun(Run const& run, EventSetup const& setup) 
 {
   nevent = 0;
 
@@ -92,8 +92,8 @@ void PatExtractor2::beginRun(Run const& run, EventSetup const& setup)
       if (i%10000 == 0)
 	std::cout << "Processing " << i << "th event" << std::endl;
 
-      PatExtractor2::getInfo(i);// Retrieve the info from an existing ROOTuple      
-      PatExtractor2::doAna(setup);   // Then do the analysis on request  
+      PatExtractor::getInfo(i);// Retrieve the info from an existing ROOTuple      
+      PatExtractor::doAna(setup);   // Then do the analysis on request  
 
       ++nevent_tot; 
     }
@@ -103,26 +103,26 @@ void PatExtractor2::beginRun(Run const& run, EventSetup const& setup)
 
 // What to do for each event
 
-void PatExtractor2::analyze(const edm::Event& event, const edm::EventSetup& setup)
+void PatExtractor::analyze(const edm::Event& event, const edm::EventSetup& setup)
 {
   using namespace reco;
   
   if (do_fill_) 
   {
-    PatExtractor2::fillInfo(&event, setup); // Fill the ROOTuple
-    PatExtractor2::doAna(setup);            // Then do the analysis on request    
+    PatExtractor::fillInfo(&event, setup); // Fill the ROOTuple
+    PatExtractor::doAna(setup);            // Then do the analysis on request    
   }
     
   ++nevent;
   ++nevent_tot;
 }
 
-void PatExtractor2::endRun(Run const&, EventSetup const&) 
+void PatExtractor::endRun(Run const&, EventSetup const&) 
 {
   std::cout << "Total # of events for this run   = "<< nevent  << std::endl;
 }
 
-void PatExtractor2::endJob() {
+void PatExtractor::endJob() {
 
   std::cout << "Total # of events for this job   = "<< nevent_tot     << std::endl;
 
@@ -146,7 +146,7 @@ void PatExtractor2::endJob() {
 
 // Here we fill the rootuple with info coming from the PatTuple
 
-void PatExtractor2::fillInfo(const edm::Event *event, const edm::EventSetup& iSetup) 
+void PatExtractor::fillInfo(const edm::Event *event, const edm::EventSetup& iSetup) 
 {
   m_event->writeInfo(event,do_MC_);
 
@@ -164,7 +164,7 @@ void PatExtractor2::fillInfo(const edm::Event *event, const edm::EventSetup& iSe
 
 // Here we retrieve the info from an existing extracted ROOTuple 
 
-void PatExtractor2::getInfo(int ievent) 
+void PatExtractor::getInfo(int ievent) 
 {
   m_event->getInfo(ievent);
   
@@ -183,7 +183,7 @@ void PatExtractor2::getInfo(int ievent)
 
 // Here are the initializations when starting from scratch (need to create the extracted stuff)
 
-void PatExtractor2::initialize() 
+void PatExtractor::initialize() 
 {
   m_outfile  = new TFile(outFilename_.c_str(),"RECREATE");
   m_event    = new EventExtractor();
@@ -204,7 +204,7 @@ void PatExtractor2::initialize()
 
 // Here are the initializations when starting from already extracted stuff
 
-void PatExtractor2::retrieve() 
+void PatExtractor::retrieve() 
 {
   m_infile     = new TFile(inFilename_.c_str(),"READ");
   m_outfile    = new TFile(outFilename_.c_str(),"RECREATE");
@@ -242,7 +242,7 @@ void PatExtractor2::retrieve()
 // In other words this is where the analysis is done
 //
 
-void PatExtractor2::doAna(const edm::EventSetup& setup) 
+void PatExtractor::doAna(const edm::EventSetup& setup) 
 {
   
   if (do_Mtt_ && do_Muon_ && do_Electron_ && do_Jet_ && do_MET_ && do_Vertex_) 

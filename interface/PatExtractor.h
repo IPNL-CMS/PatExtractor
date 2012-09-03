@@ -1,7 +1,7 @@
-#ifndef PatExtractor2_h
-#define PatExtractor2_h
+#ifndef PatExtractor_h
+#define PatExtractor_h
 
-/** \class PatExtractor2
+/** \class PatExtractor
  *  Class that produces a roottuple from PATuples
  */
 
@@ -32,13 +32,13 @@
 
 #include "TFile.h"
 
-class PatExtractor2 : public edm::EDAnalyzer {
+class PatExtractor : public edm::EDAnalyzer {
  public:
   /// Constructor
-  PatExtractor2(const edm::ParameterSet& pset);
+  PatExtractor(const edm::ParameterSet& pset);
 
   /// Destructor
-  virtual ~PatExtractor2(){ }
+  virtual ~PatExtractor(){ }
   int nevent;
   int nevent_tot;
 
