@@ -24,7 +24,7 @@ process.load('Configuration/StandardSequences/MagneticField_38T_cff')
 process.load('Configuration/StandardSequences/EndOfProcess_cff')
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.load("Extractors.PatExtractor_2.PAT_extractor_cff")
+process.load("Extractors.PatExtractor.PAT_extractor_cff")
 
 process.options = cms.untracked.PSet(
     #SkipEvent = cms.untracked.vstring('ProductNotFound')

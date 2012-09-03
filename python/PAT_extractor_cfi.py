@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-PATextraction = cms.EDAnalyzer("PatExtractor2",
+PATextraction = cms.EDAnalyzer("PatExtractor",
 
 
 
