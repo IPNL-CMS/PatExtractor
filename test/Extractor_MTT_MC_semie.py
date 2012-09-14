@@ -35,7 +35,7 @@ process.maxEvents = cms.untracked.PSet(
     )
 
 #Global tag and data type choice
-process.GlobalTag.globaltag = 'START52_V11B::All'
+process.GlobalTag.globaltag = 'START53_V11::All'
 process.PATextraction.doMC  = True
 
 #Input PAT file to extract
