@@ -35,19 +35,19 @@ process.maxEvents = cms.untracked.PSet(
     )
 
 #Global tag and data type choice
-process.GlobalTag.globaltag = 'START52_V11B::All'
-process.PATextraction.doMC  = True
+process.GlobalTag.globaltag = 'GR_R_52_V9D::All'
+process.PATextraction.doMC  = False
 
 #Input PAT file to extract
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-      '/store/user/sbrochet/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/DYJetsToLL_M-50_2012_PF2PAT_v1/265c9c69c37a8e555f9b98fa1aae946f/patTuple_58_1_B7z.root'
+      '/store/user/sbrochet/MuHad/MuHad_Run2012A_DCSONLY_v1/02979db18d11879dfe0836140c8c76cf/patTuple_76_2_hm9.root'
       ),                           
     duplicateCheckMode = cms.untracked.string( 'noDuplicateCheck' )
     )
 
 #Output extracted file name
-process.PATextraction.extractedRootFile=cms.string('extracted_mc.root')
+process.PATextraction.extractedRootFile=cms.string('extracted.root')
 
 
 
@@ -75,7 +75,7 @@ process.PATextraction.doMtt      = True
 
 # Jets correction : needs a valid global tags, or an external DB where JEC are stored
 process.PATextraction.correctJets       = False
-process.PATextraction.jetCorrectorLabel = "ak5PFL1FastL2L3"
+process.PATextraction.jetCorrectorLabel = "ak5PFL1FastL2L3Residual"
 
 # Analysis cuts
 process.PATextraction.analysisSettings = cms.untracked.vstring(
@@ -113,8 +113,6 @@ process.PATextraction.analysisSettings = cms.untracked.vstring(
     "JET_btag_CSVM_min        0.679",
     "JET_btag_CSVT_min        0.898",
     "JET_btag_TCHPT_min       3.41",
-    "JET_btag_SSVHEM_min      1.74",
-    "JET_btag_SSVHPT_min      2",
 
     "W_mass                   80.399",
     "Top_mass                 172.0",
@@ -122,7 +120,7 @@ process.PATextraction.analysisSettings = cms.untracked.vstring(
     "Top_mass_err             15.2",
     "b_mass                   4.67",
 
-    "doSemiMu                 1",
+    "doSemiMu                 0",
     "doSyst                   0",
     "systvalue                1",
     "doUseBTaginChi2          1",
