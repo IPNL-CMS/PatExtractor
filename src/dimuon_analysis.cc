@@ -23,14 +23,14 @@ dimuon_analysis::dimuon_analysis(AnalysisSettings *settings)
   // case we set a default value for the cut, in order to avoid 
   // unwanted crash
 
-  (settings->getSetting("pTmu_min")!=-1)
-    ? m_mu_Ptcut = settings->getSetting("pTmu_min") // Value from the joboption
-    : m_mu_Ptcut = 0.5;                               // Default val
+  settings->getSetting("pTmu_min", m_mu_Ptcut);
+//    ? m_mu_Ptcut = settings->getSetting("pTmu_min") // Value from the joboption
+//    : m_mu_Ptcut = 0.5;                               // Default val
 
 
-  (settings->getSetting("nmu_min")!=-1)
-    ? m_mu_Mult = settings->getSetting("nmu_min") // Value from the joboption
-    : m_mu_Mult = 2;                                // Default val
+  settings->getSetting("nmu_min", m_mu_Mult);
+//    ? m_mu_Mult = settings->getSetting("nmu_min") // Value from the joboption
+//    : m_mu_Mult = 2;                                // Default val
 
 }
 

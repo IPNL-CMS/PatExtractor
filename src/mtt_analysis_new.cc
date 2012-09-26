@@ -9,6 +9,7 @@
 
 #include "Extractors/PatExtractor/interface/AnalysisSettings.h"
 #include "Extractors/PatExtractor/interface/MCExtractor.h"
+#include "Extractors/PatExtractor/interface/HLTExtractor.h"
 #include "Extractors/PatExtractor/interface/MuonExtractor.h"
 #include "Extractors/PatExtractor/interface/ElectronExtractor.h"
 #include "Extractors/PatExtractor/interface/JetExtractor.h"
@@ -92,11 +93,7 @@ mtt_analysis_new::mtt_analysis_new(AnalysisSettings *settings)
   m_tree_Mtt->Branch("mHadTop_AfterChi2andKF" , &m_mHadTop_AfterChi2andKF, "mHadTop_AfterChi2andKF/F");
   m_tree_Mtt->Branch("mtt_AfterChi2andKF"     , &m_mtt_AfterChi2andKF    , "mtt_AfterChi2andKF/F");
 
-
-
-
-
-
+  m_tree_Mtt->Branch("trigger_passed", &m_trigger_passed, "trigger_passed/O");
 
   /// Analysis settings (you define them in your python script)
 
@@ -106,129 +103,129 @@ mtt_analysis_new::mtt_analysis_new(AnalysisSettings *settings)
 
   // Main options
 
-  (settings->getSetting("doUseBTaginChi2") != -1)
-    ? m_MAIN_doUseBTag = (static_cast<bool>(settings->getSetting("doUseBTaginChi2")))
-    : m_MAIN_doUseBTag = false;
-  (settings->getSetting("doChoiceWKF") != -1)
-    ? m_MAIN_doKF = (static_cast<bool>(settings->getSetting("doChoiceWKF")))
-    : m_MAIN_doKF = false;
-  (settings->getSetting("doSyst") != -1)
-    ? m_MAIN_doSyst = (static_cast<bool>(settings->getSetting("doSyst")))
-    : m_MAIN_doSyst = false;
-  (settings->getSetting("systvalue") != -1)
-    ? m_MAIN_systvalue = settings->getSetting("systvalue")
-    : m_MAIN_systvalue = 0;
-  (settings->getSetting("doSemiMu") != -1)
-    ? m_MAIN_doSemiMu = settings->getSetting("doSemiMu")
-    : m_MAIN_doSemiMu = false;
+  settings->getSetting("doUseBTaginChi2", m_MAIN_doUseBTag);
+//    ? m_MAIN_doUseBTag = (static_cast<bool>(settings->getSetting("doUseBTaginChi2")))
+//    : m_MAIN_doUseBTag = false;
+  settings->getSetting("doChoiceWKF", m_MAIN_doKF);
+//    ? m_MAIN_doKF = (static_cast<bool>(settings->getSetting("doChoiceWKF")))
+//    : m_MAIN_doKF = false;
+  settings->getSetting("doSyst", m_MAIN_doSyst);
+//    ? m_MAIN_doSyst = (static_cast<bool>(settings->getSetting("doSyst")))
+//    : m_MAIN_doSyst = false;
+  settings->getSetting("systvalue", m_MAIN_systvalue);
+//    ? m_MAIN_systvalue = settings->getSetting("systvalue")
+//    : m_MAIN_systvalue = 0;
+  settings->getSetting("doSemiMu", m_MAIN_doSemiMu);
+//    ? m_MAIN_doSemiMu = settings->getSetting("doSemiMu")
+//    : m_MAIN_doSemiMu = false;
 
   // VertexSel()
-  (settings->getSetting("VTX_Ndof_Min") != -1)
-    ? m_VTX_NDof_Min = settings->getSetting("VTX_Ndof_Min") // Value from the joboption
-    : m_VTX_NDof_Min = 0;                                   // Default val
+  settings->getSetting("VTX_Ndof_Min", m_VTX_NDof_Min);
+//    ? m_VTX_NDof_Min = settings->getSetting("VTX_Ndof_Min") // Value from the joboption
+//    : m_VTX_NDof_Min = 0;                                   // Default val
 
 
   // METSel()
-  (settings->getSetting("MET_Pt_Min") != -1)
-    ? m_MET_Pt_Min = settings->getSetting("MET_Pt_Min")
-    : m_MET_Pt_Min = 0;
+  settings->getSetting("MET_Pt_Min", m_MET_Pt_Min);
+//    ? m_MET_Pt_Min = settings->getSetting("MET_Pt_Min")
+//    : m_MET_Pt_Min = 0;
 
 
   // MuonSel()
-  (settings->getSetting("MU_Pt_min_loose") != -1)
-    ? m_MU_Pt_min_loose = settings->getSetting("MU_Pt_min_loose")
-    : m_MU_Pt_min_loose = 0;
-  (settings->getSetting("MU_Eta_max_loose") != -1)
-    ? m_MU_Eta_max_loose = settings->getSetting("MU_Eta_max_loose")
-    : m_MU_Eta_max_loose = 0;
-  (settings->getSetting("MU_Iso_min") != -1)
-    ? m_MU_Iso_min = settings->getSetting("MU_Iso_min")
-    : m_MU_Iso_min = 0;
-  (settings->getSetting("MU_Pt_min") != -1)
-    ? m_MU_Pt_min = settings->getSetting("MU_Pt_min")
-    : m_MU_Pt_min = 0;
-  (settings->getSetting("MU_Eta_max") != -1)
-    ? m_MU_Eta_max = settings->getSetting("MU_Eta_max")
-    : m_MU_Eta_max = 0;
-  (settings->getSetting("MU_normChi2_max") != -1)
-    ? m_MU_normChi2_max = settings->getSetting("MU_normChi2_max")
-    : m_MU_normChi2_max = 0;
-  (settings->getSetting("MU_nValTrackHits_min") != -1)
-    ? m_MU_nValTrackHits_min = settings->getSetting("MU_nValTrackHits_min")
-    : m_MU_nValTrackHits_min = 0;
-  (settings->getSetting("MU_nMatches_min") != -1)
-    ? m_MU_nMatches_min = settings->getSetting("MU_nMatches_min")
-    : m_MU_nMatches_min = 0;
-  (settings->getSetting("MU_nValPixHits_min") != -1)
-    ? m_MU_nValPixHits_min = settings->getSetting("MU_nValPixHits_min")
-    : m_MU_nValPixHits_min = 0;
-  (settings->getSetting("MU_dB_min") != -1)
-    ? m_MU_dB_min = settings->getSetting("MU_dB_min")
-    : m_MU_dB_min = 0;
-  (settings->getSetting("MU_ePt_min") != -1)
-    ? m_MU_ePt_min = settings->getSetting("MU_ePt_min")
-    : m_MU_ePt_min = 0;
-  (settings->getSetting("MU_eEta_max") != -1)
-    ? m_MU_eEta_max = settings->getSetting("MU_eEta_max")
-    : m_MU_eEta_max = 0;
-  (settings->getSetting("MU_eEtaW_min") != -1)
-    ? m_MU_eEtaW_min = settings->getSetting("MU_eEtaW_min")
-    : m_MU_eEtaW_min = 0;
-  (settings->getSetting("MU_eEtaW_max") != -1)
-    ? m_MU_eEtaW_max = settings->getSetting("MU_eEtaW_max")
-    : m_MU_eEtaW_max = 0;
-  (settings->getSetting("MU_eIso_min") != -1)
-    ? m_MU_eIso_min = settings->getSetting("MU_eIso_min")
-    : m_MU_eIso_min = 0;
+  settings->getSetting("MU_Pt_min_loose", m_MU_Pt_min_loose);
+//    ? m_MU_Pt_min_loose = settings->getSetting("MU_Pt_min_loose")
+//    : m_MU_Pt_min_loose = 0;
+  settings->getSetting("MU_Eta_max_loose", m_MU_Eta_max_loose);
+//    ? m_MU_Eta_max_loose = settings->getSetting("MU_Eta_max_loose")
+//    : m_MU_Eta_max_loose = 0;
+  settings->getSetting("MU_Iso_min", m_MU_Iso_min);
+//    ? m_MU_Iso_min = settings->getSetting("MU_Iso_min")
+//    : m_MU_Iso_min = 0;
+  settings->getSetting("MU_Pt_min", m_MU_Pt_min);
+//    ? m_MU_Pt_min = settings->getSetting("MU_Pt_min")
+//    : m_MU_Pt_min = 0;
+  settings->getSetting("MU_Eta_max", m_MU_Eta_max);
+//    ? m_MU_Eta_max = settings->getSetting("MU_Eta_max")
+//    : m_MU_Eta_max = 0;
+  settings->getSetting("MU_normChi2_max", m_MU_normChi2_max);
+//    ? m_MU_normChi2_max = settings->getSetting("MU_normChi2_max")
+//    : m_MU_normChi2_max = 0;
+  settings->getSetting("MU_nValTrackHits_min", m_MU_nValTrackHits_min);
+//    ? m_MU_nValTrackHits_min = settings->getSetting("MU_nValTrackHits_min")
+//    : m_MU_nValTrackHits_min = 0;
+  settings->getSetting("MU_nMatches_min", m_MU_nMatches_min);
+//    ? m_MU_nMatches_min = settings->getSetting("MU_nMatches_min")
+//    : m_MU_nMatches_min = 0;
+  settings->getSetting("MU_nValPixHits_min", m_MU_nValPixHits_min);
+//    ? m_MU_nValPixHits_min = settings->getSetting("MU_nValPixHits_min")
+//    : m_MU_nValPixHits_min = 0;
+  settings->getSetting("MU_dB_min", m_MU_dB_min);
+//    ? m_MU_dB_min = settings->getSetting("MU_dB_min")
+//    : m_MU_dB_min = 0;
+  settings->getSetting("MU_ePt_min", m_MU_ePt_min);
+//    ? m_MU_ePt_min = settings->getSetting("MU_ePt_min")
+//    : m_MU_ePt_min = 0;
+  settings->getSetting("MU_eEta_max", m_MU_eEta_max);
+//    ? m_MU_eEta_max = settings->getSetting("MU_eEta_max")
+//    : m_MU_eEta_max = 0;
+  settings->getSetting("MU_eEtaW_min", m_MU_eEtaW_min);
+//    ? m_MU_eEtaW_min = settings->getSetting("MU_eEtaW_min")
+//    : m_MU_eEtaW_min = 0;
+  settings->getSetting("MU_eEtaW_max", m_MU_eEtaW_max);
+//    ? m_MU_eEtaW_max = settings->getSetting("MU_eEtaW_max")
+//    : m_MU_eEtaW_max = 0;
+  settings->getSetting("MU_eIso_min", m_MU_eIso_min);
+//    ? m_MU_eIso_min = settings->getSetting("MU_eIso_min")
+//    : m_MU_eIso_min = 0;
 
 
   // ElectronSel()
-  (settings->getSetting("ELE_Iso_min") != -1)
-    ? m_ELE_Iso_min = settings->getSetting("ELE_Iso_min")
-    : m_ELE_Iso_min = 0;
-  (settings->getSetting("ELE_Pt_min") != -1)
-    ? m_ELE_Pt_min = settings->getSetting("ELE_Pt_min")
-    : m_ELE_Pt_min = 0;
-  (settings->getSetting("ELE_Eta_max") != -1)
-    ? m_ELE_Eta_max = settings->getSetting("ELE_Eta_max")
-    : m_ELE_Eta_max = 0;
-  (settings->getSetting("ELE_Zmass") != -1)
-    ? m_ELE_Zmass = settings->getSetting("ELE_Zmass")
-    : m_ELE_Zmass = 0;
-  (settings->getSetting("ELE_Zwin") != -1)
-    ? m_ELE_Zwin = settings->getSetting("ELE_Zwin")
-    : m_ELE_Zwin = 0;
-  (settings->getSetting("ELE_dB_min") != -1)
-    ? m_ELE_dB_min = settings->getSetting("ELE_dB_min")
-    : m_ELE_dB_min = 0;
+  settings->getSetting("ELE_Iso_min", m_ELE_Iso_min);
+//    ? m_ELE_Iso_min = settings->getSetting("ELE_Iso_min")
+//    : m_ELE_Iso_min = 0;
+  settings->getSetting("ELE_Pt_min", m_ELE_Pt_min);
+//    ? m_ELE_Pt_min = settings->getSetting("ELE_Pt_min")
+//    : m_ELE_Pt_min = 0;
+  settings->getSetting("ELE_Eta_max", m_ELE_Eta_max);
+//    ? m_ELE_Eta_max = settings->getSetting("ELE_Eta_max")
+//    : m_ELE_Eta_max = 0;
+  settings->getSetting("ELE_Zmass", m_ELE_Zmass);
+//    ? m_ELE_Zmass = settings->getSetting("ELE_Zmass")
+//    : m_ELE_Zmass = 0;
+  settings->getSetting("ELE_Zwin", m_ELE_Zwin);
+//    ? m_ELE_Zwin = settings->getSetting("ELE_Zwin")
+//    : m_ELE_Zwin = 0;
+  settings->getSetting("ELE_dB_min", m_ELE_dB_min);
+//    ? m_ELE_dB_min = settings->getSetting("ELE_dB_min")
+//    : m_ELE_dB_min = 0;
 
 
   // JetSel()
-  (settings->getSetting("JET_Pt_min") != -1)
-    ? m_JET_Pt_min = settings->getSetting("JET_Pt_min")
-    : m_JET_Pt_min = 0;
-  (settings->getSetting("JET_Eta_max") != -1)
-    ? m_JET_Eta_max = settings->getSetting("JET_Eta_max")
-    : m_JET_Eta_max = 0;
+  settings->getSetting("JET_Pt_min", m_JET_Pt_min);
+//    ? m_JET_Pt_min = settings->getSetting("JET_Pt_min")
+//    : m_JET_Pt_min = 0;
+  settings->getSetting("JET_Eta_max", m_JET_Eta_max);
+//    ? m_JET_Eta_max = settings->getSetting("JET_Eta_max")
+//    : m_JET_Eta_max = 0;
 
-  (settings->getSetting("JET_btag_CSVL_min") != -1)
-    ? m_JET_btag_CSVL_min = settings->getSetting("JET_btag_CSVL_min")
-    : m_JET_btag_CSVL_min = 0;
-  (settings->getSetting("JET_btag_CSVM_min") != -1)
-    ? m_JET_btag_CSVM_min = settings->getSetting("JET_btag_CSVM_min")
-    : m_JET_btag_CSVM_min = 0;
-  (settings->getSetting("JET_btag_CSVT_min") != -1)
-    ? m_JET_btag_CSVT_min = settings->getSetting("JET_btag_CSVT_min")
-    : m_JET_btag_CSVT_min = 0;
+  settings->getSetting("JET_btag_CSVL_min", m_JET_btag_CSVL_min);
+//    ? m_JET_btag_CSVL_min = settings->getSetting("JET_btag_CSVL_min")
+//    : m_JET_btag_CSVL_min = 0;
+  settings->getSetting("JET_btag_CSVM_min", m_JET_btag_CSVM_min);
+//    ? m_JET_btag_CSVM_min = settings->getSetting("JET_btag_CSVM_min")
+//    : m_JET_btag_CSVM_min = 0;
+  settings->getSetting("JET_btag_CSVT_min", m_JET_btag_CSVT_min);
+//    ? m_JET_btag_CSVT_min = settings->getSetting("JET_btag_CSVT_min")
+//    : m_JET_btag_CSVT_min = 0;
   //(settings->getSetting("JET_btag_TCHPL_min") != -1)
   //  ? m_JET_btag_TCHPL_min = settings->getSetting("JET_btag_TCHPL_min")
   //  : m_JET_btag_TCHPL_min = 0;
   //(settings->getSetting("JET_btag_TCHPM_min") != -1)
   //  ? m_JET_btag_TCHPM_min = settings->getSetting("JET_btag_TCHPM_min")
   //  : m_JET_btag_TCHPM_min = 0;
-  (settings->getSetting("JET_btag_TCHPT_min") != -1)
-    ? m_JET_btag_TCHPT_min = settings->getSetting("JET_btag_TCHPT_min")
-    : m_JET_btag_TCHPT_min = 0;
+  settings->getSetting("JET_btag_TCHPT_min", m_JET_btag_TCHPT_min);
+//    ? m_JET_btag_TCHPT_min = settings->getSetting("JET_btag_TCHPT_min")
+//    : m_JET_btag_TCHPT_min = 0;
   //(settings->getSetting("JET_btag_SSVHEM_min") != -1)
   //  ? m_JET_btag_SSVHEM_min = settings->getSetting("JET_btag_SSVHEM_min")
   //  : m_JET_btag_SSVHEM_min = 0;
@@ -237,29 +234,32 @@ mtt_analysis_new::mtt_analysis_new(AnalysisSettings *settings)
   //  : m_JET_btag_SSVHPT_min = 0;
 
 
+  // Triggers
+  m_trigger = "";
+  settings->getSetting<std::string>("trigger", m_trigger);
 
-
+  if (m_trigger.length() > 0) {
+    m_trigger_regex = boost::regex(m_trigger, boost::regex_constants::optimize);
+  }
 
   TString fname = "kfparams_semilept.dat";
 
-
   // Kinfit()
-  (settings->getSetting("W_mass") != -1)
-    ? m_w = settings->getSetting("W_mass")
-    : m_w = 0;
-  (settings->getSetting("Top_mass") != -1)
-    ? m_t = settings->getSetting("Top_mass")
-    : m_t = 0;
-  (settings->getSetting("W_mass_err") != -1)
-    ? m_we = settings->getSetting("W_mass_err")
-    : m_we = 0;
-  (settings->getSetting("Top_mass_err") != -1)
-    ? m_te = settings->getSetting("Top_mass_err")
-    : m_te = 0;
-  (settings->getSetting("b_mass") != -1)
-    ? m_b = settings->getSetting("b_mass")
-    : m_b = 0;
-
+  settings->getSetting("W_mass", m_w);
+//    ? m_w = settings->getSetting("W_mass")
+//    : m_w = 0;
+  settings->getSetting("Top_mass", m_t);
+//    ? m_t = settings->getSetting("Top_mass")
+//    : m_t = 0;
+  settings->getSetting("W_mass_err", m_we);
+//    ? m_we = settings->getSetting("W_mass_err")
+//    : m_we = 0;
+  settings->getSetting("Top_mass_err", m_te);
+//    ? m_te = settings->getSetting("Top_mass_err")
+//    : m_te = 0;
+  settings->getSetting("b_mass", m_b);
+//    ? m_b = settings->getSetting("b_mass")
+//    : m_b = 0;
 
   m_KinFit = new KinFit(fname, m_w, m_t, m_b, m_we, m_te);
 
@@ -624,8 +624,9 @@ int mtt_analysis_new::Make2DCut(TVector3 lept3P, float cutDR, float cutPtrel)
     return res; \
   }
 
+#define   MTT_TRIGGER_NOT_FOUND   1000
 
-int mtt_analysis_new::mtt_Sel(bool do_MC_, EventExtractor * event, MCExtractor * MC, MuonExtractor *muon, ElectronExtractor *electron, JetExtractor *jet, METExtractor *MET, VertexExtractor *vertex, const edm::EventSetup& iSetup)
+int mtt_analysis_new::mtt_Sel(bool do_MC_, EventExtractor * event, HLTExtractor* HLT, MCExtractor * MC, MuonExtractor *muon, ElectronExtractor *electron, JetExtractor *jet, METExtractor *MET, VertexExtractor *vertex, const edm::EventSetup& iSetup)
 {
   reset();
 
@@ -637,6 +638,21 @@ int mtt_analysis_new::mtt_Sel(bool do_MC_, EventExtractor * event, MCExtractor *
   m_electron = electron;
   m_jet      = jet;
   m_event    = event;
+
+  if (!m_trigger_regex.empty()) {
+    std::vector<std::string>& paths = *HLT->getPaths();
+
+    m_trigger_passed = false;
+    for (std::string& path: paths) {
+      if (regex_match(path, m_trigger_regex)) {
+        //std::cout << "Matched trigger: " << path << std::endl;
+        m_trigger_passed = true;
+        break;
+      }
+    }
+  } else {
+    m_trigger_passed = true;
+  }
 
   if (do_MC_)
   {
@@ -1078,7 +1094,6 @@ void mtt_analysis_new::SystModifJetsAndMET(int SystType, JetCorrectionUncertaint
 
 void mtt_analysis_new::reset()
 {
-
   jecUnc = NULL;
 
   m_mtt_isSel = 0;
@@ -1137,4 +1152,6 @@ void mtt_analysis_new::reset()
   m_nPU        = 0.;
   m_MC_channel = 0;
   m_MC_mtt     = -1.;
+
+  m_trigger_passed = false;
 }

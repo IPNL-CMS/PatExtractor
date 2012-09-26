@@ -245,9 +245,9 @@ void PatExtractor::retrieve()
 void PatExtractor::doAna(const edm::EventSetup& setup) 
 {
   
-  if (do_Mtt_ && do_Muon_ && do_Electron_ && do_Jet_ && do_MET_ && do_Vertex_) 
+  if (do_Mtt_ && do_Muon_ && do_Electron_ && do_Jet_ && do_MET_ && do_Vertex_ && do_HLT_) 
   {   
-    m_Mtt_analysis_new->mtt_Sel(do_MC_, m_event, m_MC, m_muon, m_electron, m_jet, m_MET, m_vertex, setup);
+    m_Mtt_analysis_new->mtt_Sel(do_MC_, m_event, m_HLT, m_MC, m_muon, m_electron, m_jet, m_MET, m_vertex, setup);
 
     m_Mtt_analysis_new->fillTree();
   }

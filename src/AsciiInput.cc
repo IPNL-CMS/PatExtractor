@@ -129,24 +129,3 @@ std::vector<std::string> AsciiInput::strToStrVec(std::string inputString)
   
   return strVec;
 }
-
-
-//-------------------------------------------------------------------------
-
-long AsciiInput::strToLong(std::string inputString) 
-{
-  long longValue;
-  std::istringstream inStr(inputString);
-  inStr >> longValue;
-  return longValue;
-}
- 
-//-------------------------------------------------------------------------
- 
-double AsciiInput::strToDouble(std::string inputString) 
-{
-  double doubleValue;
-  std::istringstream inStr(inputString);
-  inStr >> doubleValue;
-  return doubleValue;
-}

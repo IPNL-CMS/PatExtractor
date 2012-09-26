@@ -18,6 +18,8 @@
 
 #include <vector>
 
+#include <boost/regex.hpp>
+
 class AnalysisSettings;
 class EventExtractor;
 class MuonExtractor;
@@ -26,6 +28,7 @@ class JetExtractor;
 class METExtractor;
 class VertexExtractor;
 class KinFit;
+class HLTExtractor;
 
 class JetCorrectionUncertainty;
 
@@ -46,7 +49,7 @@ public:
   int METSel();
 
   // TTbar selection
-  int mtt_Sel(bool do_MC_, EventExtractor * event, MCExtractor * MC, MuonExtractor *muon, ElectronExtractor *electron, JetExtractor *jet, METExtractor *MET, VertexExtractor *vertex, const edm::EventSetup& iSetup);
+  int mtt_Sel(bool do_MC_, EventExtractor * event, HLTExtractor* HLT, MCExtractor * MC, MuonExtractor *muon, ElectronExtractor *electron, JetExtractor *jet, METExtractor *MET, VertexExtractor *vertex, const edm::EventSetup& iSetup);
 
   void   loopOverCombinations(bool do_MC_);
 
@@ -142,6 +145,10 @@ private:
 
   TLorentzVector* m_refLept;
 
+  // Triggers
+  std::string m_trigger;
+  boost::regex m_trigger_regex;
+  bool m_trigger_passed;
 
   //MC stuff
 

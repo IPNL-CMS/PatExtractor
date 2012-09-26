@@ -46,6 +46,10 @@ class HLTExtractor
 
   std::string paths(int i) {return m_HLT_vector->at(i);}
 
+  std::vector<std::string>* getPaths() {
+    return m_HLT_vector;
+  }
+
  private:
   
   TTree* m_tree_HLT;

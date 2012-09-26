@@ -17,8 +17,12 @@ class AsciiInput
   std::vector<std::string> readRow();
   
   static std::vector<std::string> strToStrVec(std::string inputString);
-  static long strToLong(std::string inputString);
-  static double strToDouble(std::string inputString);
+  template<typename T> static bool strToType(const std::string& str, T& ret) {
+    std::istringstream inStr(str);
+    inStr >> ret;
+
+    return !inStr.fail();
+  }
   
  private:
   /** Input file name */

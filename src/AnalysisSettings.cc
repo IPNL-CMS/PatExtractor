@@ -84,44 +84,17 @@ int AnalysisSettings::parseLimitSetting(std::vector<std::string> *commandVector)
   std::string limit_name = (*itr);
   itr++;
 
-  if(itr!=itr_end) limit = AsciiInput::strToDouble(*itr);
-
-  m_settings.insert(std::make_pair(limit_name,limit));
+  if (itr != itr_end) {
+    if (AsciiInput::strToType(*itr, limit)) {
+      m_numericSettings[limit_name] = limit;
+    } else {
+      m_stringSettings[limit_name] = *itr;
+    }
+  }
   
   return 0;
 }
  
-  
-
- 
-//---------------------------------------------------------------------
-
-bool AnalysisSettings::checkSetting(std::string key, double value) 
-{
-  std::map<std::string,float>::iterator itr = m_settings.find(key);
-  if(itr == m_settings.end()) 
-  {
-    std::cerr << "Error: the limit " << key << " is not defined." << std::endl;
-    return false;
-  }
-  
-  if((*itr).second >= 0. && value < (*itr).second) return false;
-  
-  return true;
-}
-
-float AnalysisSettings::getSetting(std::string key)
-{
-  std::map<std::string,float>::iterator itr = m_settings.find(key);
-  if(itr == m_settings.end()) 
-  {
-    std::cerr << "Error: the limit " << key << " is not defined." << std::endl;
-    return -1;
-  }
-
-  return (*itr).second;
-}
-
 //---------------------------------------------------------------------
 
 void AnalysisSettings::printSettings() 
@@ -130,10 +103,8 @@ void AnalysisSettings::printSettings()
 
   std::cout << "Description of analysis cuts:" << std::endl;
 
-
- 
-  std::map<std::string, float >::iterator limit_itr = m_settings.begin();
-  std::map<std::string, float >::iterator limit_itr_end = m_settings.end();
+  std::map<std::string, float >::iterator limit_itr = m_numericSettings.begin();
+  std::map<std::string, float >::iterator limit_itr_end = m_numericSettings.end();
 
   for(;limit_itr!=limit_itr_end;++limit_itr) 
   {
@@ -144,4 +115,11 @@ void AnalysisSettings::printSettings()
 
     std::cout << std::endl;
   }
+
+  std::cout << std::endl << "String settings:" << std::endl;
+  for (auto& setting: m_stringSettings) {
+    std::cout << " " << setting.first << ": " << setting.second << std::endl;
+  }
 }
+
+//---------------

@@ -19,9 +19,9 @@ fourtop_trigger_analysis::fourtop_trigger_analysis(AnalysisSettings *settings)
   // case we set a default value for the cut, in order to avoid 
   // unwanted crash
 
-  (settings->getSetting("n_SSlept")!=-1)
-    ? m_SSlept = settings->getSetting("n_SSlept") // Value from the joboption
-    : m_SSlept = 0;                               // Default val
+  settings->getSetting("n_SSlept", m_SSlept);
+//    ? m_SSlept = settings->getSetting("n_SSlept") // Value from the joboption
+//    : m_SSlept = 0;                               // Default val
 
   fourtop_trigger_analysis::reset();
 }
