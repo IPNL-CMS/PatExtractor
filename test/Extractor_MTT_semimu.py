@@ -71,6 +71,7 @@ process.PATextraction.doElectron = True
 process.PATextraction.doJet      = True
 process.PATextraction.doMET      = True
 process.PATextraction.doVertex   = True
+process.PATextraction.doHLT      = True
 
 process.PATextraction.doMtt      = True
 
@@ -125,7 +126,9 @@ process.PATextraction.analysisSettings = cms.untracked.vstring(
     "doSyst                   0",
     "systvalue                1",
     "doUseBTaginChi2          1",
-    "doChoiceWKF              0"
+    "doChoiceWKF              0",
+
+    "trigger                  ^HLT_IsoMu17_eta2p1_TriCentralPF(NoPU)?Jet[0-9]{0,3}(_[0-9]{0,3}){0,2}_v[0-9]{0,2}$"
     )
 
 

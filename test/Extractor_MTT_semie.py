@@ -41,7 +41,8 @@ process.PATextraction.doMC  = False
 #Input PAT file to extract
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-      '/store/user/sbrochet/MuHad/MuHad_Run2012A_DCSONLY_v1/02979db18d11879dfe0836140c8c76cf/patTuple_76_2_hm9.root'
+      #'/store/user/sbrochet/ElectronHad/ElectronHad_Run2012A_PromptReco_v2/ff2bcae921e303fb6bcdd4793030d79d/patTuple_87_2_R8W.root'
+      '/store/user/sbrochet/SingleElectron/SingleElectron_Run2012B-TOPElePlusJets-PromptSkim_part2_16June/ff2bcae921e303fb6bcdd4793030d79d/patTuple_44_1_U75.root'
       ),                           
     duplicateCheckMode = cms.untracked.string( 'noDuplicateCheck' )
     )
@@ -70,6 +71,7 @@ process.PATextraction.doElectron = True
 process.PATextraction.doJet      = True
 process.PATextraction.doMET      = True
 process.PATextraction.doVertex   = True
+process.PATextraction.doHLT      = True
 
 process.PATextraction.doMtt      = True
 
@@ -124,7 +126,9 @@ process.PATextraction.analysisSettings = cms.untracked.vstring(
     "doSyst                   0",
     "systvalue                1",
     "doUseBTaginChi2          1",
-    "doChoiceWKF              0"
+    "doChoiceWKF              0",
+
+    "trigger                  ^HLT_Ele25_CaloIdVT_CaloIso(VL|T)_TrkId(VL|T)_TrkIsoT_TriCentralPF(NoPU)?Jet30_v[0-9]{0,2}$"
     )
 
 

@@ -31,7 +31,7 @@ process.options = cms.untracked.PSet(
     )
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1) #
+    input = cms.untracked.int32(5000) #
     )
 
 #Global tag and data type choice
@@ -70,6 +70,7 @@ process.PATextraction.doElectron = True
 process.PATextraction.doJet      = True
 process.PATextraction.doMET      = True
 process.PATextraction.doVertex   = True
+process.PATextraction.doHLT      = True
 
 process.PATextraction.doMtt      = True
 
@@ -113,8 +114,6 @@ process.PATextraction.analysisSettings = cms.untracked.vstring(
     "JET_btag_CSVM_min        0.679",
     "JET_btag_CSVT_min        0.898",
     "JET_btag_TCHPT_min       3.41",
-    "JET_btag_SSVHEM_min      1.74",
-    "JET_btag_SSVHPT_min      2",
 
     "W_mass                   80.399",
     "Top_mass                 172.0",
@@ -126,7 +125,9 @@ process.PATextraction.analysisSettings = cms.untracked.vstring(
     "doSyst                   0",
     "systvalue                1",
     "doUseBTaginChi2          1",
-    "doChoiceWKF              0"
+    "doChoiceWKF              0",
+
+    "trigger                  ^HLT_IsoMu17_eta2p1_TriCentralPF(NoPU)?Jet[0-9]{0,3}(_[0-9]{0,3}){0,2}_v[0-9]{0,2}$"
     )
 
 
