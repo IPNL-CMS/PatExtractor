@@ -70,6 +70,7 @@ process.PATextraction.doElectron = True
 process.PATextraction.doJet      = True
 process.PATextraction.doMET      = True
 process.PATextraction.doVertex   = True
+process.PATextraction.doHLT      = True
 
 process.PATextraction.doMtt      = True
 
@@ -128,7 +129,7 @@ process.PATextraction.analysisSettings = cms.untracked.vstring(
     "doUseBTaginChi2          1",
     "doChoiceWKF              0",
 
-    "trigger                  ^HLT_Ele25_CaloIdVT_CaloIsoVL_TrkIdVL_TrkIsoT_TriCentralPF(NoPU)?Jet[0-9]{0,3}(_[0-9]{0,3}){0,2}_v[0-9]{0,2}$"
+    "trigger                  ^HLT_Ele25_CaloIdVT_CaloIso(VL|T)_TrkId(VL|T)_TrkIsoT_TriCentralPF(NoPU)?Jet30_v[0-9]{0,2}$"
     )
 
 
