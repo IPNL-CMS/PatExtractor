@@ -19,6 +19,10 @@ crabFolders = [options.path]
 
 for crabFolder in crabFolders:
   dataset = crabFolder.rstrip("/").replace("crab_", "")
+  # Remove date
+  dataset = dataset[0:dataset.rfind("_")]
+  print dataset
+
   print("Processing %s" % dataset)
   for a in ["semie", "semimu"]:
     outputName = "MTT_%s_%s.root" % (dataset, a)

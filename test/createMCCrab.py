@@ -39,14 +39,16 @@ CMSSW.pset = Extractor_MTT_MC_semimu.py
 USER.user_remote_dir = ${remote_dir_semimu}
 """
 
+d = datetime.datetime.now().strftime("%d%b")
+
 for dataset, ui in datasets.items():
   name = ("%s_2012_v%d") % (ui, version)
-  ui_working_dir = ("crab_%s") % (name)
+  ui_working_dir = ("crab_%s_%s") % (name, d)
   output_file = "multicrab_MC_%s.cfg" % (name)
   #output_dir_semie = ("MTT/Extracted/MC/Summer12/semie/%s_v%d" % (ui, version)).replace("/", "\\/")
   #output_dir_semimu = ("MTT/Extracted/MC/Summer12/semimu/%s_v%d" % (ui, version)).replace("/", "\\/")
-  output_dir_semie = ("MTT/Extracted/MC/Summer12/semie/%s_v%d" % (ui, version))
-  output_dir_semimu = ("MTT/Extracted/MC/Summer12/semimu/%s_v%d" % (ui, version))
+  output_dir_semie = ("MTT/Extracted/MC/Summer12/%s/semie/%s_v%d" % (d, ui, version))
+  output_dir_semimu = ("MTT/Extracted/MC/Summer12/%s/semimu/%s_v%d" % (d, ui, version))
 
   full_template = copy.copy(multicrab)
   if "EMEnriched" in dataset:
