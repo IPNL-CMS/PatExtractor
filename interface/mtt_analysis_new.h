@@ -20,15 +20,17 @@
 
 #include <boost/regex.hpp>
 
+#include "Extractors/PatExtractor/interface/JetMETExtractor.h"
+
 class AnalysisSettings;
 class EventExtractor;
 class MuonExtractor;
 class ElectronExtractor;
-class JetExtractor;
 class METExtractor;
 class VertexExtractor;
 class KinFit;
 class HLTExtractor;
+class PatExtractor;
 
 class JetCorrectionUncertainty;
 
@@ -49,7 +51,7 @@ public:
   int METSel();
 
   // TTbar selection
-  int mtt_Sel(bool do_MC_, EventExtractor * event, HLTExtractor* HLT, MCExtractor * MC, MuonExtractor *muon, ElectronExtractor *electron, JetExtractor *jet, METExtractor *MET, VertexExtractor *vertex, const edm::EventSetup& iSetup);
+  int mtt_Sel(const edm::EventSetup& iSetup, bool do_MC_, PatExtractor* extractor);
 
   void   loopOverCombinations(bool do_MC_);
 
@@ -75,7 +77,7 @@ public:
 
   bool isBJet(unsigned int index) {
     // Use recommanded WP from https://indico.cern.ch/getFile.py/access?contribId=4&resId=2&materialId=slides&confId=195042
-    return m_jet->getJetBTagProb_CSV(index) > m_JET_btag_CSVM_min;
+    return m_jetMet->getJetBTagProb_CSV(index) > m_JET_btag_CSVM_min;
   }
 
 private:
@@ -94,16 +96,16 @@ private:
   float  m_we;
   float  m_te;
 
-  EventExtractor* m_event;
-  MCExtractor*    m_MC;
+  std::shared_ptr<EventExtractor> m_event;
+  std::shared_ptr<MCExtractor>    m_MC;
 
-  VertexExtractor* m_vertex;
+  std::shared_ptr<VertexExtractor> m_vertex;
   float m_VTX_NDof_Min;
 
-  METExtractor*   m_MET;
+  //std::shared_ptr<METExtractor>   m_MET;
   float          m_MET_Pt_Min;
 
-  MuonExtractor* m_muon;
+  std::shared_ptr<MuonExtractor> m_muon;
   float m_MU_Pt_min_loose;
   float m_MU_Eta_max_loose;
   float m_MU_Iso_min;
@@ -120,7 +122,7 @@ private:
   float m_MU_eEtaW_max;
   float m_MU_eIso_min;
 
-  ElectronExtractor* m_electron;
+  std::shared_ptr<ElectronExtractor> m_electron;
   float m_ELE_Pt_min;
   float m_ELE_Eta_max;
   float m_ELE_Iso_min;
@@ -128,7 +130,7 @@ private:
   float m_ELE_Zwin;
   float m_ELE_dB_min;
 
-  JetExtractor* m_jet;
+  std::shared_ptr<JetMETExtractor> m_jetMet;
   float m_JET_Pt_min;
   float m_JET_Eta_max;
   //float m_jet_btag_tchel_min;

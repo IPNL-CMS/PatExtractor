@@ -12,6 +12,9 @@
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 
+#include "Extractors/PatExtractor/interface/BaseExtractor.h"
+#include "Extractors/PatExtractor/interface/MCExtractor.h"
+
 //Include std C++
 #include <iostream>
 #include <vector>
@@ -22,27 +25,25 @@
 #include "TLorentzVector.h"
 #include "TClonesArray.h"
 
-class HLTExtractor
+class HLTExtractor: public SuperBaseExtractor
 {
 
  public:
 
-  HLTExtractor(bool doTree);
-  HLTExtractor(TFile *a_file);
+  HLTExtractor(const std::string& name, bool doTree);
+  HLTExtractor(const std::string& name, TFile *a_file);
   ~HLTExtractor();
 
 
-  void writeInfo(const edm::Event *event); 
+  virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor);
   void getInfo(int ievt); 
+
   void reset();
   void fillTree(); 
-  void fillSize(int size);
-  int  getSize();
-  void print();
+
+  int getSize() const;
 
   // Setters/Getters
-
-  bool isOK() {return m_OK;}
 
   std::string paths(int i) {return m_HLT_vector->at(i);}
 
@@ -54,7 +55,7 @@ class HLTExtractor
   
   TTree* m_tree_HLT;
 
-  int   m_n_HLTs;
+  int m_n_HLTs;
   std::vector< std::string > *m_HLT_vector;
 
   bool m_OK;

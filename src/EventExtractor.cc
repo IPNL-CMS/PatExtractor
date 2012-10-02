@@ -1,13 +1,13 @@
 #include "../interface/EventExtractor.h"
 
-EventExtractor::EventExtractor()
+EventExtractor::EventExtractor(const std::string& name)
 {
   //std::cout << "EventExtractor objet is created" << std::endl;
 
 
   // Tree definition
 
-  m_tree_event    = new TTree("event","Event info");  
+  m_tree_event    = new TTree(name.c_str(), "Event info");  
 
   // Branches definition
 
@@ -24,11 +24,11 @@ EventExtractor::EventExtractor()
   EventExtractor::reset();
 }
 
-EventExtractor::EventExtractor(TFile *a_file)
+EventExtractor::EventExtractor(const std::string& name, TFile *a_file)
 {
   // Tree definition
 
-  m_tree_event = dynamic_cast<TTree*>(a_file->Get("event"));
+  m_tree_event = dynamic_cast<TTree*>(a_file->Get(name.c_str()));
 
 
   if (!m_tree_event)
@@ -59,20 +59,20 @@ EventExtractor::~EventExtractor()
 // Method filling the main particle tree
 //
 
-void EventExtractor::writeInfo(const edm::Event *event, bool doMC) 
+void EventExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor)
 {
-  m_evtID             = (event->eventAuxiliary()).id().event();
-  m_BCID              = (event->eventAuxiliary()).bunchCrossing();
-  m_time              = (event->eventAuxiliary()).time().unixTime();
-  m_lumi              = (event->eventAuxiliary()).luminosityBlock();
-  m_run               = (event->eventAuxiliary()).run();
+  m_evtID             = (event.eventAuxiliary()).id().event();
+  m_BCID              = (event.eventAuxiliary()).bunchCrossing();
+  m_time              = (event.eventAuxiliary()).time().unixTime();
+  m_lumi              = (event.eventAuxiliary()).luminosityBlock();
+  m_run               = (event.eventAuxiliary()).run();
   m_nPU               = -1;
   m_nTrueInteractions = -1;
 
-  if (doMC) 
+  if (mcExtractor) 
   {
     edm::Handle<std::vector< PileupSummaryInfo > >  PupInfo;
-    event->getByLabel(edm::InputTag("addPileupInfo"), PupInfo);
+    event.getByLabel(edm::InputTag("addPileupInfo"), PupInfo);
 
     std::vector<PileupSummaryInfo>::const_iterator PVI;
 
@@ -85,7 +85,8 @@ void EventExtractor::writeInfo(const edm::Event *event, bool doMC)
       }
     }
   }
-  m_tree_event->Fill(); 
+
+  m_tree_event->Fill();
 }
 
 

@@ -1,21 +1,22 @@
 #include "../interface/TrackExtractor.h"
 
 
-TrackExtractor::TrackExtractor(bool doTree, edm::InputTag tag)
+TrackExtractor::TrackExtractor(const std::string& name, const edm::InputTag& tag, bool doTree)
+  : BaseExtractor(name)
 {
   m_tag = tag;
 
   // Set everything to 0
   m_OK = false;
-  TrackExtractor::reset();
-
+  reset();
 
   // Tree definition
 
   if (doTree)
   {
-    m_tree_track         = new TTree("track","General tracks info");     
-    m_tree_track->Branch("n_tracks",  &m_n_tracks,  "n_tracks/I");  
+    m_OK = true;
+    m_tree_track         = new TTree(name.c_str(), "General tracks info");     
+    m_tree_track->Branch("n_tracks",  &m_size,  "n_tracks/I");  
     m_tree_track->Branch("track_px",  &m_trk_px,   "track_px[n_tracks]/F");  
     m_tree_track->Branch("track_py",  &m_trk_py,   "track_py[n_tracks]/F");  
     m_tree_track->Branch("track_pz",  &m_trk_pz,   "track_pz[n_tracks]/F"); 
@@ -31,14 +32,15 @@ TrackExtractor::TrackExtractor(bool doTree, edm::InputTag tag)
   }
 }
 
-TrackExtractor::TrackExtractor(TFile *a_file)
+TrackExtractor::TrackExtractor(const std::string& name, TFile *a_file)
+  :BaseExtractor(name)
 {
   std::cout << "TrackExtractor objet is retrieved" << std::endl;
 
   // Tree definition
   m_OK = false;
 
-  m_tree_track = dynamic_cast<TTree*>(a_file->Get("track"));
+  m_tree_track = dynamic_cast<TTree*>(a_file->Get(m_name.c_str()));
 
   if (!m_tree_track)
   {
@@ -48,7 +50,7 @@ TrackExtractor::TrackExtractor(TFile *a_file)
 
   m_OK = true;
 
-  m_tree_track->SetBranchAddress("n_tracks",  &m_n_tracks);
+  m_tree_track->SetBranchAddress("n_tracks",  &m_size);
   m_tree_track->SetBranchAddress("track_px",  &m_trk_px);
   m_tree_track->SetBranchAddress("track_py",  &m_trk_py);
   m_tree_track->SetBranchAddress("track_pz",  &m_trk_pz);
@@ -73,41 +75,22 @@ TrackExtractor::~TrackExtractor()
 // Method filling the main particle tree
 //
 
-void TrackExtractor::writeInfo(const edm::Event *event) 
-{
-  edm::Handle<reco::TrackCollection> trackHandle;
-  event->getByLabel(m_tag, trackHandle);
-  const reco::TrackCollection trackCollection = *(trackHandle.product());
-
-  TrackExtractor::reset();
-  TrackExtractor::fillSize(static_cast<int>(trackCollection.size()));
-
-  if (TrackExtractor::getSize())
-  {
-    for(int i=0; i<TrackExtractor::getSize(); ++i) 
-      TrackExtractor::writeInfo(&trackCollection.at(i),i); 
-  }
-
-  TrackExtractor::fillTree();
-}
-
-
-void TrackExtractor::writeInfo(const reco::Track *part, int index) 
+void TrackExtractor::writeInfo(const reco::Track& part, int index) 
 {
   if (index>=m_tracks_MAX) return;
 
-  m_trk_px[index]              = part->px();
-  m_trk_py[index]              = part->py();
-  m_trk_pz[index]              = part->pz();
-  m_trk_vx[index]              = part->vx();
-  m_trk_vy[index]              = part->vy();
-  m_trk_vz[index]              = part->vz();
-  m_trk_eta[index]             = part->eta();
-  m_trk_phi[index]             = part->phi();
-  m_trk_charge[index]          = part->charge();
-  m_trk_d0[index]              = part->d0();
-  m_trk_nValidHits[index]      = part->numberOfValidHits();
-  m_trk_normChi2[index]        = part->normalizedChi2();
+  m_trk_px[index]              = part.px();
+  m_trk_py[index]              = part.py();
+  m_trk_pz[index]              = part.pz();
+  m_trk_vx[index]              = part.vx();
+  m_trk_vy[index]              = part.vy();
+  m_trk_vz[index]              = part.vz();
+  m_trk_eta[index]             = part.eta();
+  m_trk_phi[index]             = part.phi();
+  m_trk_charge[index]          = part.charge();
+  m_trk_d0[index]              = part.d0();
+  m_trk_nValidHits[index]      = part.numberOfValidHits();
+  m_trk_normChi2[index]        = part.normalizedChi2();
 }
 
 
@@ -115,7 +98,7 @@ void TrackExtractor::writeInfo(const reco::Track *part, int index)
 
 void TrackExtractor::reset()
 {
-  m_n_tracks = 0;
+  m_size = 0;
 
   for (int i=0;i<m_tracks_MAX;++i) 
   {
@@ -140,16 +123,6 @@ void TrackExtractor::fillTree()
   m_tree_track->Fill(); 
 }
  
-void TrackExtractor::fillSize(int size)
-{
-  m_n_tracks=size;
-}
-
-int  TrackExtractor::getSize()
-{
-  return m_n_tracks;
-}
-
 //
 // Method getting the info from an input file
 //

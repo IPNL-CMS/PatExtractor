@@ -5,6 +5,9 @@
  *  Class that produces a roottuple from PATuples
  */
 
+#include <memory>
+#include <map>
+
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/Framework/interface/ESHandle.h"
@@ -14,10 +17,11 @@
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 
+#include "../interface/BaseExtractor.h"
 #include "../interface/ElectronExtractor.h"
 #include "../interface/MCExtractor.h"
 #include "../interface/PhotonExtractor.h"
-#include "../interface/JetExtractor.h"
+#include "../interface/JetMETExtractor.h"
 #include "../interface/METExtractor.h"
 #include "../interface/MuonExtractor.h"
 #include "../interface/VertexExtractor.h"
@@ -56,7 +60,18 @@ class PatExtractor : public edm::EDAnalyzer {
   void retrieve();
   void doAna(const edm::EventSetup&);
 
+  std::shared_ptr<SuperBaseExtractor>& getExtractor(const std::string& name) {
+    return m_extractors[m_extractorsIndexes[name]];
+  }
+
+
  private:
+
+  void addExtractor(const std::string& name, SuperBaseExtractor* extractor) {
+    m_extractors.push_back(std::shared_ptr<SuperBaseExtractor>(extractor));
+    m_extractorsIndexes[name] = m_extractors.size() - 1;
+  }
+
   bool do_fill_;
   bool do_HLT_;
   bool do_MC_;
@@ -91,8 +106,6 @@ class PatExtractor : public edm::EDAnalyzer {
   std::string outFilename_;
   std::string inFilename_;
 
-
-
   std::vector<std::string> m_settings_;
 
   edm::ParameterSet m_mttParameterSet;
@@ -100,17 +113,9 @@ class PatExtractor : public edm::EDAnalyzer {
   TFile* m_infile;
   TFile* m_outfile;
 
+  std::vector<std::shared_ptr<SuperBaseExtractor>> m_extractors;
+  std::map<std::string, size_t> m_extractorsIndexes;
 
-  ElectronExtractor* m_electron;
-  MCExtractor*       m_MC;
-  PhotonExtractor*   m_photon;
-  JetExtractor*      m_jet;
-  METExtractor*      m_MET;
-  MuonExtractor*     m_muon;
-  VertexExtractor*   m_vertex;
-  TrackExtractor*    m_track;
-  EventExtractor*    m_event;
-  HLTExtractor*      m_HLT;
   AnalysisSettings*  m_ana_settings;
 
   mtt_analysis_new*           m_Mtt_analysis_new;

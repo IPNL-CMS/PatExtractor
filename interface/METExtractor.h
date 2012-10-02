@@ -15,7 +15,7 @@
 #include "DataFormats/PatCandidates/interface/MET.h"
 #include "DataFormats/Common/interface/View.h"
 
-
+#include "Extractors/PatExtractor/interface/BaseExtractor.h"
 
 //Include std C++
 #include <iostream>
@@ -26,42 +26,33 @@
 #include "TLorentzVector.h"
 #include "TClonesArray.h"
 
-class METExtractor
+class METExtractor: public BaseExtractor<pat::MET>
 {
 
  public:
 
-  METExtractor(bool doTree,edm::InputTag tag);
-  METExtractor(TFile *a_file);
-  ~METExtractor();
+  METExtractor(const std::string& name, const edm::InputTag& tag, bool doTree);
+  METExtractor(const std::string& name, TFile *a_file);
+  virtual ~METExtractor();
 
 
-  void writeInfo(const pat::MET *part, int index); 
-  void writeInfo(const edm::Event *event); 
-  void getInfo(int ievt); 
+  virtual void writeInfo(const pat::MET& part, int index); 
+  virtual void doMCMatch(const pat::MET& object, MCExtractor* mcExtractor, int index) {}
+
+  void getInfo(int ievt);
 
   void reset();
   void fillTree(); 
-  void fillSize(int size);
-  int  getSize();
+
   TLorentzVector *getMETLorentzVector(int metidx) {return (TLorentzVector*)m_met_lorentzvector->At(metidx);}
 
   void setMETLorentzVector(int idx, float E, float Px, float Py, float Pz);
 
-  bool isOK() {return m_OK;}
  private:
   
   TTree* m_tree_met;
-
   static const int 	m_mets_MAX  = 2;
-
-  edm::InputTag m_tag;
-
-  bool m_OK;
-  int   m_n_mets;
-
   TClonesArray* m_met_lorentzvector;
-
 };
 
 #endif 

@@ -1,14 +1,13 @@
 #include "../interface/MCExtractor.h"
 
 
-MCExtractor::MCExtractor(bool doTree)
+MCExtractor::MCExtractor(const std::string& name, bool doTree)
 {
   // Set everything to 0
 
   m_OK = false;
   m_MC_lorentzvector = new TClonesArray("TLorentzVector");
-  MCExtractor::reset();
-
+  reset();
 
   // Tree definition
 
@@ -16,7 +15,7 @@ MCExtractor::MCExtractor(bool doTree)
   {
     m_OK = true;
 
-    m_tree_MC = new TTree("MC","PAT MC info");  
+    m_tree_MC = new TTree(name.c_str(), "PAT MC info");  
     m_tree_MC->Branch("MC_4vector","TClonesArray",&m_MC_lorentzvector, 1000, 0);
     m_tree_MC->Branch("n_MCs",  &m_n_MCs,"n_MCs/I");  
     m_tree_MC->Branch("MC_index",   &m_MC_index,    "MC_index[n_MCs]/I");  
@@ -36,21 +35,21 @@ MCExtractor::MCExtractor(bool doTree)
   }
 }
 
-MCExtractor::MCExtractor(TFile *a_file)
+MCExtractor::MCExtractor(const std::string& name, TFile *a_file)
 {
   std::cout << "MCExtractor object is retrieved" << std::endl;
 
   // Tree definition
   m_OK = false;
 
-  m_tree_MC = dynamic_cast<TTree*>(a_file->Get("MC"));
+  m_tree_MC = dynamic_cast<TTree*>(a_file->Get(name.c_str()));
 
   if (!m_tree_MC)
   {
     std::cout << "This tree doesn't exist!!!" << std::endl;
     return;
   }
-  
+
   m_OK = true;
 
   m_MC_lorentzvector = new TClonesArray("TLorentzVector");
@@ -100,13 +99,13 @@ MCExtractor::~MCExtractor()
 //
 
 
-void MCExtractor::writeInfo(const edm::Event *event) 
+void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor)
 {
   edm::Handle<reco::GenParticleCollection> genParticles;
-  event->getByLabel("genParticles", genParticles);
-  
+  event.getByLabel("genParticles", genParticles);
+
   MCExtractor::reset();
-  MCExtractor::fillSize(static_cast<int>(genParticles->size()));
+  m_n_MCs = static_cast<int>(genParticles->size());
 
   int   id = 0;
   int   id_r = 0;
@@ -115,68 +114,68 @@ void MCExtractor::writeInfo(const edm::Event *event)
   float pz_r = 0.;
   int st    = 0;
   int n_mot = 0;
-  int n_dau = 0;
+  //int n_dau = 0;
 
   int ipart = 0;
 
-  for(int i=0; i<MCExtractor::getSize(); ++i) 
+  for(int i=0; i < m_n_MCs; ++i) 
   {
     const reco::Candidate & p = (*genParticles)[i];
-    
+
     id    = p.pdgId();
     st    = p.status(); 
     n_mot = p.numberOfMothers(); 
-    n_dau = p.numberOfDaughters();
-    
+    //n_dau = p.numberOfDaughters();
+
     int iMo1 = -1;
     int iMo2 = -1;
-    
+
     if (st==3)
     {
       if (n_mot>0)
       {
-	id_r = (p.mother(0))->pdgId();
-	px_r = (p.mother(0))->px();
-	py_r = (p.mother(0))->py();
-	pz_r = (p.mother(0))->pz();
-	
-	for(int j=0; j<m_n_MCs; ++j) 
-        {
-	  const reco::Candidate &p2 = (*genParticles)[j];
+        id_r = (p.mother(0))->pdgId();
+        px_r = (p.mother(0))->px();
+        py_r = (p.mother(0))->py();
+        pz_r = (p.mother(0))->pz();
 
-	  if (p2.pdgId() != id_r) continue;
-	  if (fabs(p2.px()-px_r)>0.0001) continue;
-	  if (fabs(p2.py()-py_r)>0.0001) continue;
-	  if (fabs(p2.pz()-pz_r)>0.0001) continue;
-	  
-	  iMo1=j;
-	  
-	  break;
-	}
-
-	if (n_mot>1)
+        for(int j=0; j<m_n_MCs; ++j) 
         {
-	  id_r = (p.mother(1))->pdgId();
-	  px_r = (p.mother(1))->px();
-	  py_r = (p.mother(1))->py();
-	  pz_r = (p.mother(1))->pz();
-	  
-	  for(int j=0; j<MCExtractor::getSize(); ++j) 
+          const reco::Candidate &p2 = (*genParticles)[j];
+
+          if (p2.pdgId() != id_r) continue;
+          if (fabs(p2.px()-px_r)>0.0001) continue;
+          if (fabs(p2.py()-py_r)>0.0001) continue;
+          if (fabs(p2.pz()-pz_r)>0.0001) continue;
+
+          iMo1=j;
+
+          break;
+        }
+
+        if (n_mot>1)
+        {
+          id_r = (p.mother(1))->pdgId();
+          px_r = (p.mother(1))->px();
+          py_r = (p.mother(1))->py();
+          pz_r = (p.mother(1))->pz();
+
+          for(int j=0; j < m_n_MCs; ++j) 
           {
-	    const reco::Candidate &p2 = (*genParticles)[j];
-	    
-	    if (p2.pdgId() != id_r) continue;
-	    if (fabs(p2.px()-px_r)>0.0001) continue;
-	    if (fabs(p2.py()-py_r)>0.0001) continue;
-	    if (fabs(p2.pz()-pz_r)>0.0001) continue;
-	    
-	    iMo2=j;
-	    
-	    break;
-	  }
-	}
+            const reco::Candidate &p2 = (*genParticles)[j];
+
+            if (p2.pdgId() != id_r) continue;
+            if (fabs(p2.px()-px_r)>0.0001) continue;
+            if (fabs(p2.py()-py_r)>0.0001) continue;
+            if (fabs(p2.pz()-pz_r)>0.0001) continue;
+
+            iMo2=j;
+
+            break;
+          }
+        }
       }
-      
+
       m_MC_imot1[ipart]      = iMo1;
       m_MC_imot2[ipart]      = iMo2;
       m_MC_index[ipart]      = i;
@@ -194,21 +193,20 @@ void MCExtractor::writeInfo(const edm::Event *event)
       new((*m_MC_lorentzvector)[i]) TLorentzVector(p.px(),p.py(),p.pz(),p.energy());
 
       if (n_mot==0) m_MC_generation[ipart] = 0;
-      
+
       ++ipart;
     }
   }  
-  
 
-  MCExtractor::fillSize(ipart);
-  
+
+  m_n_MCs = ipart;
+
   for(int i=1; i<6; ++i) 
   {    
-    MCExtractor::constructGeneration(i,MCExtractor::getSize());
+    MCExtractor::constructGeneration(i, m_n_MCs);
   }
-  
-  MCExtractor::fillTree();
- 
+
+  fillTree();
 }
 
 //
@@ -225,7 +223,7 @@ void MCExtractor::getInfo(int ievt)
 void MCExtractor::reset()
 {
   m_n_MCs = 0;
-  
+
   for (int i=0;i<m_MCs_MAX;++i) 
   {
     m_MC_index[i] = 0;
@@ -252,17 +250,6 @@ void MCExtractor::fillTree()
 {
   m_tree_MC->Fill(); 
 }
- 
-void MCExtractor::fillSize(int size)
-{
-  m_n_MCs=size;
-}
-
-int  MCExtractor::getSize()
-{
-  return m_n_MCs;
-}
-
 
 void MCExtractor::constructGeneration(int gene, int npart)
 {
@@ -279,4 +266,8 @@ void MCExtractor::constructGeneration(int gene, int npart)
       }
     }
   }
+}
+
+int MCExtractor::getSize() const {
+  return m_n_MCs;
 }

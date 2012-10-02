@@ -15,6 +15,7 @@
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
+#include "../interface/BaseExtractor.h"
 
 //Include std C++
 #include <iostream>
@@ -25,27 +26,24 @@
 #include "TLorentzVector.h"
 #include "TClonesArray.h"
 
-class MCExtractor
+class MCExtractor: public SuperBaseExtractor
 {
 
  public:
 
-  MCExtractor(bool doTree);
-  MCExtractor(TFile *a_file);
-  ~MCExtractor();
+  MCExtractor(const std::string& name, bool doTree);
+  MCExtractor(const std::string& name, TFile *a_file);
+  virtual ~MCExtractor();
 
-
-  void writeInfo(const edm::Event *event); 
+  virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor);
 
   void reset();
   void fillTree(); 
-  void fillSize(int size);
-  int  getSize();
   void getInfo(int ievt); 
 
-  // Setters/Getters
+  int getSize() const;
 
-  bool isOK() {return m_OK;}
+  // Setters/Getters
 
   int   getStatus(int index){return m_MC_status[index];}
   int   getType(int index){return m_MC_type[index];}
@@ -62,8 +60,6 @@ class MCExtractor
   TTree* m_tree_MC;
 
   static const int 	m_MCs_MAX        = 1000;
-
-  bool m_OK;
 
   int   m_n_MCs;
   TClonesArray *m_MC_lorentzvector;

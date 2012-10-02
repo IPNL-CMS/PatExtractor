@@ -15,6 +15,7 @@
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "DataFormats/Common/interface/View.h"
 
+#include "../interface/BaseExtractor.h"
 #include "../interface/MCExtractor.h"
 
 //Include std C++
@@ -26,30 +27,24 @@
 #include "TLorentzVector.h"
 #include "TClonesArray.h"
 
-class PhotonExtractor
+class PhotonExtractor: public BaseExtractor<pat::Photon>
 {
 
  public:
 
-  PhotonExtractor(bool doTree,edm::InputTag tag);
-  PhotonExtractor(TFile *a_file);
-  ~PhotonExtractor();
+  PhotonExtractor(const std::string& name, const edm::InputTag& tag, bool doTree);
+  PhotonExtractor(const std::string& name, TFile *a_file);
+  virtual ~PhotonExtractor();
 
-  void writeInfo(const edm::Event *event,MCExtractor* m_MC, bool doMC); 
-
-  void writeInfo(const pat::Photon *part, int index); 
-  void getInfo(int ievt); 
+  void writeInfo(const pat::Photon& part, int index); 
+  void getInfo(int ievt);
 
   void reset();
   void fillTree(); 
-  void fillSize(int size);
-  int  getSize();
   
-  int getMatch(const pat::Photon *part, MCExtractor* m_MC);
+  virtual void doMCMatch(const pat::Photon& object, MCExtractor* mcExtractor, int index);
 
   // Setters/Getters
-
-  bool isOK() {return m_OK;}
 
  private:
   
@@ -57,12 +52,7 @@ class PhotonExtractor
 
   static const int 	m_photons_MAX    = 100;
 
-  edm::InputTag m_tag;
   float m_deltaR_cut;
-
-  bool m_OK;
-
-  int   m_n_photons;
 
   TClonesArray* m_pho_lorentzvector;
   float	m_pho_vx[m_photons_MAX];

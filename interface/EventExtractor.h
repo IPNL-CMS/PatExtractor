@@ -11,6 +11,9 @@
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 
+#include "../interface/BaseExtractor.h"
+#include "../interface/MCExtractor.h"
+
 //Include std C++
 #include <iostream>
 
@@ -20,18 +23,20 @@
 #include "TLorentzVector.h"
 #include "TClonesArray.h"
 
-class EventExtractor
+class EventExtractor: public SuperBaseExtractor
 {
 
  public:
 
-  EventExtractor();
-  EventExtractor(TFile *a_file);
-  ~EventExtractor();
+  EventExtractor(const std::string& name);
+  EventExtractor(const std::string& name, TFile *a_file);
+  virtual ~EventExtractor();
 
 
-  void writeInfo(const edm::Event *event, bool doMC); 
-  void getInfo(int ievt); 
+  virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor);
+
+  void getInfo(int ievt);
+
   void reset();
   void print();
 

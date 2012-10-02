@@ -15,6 +15,8 @@
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 
+#include "Extractors/PatExtractor/interface/BaseExtractor.h"
+
 //Include std C++
 #include <iostream>
 
@@ -24,26 +26,22 @@
 #include "TLorentzVector.h"
 #include "TClonesArray.h"
 
-class VertexExtractor
+class VertexExtractor: public BaseExtractor<reco::Vertex>
 {
 
  public:
 
-  VertexExtractor(bool doTree,edm::InputTag tag);
-  VertexExtractor(TFile *a_file);
-  ~VertexExtractor();
+  VertexExtractor(const std::string& name, const edm::InputTag& tag, bool doTree);
+  VertexExtractor(const std::string& name, TFile *a_file);
+  virtual ~VertexExtractor();
 
-
-  void writeInfo(const reco::Vertex *part, int index); 
-  void writeInfo(const edm::Event *event); 
+  void writeInfo(const reco::Vertex& part, int index); 
   void getInfo(int ievt); 
+  virtual void doMCMatch(const reco::Vertex& object, MCExtractor* mcExtractor, int index) {}
 
   void reset();
   void fillTree(); 
-  void fillSize(int size);
   float dist_to_vtx(int vtxidx, float x, float y, float z);
-
-  int   getSize();
 
   float vx(int vtxidx)           {return m_vtx_vx[vtxidx];}
   float vy(int vtxidx)           {return m_vtx_vy[vtxidx];}
@@ -53,18 +51,12 @@ class VertexExtractor
   int   getNtracks(int vtxidx)   {return m_vtx_ntracks[vtxidx];}
   float getNormChi2(int vtxidx)  {return m_vtx_normChi2[vtxidx];}
 
-  bool isOK() {return m_OK;}
-
  private:
   
   TTree* m_tree_vtx;
 
   static const int 	m_vertices_MAX   = 50;
 
-  bool m_OK;
-  edm::InputTag m_tag;
-
-  int   m_n_vertices;
   float	m_vtx_vx[m_vertices_MAX];
   float	m_vtx_vy[m_vertices_MAX];
   float	m_vtx_vz[m_vertices_MAX];

@@ -12,11 +12,11 @@
 #include "Extractors/PatExtractor/interface/HLTExtractor.h"
 #include "Extractors/PatExtractor/interface/MuonExtractor.h"
 #include "Extractors/PatExtractor/interface/ElectronExtractor.h"
-#include "Extractors/PatExtractor/interface/JetExtractor.h"
 #include "Extractors/PatExtractor/interface/METExtractor.h"
 #include "Extractors/PatExtractor/interface/VertexExtractor.h"
 #include "Extractors/PatExtractor/interface/KinFit.h"
 #include "Extractors/PatExtractor/interface/EventExtractor.h"
+#include "Extractors/PatExtractor/interface/PatExtractor.h"
 
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
@@ -347,7 +347,7 @@ int mtt_analysis_new::VertexSel()
 // MET
 int mtt_analysis_new::METSel()
 {
-  m_mtt_MET = m_MET->getMETLorentzVector(0)->Pt();
+  m_mtt_MET = m_jetMet->getMETLorentzVector(0)->Pt();
   if (m_mtt_MET > m_MET_Pt_Min) {
     return 1;
   }
@@ -563,14 +563,14 @@ int mtt_analysis_new::JetSel()
   AllJetsPt       = 0.;
   m_selJetsIds.clear();
 
-  int n_jet = m_jet->getSize();
+  int n_jet = m_jetMet->getSize();
 
   if (! n_jet)
     return 8;
 
   for (int i = 0; i < n_jet; i++)
   {
-    TLorentzVector *jetP = m_jet->getJetLorentzVector(i);
+    TLorentzVector *jetP = m_jetMet->getJetLorentzVector(i);
 
     if (fabs(jetP->Pt()) < m_JET_Pt_min) continue;
     if (fabs(jetP->Eta()) >  m_JET_Eta_max) continue;
@@ -584,21 +584,21 @@ int mtt_analysis_new::JetSel()
     if (m_mtt_NJets < 9) // Count the number of btagged jets in the selected jets
     {
       m_selJetsIds.push_back(i);
-      if ((m_jet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVL_min)
+      if ((m_jetMet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVL_min)
         ++m_mtt_NBtaggedJets_CSVL;
-      if ((m_jet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVM_min)
+      if ((m_jetMet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVM_min)
         ++m_mtt_NBtaggedJets_CSVM;
-      if ((m_jet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVT_min)
+      if ((m_jetMet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVT_min)
         ++m_mtt_NBtaggedJets_CSVT;
-//      if ((m_jet->getJetBTagProb_TCHP(i)) > m_JET_btag_TCHPL_min)
+//      if ((m_jetMet->getJetBTagProb_TCHP(i)) > m_JET_btag_TCHPL_min)
 //        ++m_mtt_NBtaggedJets_TCHPL;
-//      if ((m_jet->getJetBTagProb_TCHP(i)) > m_JET_btag_TCHPM_min)
+//      if ((m_jetMet->getJetBTagProb_TCHP(i)) > m_JET_btag_TCHPM_min)
 //        ++m_mtt_NBtaggedJets_TCHPM;
-      if ((m_jet->getJetBTagProb_TCHP(i)) > m_JET_btag_TCHPT_min)
+      if ((m_jetMet->getJetBTagProb_TCHP(i)) > m_JET_btag_TCHPT_min)
         ++m_mtt_NBtaggedJets_TCHPT;
-//      if ((m_jet->getJetBTagProb_SSVHE(i)) > m_JET_btag_SSVHEM_min)
+//      if ((m_jetMet->getJetBTagProb_SSVHE(i)) > m_JET_btag_SSVHEM_min)
 //        ++m_mtt_NBtaggedJets_SSVHEM;
-//      if ((m_jet->getJetBTagProb_SSVHP(i)) > m_JET_btag_SSVHPT_min)
+//      if ((m_jetMet->getJetBTagProb_SSVHP(i)) > m_JET_btag_SSVHPT_min)
 //        ++m_mtt_NBtaggedJets_SSVHPT;
     }
 
@@ -625,7 +625,7 @@ int mtt_analysis_new::Make2DCut(TVector3 lept3P, float cutDR, float cutPtrel)
   pTRel       = std::numeric_limits<float>::infinity();
   costheta    = std::numeric_limits<float>::infinity();
 
-  int n_jet = m_jet->getSize();
+  int n_jet = m_jetMet->getSize();
 
   if (!n_jet)
     return 0;
@@ -634,7 +634,7 @@ int mtt_analysis_new::Make2DCut(TVector3 lept3P, float cutDR, float cutPtrel)
 
   for (int ij = 0; ij < n_jet; ij++)
   {
-    TLorentzVector *jetP2D = m_jet->getJetLorentzVector(ij);
+    TLorentzVector *jetP2D = m_jetMet->getJetLorentzVector(ij);
 
     if (fabs(jetP2D->Pt()) < minjetpt2D)
       continue;
@@ -664,18 +664,20 @@ int mtt_analysis_new::Make2DCut(TVector3 lept3P, float cutDR, float cutPtrel)
 
 #define   MTT_TRIGGER_NOT_FOUND   1000
 
-int mtt_analysis_new::mtt_Sel(bool do_MC_, EventExtractor * event, HLTExtractor* HLT, MCExtractor * MC, MuonExtractor *muon, ElectronExtractor *electron, JetExtractor *jet, METExtractor *MET, VertexExtractor *vertex, const edm::EventSetup& iSetup)
+int mtt_analysis_new::mtt_Sel(const edm::EventSetup& iSetup, bool do_MC_, PatExtractor* extractor)
 {
   reset();
 
   m_refLept  = nullptr;
 
-  m_vertex   = vertex;
-  m_MET      = MET;
-  m_muon     = muon;
-  m_electron = electron;
-  m_jet      = jet;
-  m_event    = event;
+  m_vertex   = std::static_pointer_cast<VertexExtractor>(extractor->getExtractor("vertex"));
+  //m_MET      = std::static_pointer_cast<METExtractor>(extractor->getExtractor("MET"));
+  m_muon     = std::static_pointer_cast<MuonExtractor>(extractor->getExtractor("muons"));
+  m_electron = std::static_pointer_cast<ElectronExtractor>(extractor->getExtractor("electrons"));
+  m_jetMet   = std::static_pointer_cast<JetMETExtractor>(extractor->getExtractor("JetMET"));
+  m_event    = std::static_pointer_cast<EventExtractor>(extractor->getExtractor("event"));
+
+  std::shared_ptr<HLTExtractor> HLT = std::static_pointer_cast<HLTExtractor>(extractor->getExtractor("HLT"));
 
   if (!m_trigger_regex.empty()) {
     std::vector<std::string>& paths = *HLT->getPaths();
@@ -694,7 +696,7 @@ int mtt_analysis_new::mtt_Sel(bool do_MC_, EventExtractor * event, HLTExtractor*
 
   if (do_MC_)
   {
-    m_MC = MC;
+    m_MC = std::static_pointer_cast<MCExtractor>(extractor->getExtractor("MC"));
     MCidentification();
   }
 
@@ -820,12 +822,12 @@ void mtt_analysis_new::loopOverCombinations(bool do_MC_)
           if (do_MC_)
             m_mtt_OneMatchedCombi = match_MC(c_j1, c_j2, c_j3, c_j4, 0);
 
-          int res = m_KinFit->ReadObjects(*m_jet->getJetLorentzVector(c_j3),
-              *m_jet->getJetLorentzVector(c_j4),
-              *m_jet->getJetLorentzVector(c_j1),
+          int res = m_KinFit->ReadObjects(*m_jetMet->getJetLorentzVector(c_j3),
+              *m_jetMet->getJetLorentzVector(c_j4),
+              *m_jetMet->getJetLorentzVector(c_j1),
               *m_refLept,
-              *m_MET->getMETLorentzVector(0),
-              *m_jet->getJetLorentzVector(c_j2),
+              *m_jetMet->getMETLorentzVector(0),
+              *m_jetMet->getJetLorentzVector(c_j2),
               m_MAIN_doSemiMu
               );
 
@@ -872,12 +874,12 @@ void mtt_analysis_new::loopOverCombinations(bool do_MC_)
   {
     
     // Put selected object inside KinFit. This will correct MET and everything we need
-    m_KinFit->ReadObjects(*m_jet->getJetLorentzVector(bestj3),
-        *m_jet->getJetLorentzVector(bestj4),
-        *m_jet->getJetLorentzVector(bestj1),
+    m_KinFit->ReadObjects(*m_jetMet->getJetLorentzVector(bestj3),
+        *m_jetMet->getJetLorentzVector(bestj4),
+        *m_jetMet->getJetLorentzVector(bestj1),
         *m_refLept,
-        *m_MET->getMETLorentzVector(0),
-        *m_jet->getJetLorentzVector(bestj2),
+        *m_jetMet->getMETLorentzVector(0),
+        *m_jetMet->getJetLorentzVector(bestj2),
         m_MAIN_doSemiMu
         );
 
@@ -901,6 +903,15 @@ void mtt_analysis_new::loopOverCombinations(bool do_MC_)
        std::cout << "Mt hadronic: " << m_mHadTop_AfterChi2 << std::endl;
        std::cout << "Mtt: " << m_mtt_AfterChi2 << std::endl;
        */
+
+    m_KinFit->ReadObjects(*m_jetMet->getJetLorentzVector(bestj3),
+        *m_jetMet->getJetLorentzVector(bestj4),
+        *m_jetMet->getJetLorentzVector(bestj1),
+        *m_refLept,
+        *m_jetMet->getMETLorentzVector(0),
+        *m_jetMet->getJetLorentzVector(bestj2),
+        m_MAIN_doSemiMu
+        );
 
     (m_KinFit->Fit()) // Do the kinfit converged
       ? fitchi2 = m_KinFit->GetKFChi2()
@@ -1202,20 +1213,20 @@ int mtt_analysis_new::match_MC(int idxJetbH, int idxJetbL, int idxJet1,	int idxJ
 {
   if (
       /// Ask if Jet b hadronique  come from a b and top
-      fabs(m_MC->getType(m_jet->getJetMCIndex(idxJetbH))) == 5 &&
-      fabs(m_MC->getType(m_MC->getMom1Index(m_jet->getJetMCIndex(idxJetbH)))) == 6 &&
+      fabs(m_MC->getType(m_jetMet->getJetMCIndex(idxJetbH))) == 5 &&
+      fabs(m_MC->getType(m_MC->getMom1Index(m_jetMet->getJetMCIndex(idxJetbH)))) == 6 &&
 
       /// Ask if Jet b leptonique  come from a b and top
-      fabs(m_MC->getType(m_jet->getJetMCIndex(idxJetbL))) == 5 &&
-      fabs(m_MC->getType(m_MC->getMom1Index(m_jet->getJetMCIndex(idxJetbL)))) == 6 &&
+      fabs(m_MC->getType(m_jetMet->getJetMCIndex(idxJetbL))) == 5 &&
+      fabs(m_MC->getType(m_MC->getMom1Index(m_jetMet->getJetMCIndex(idxJetbL)))) == 6 &&
 
       /// Ask if jet 1,2 come from light quark and W and top
-      fabs(m_MC->getType(m_jet->getJetMCIndex(idxJet1))) < 5 &&
-      fabs(m_MC->getType(m_MC->getMom1Index(m_jet->getJetMCIndex(idxJet1)))) == 24 &&
-      fabs(m_MC->getType(m_MC->getMom1Index(m_MC->getMom1Index(m_jet->getJetMCIndex(idxJet1))))) == 6 &&
-      fabs(m_MC->getType(m_jet->getJetMCIndex(idxJet2))) < 5 &&
-      fabs(m_MC->getType(m_MC->getMom1Index(m_jet->getJetMCIndex(idxJet2)))) == 24 &&
-      fabs(m_MC->getType(m_MC->getMom1Index(m_MC->getMom1Index(m_jet->getJetMCIndex(idxJet2))))) == 6
+      fabs(m_MC->getType(m_jetMet->getJetMCIndex(idxJet1))) < 5 &&
+      fabs(m_MC->getType(m_MC->getMom1Index(m_jetMet->getJetMCIndex(idxJet1)))) == 24 &&
+      fabs(m_MC->getType(m_MC->getMom1Index(m_MC->getMom1Index(m_jetMet->getJetMCIndex(idxJet1))))) == 6 &&
+      fabs(m_MC->getType(m_jetMet->getJetMCIndex(idxJet2))) < 5 &&
+      fabs(m_MC->getType(m_MC->getMom1Index(m_jetMet->getJetMCIndex(idxJet2)))) == 24 &&
+      fabs(m_MC->getType(m_MC->getMom1Index(m_MC->getMom1Index(m_jetMet->getJetMCIndex(idxJet2))))) == 6
      )
   {
     return 1;
@@ -1238,14 +1249,14 @@ void mtt_analysis_new::SystModifJetsAndMET(int SystType, JetCorrectionUncertaint
   double corr = 0.;
   double met_corr_x = 0.;
   double met_corr_y = 0.;
-  unsigned int nJets = m_jet->getSize();
-  TLorentzVector *myMET = m_MET->getMETLorentzVector(0);
+  unsigned int nJets = m_jetMet->getSize();
+  TLorentzVector *myMET = m_jetMet->getMETLorentzVector(0);
 
   if (SystType == 1)   // JES
   {
     for (unsigned int iJet = 0; iJet < nJets; iJet++)
     {
-      TLorentzVector *myJet = m_jet->getJetLorentzVector(iJet);
+      TLorentzVector *myJet = m_jetMet->getJetLorentzVector(iJet);
 
       jecUnc->setJetEta(myJet->Eta());
       jecUnc->setJetPt(myJet->Pt()); // here you must use the CORRECTED jet pt
@@ -1257,10 +1268,10 @@ void mtt_analysis_new::SystModifJetsAndMET(int SystType, JetCorrectionUncertaint
       met_corr_x += myJet->Px() * (m_MAIN_systvalue * corr);
       met_corr_y += myJet->Py() * (m_MAIN_systvalue * corr);
 
-      m_jet->setJetLorentzVector(iJet, myJet->E() * (1. + m_MAIN_systvalue * corr), myJet->Px() * (1. + m_MAIN_systvalue * corr), myJet->Py() * (1. + m_MAIN_systvalue * corr), myJet->Pz() * (1. + m_MAIN_systvalue * corr));
+      m_jetMet->setJetLorentzVector(iJet, myJet->E() * (1. + m_MAIN_systvalue * corr), myJet->Px() * (1. + m_MAIN_systvalue * corr), myJet->Py() * (1. + m_MAIN_systvalue * corr), myJet->Pz() * (1. + m_MAIN_systvalue * corr));
     }
 
-    m_MET->setMETLorentzVector(0, myMET->E(), myMET->Px() - met_corr_x, myMET->Py() - met_corr_y, myMET->Pz());
+    m_jetMet->setMETLorentzVector(0, myMET->E(), myMET->Px() - met_corr_x, myMET->Py() - met_corr_y, myMET->Pz());
   }
 }
 

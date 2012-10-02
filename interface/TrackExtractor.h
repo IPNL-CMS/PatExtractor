@@ -15,7 +15,8 @@
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 
-
+#include "../interface/BaseExtractor.h"
+#include "../interface/MCExtractor.h"
 
 //Include std C++
 #include <iostream>
@@ -25,28 +26,25 @@
 #include "TFile.h"
 #include "TClonesArray.h"
 
-class TrackExtractor
+class TrackExtractor: public BaseExtractor<reco::Track>
 {
 
  public:
 
-  TrackExtractor(bool doTree,edm::InputTag tag);
-  TrackExtractor(TFile* a_file);
-  ~TrackExtractor();
+  TrackExtractor(const std::string& name, const edm::InputTag& tag, bool doTree);
+  TrackExtractor(const std::string& name, TFile* a_file);
+  virtual ~TrackExtractor();
 
-  void writeInfo(const edm::Event *event); 
-
-  void writeInfo(const reco::Track *part, int index); 
+  void writeInfo(const reco::Track& part, int index);
+  
+  virtual void doMCMatch(const reco::Track& object, MCExtractor* mcExtractor, int index) {}
 
   void reset();
-  void fillTree(); 
-  void fillSize(int size);
-  int  getSize();
+  void fillTree();
   void getInfo(int ievt); 
 
   // Setters/Getters
 
-  bool isOK() {return m_OK;}
   float getTrackpx(int muidx) {return m_trk_px[muidx];}
   float getTrackpy(int muidx) {return m_trk_py[muidx];}
   float getTrackpz(int muidx) {return m_trk_pz[muidx];}
@@ -58,12 +56,6 @@ class TrackExtractor
 
   static const int 	m_tracks_MAX  = 2000;
 
-  edm::InputTag m_tag;
-
-
-  bool m_OK;
-
-  int   m_n_tracks;
   float	m_trk_px[m_tracks_MAX];
   float	m_trk_py[m_tracks_MAX];
   float	m_trk_pz[m_tracks_MAX];

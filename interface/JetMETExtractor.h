@@ -2,7 +2,7 @@
 #define JETEXTRACTOR_H
 
 /**
- * JetExtractor
+ * JetMETExtractor
  * \brief: Base class for extracting jet info
  */
 
@@ -15,9 +15,11 @@
 
 #include <CommonTools/Utils/interface/PtComparator.h>
 
+#include "DataFormats/PatCandidates/interface/MET.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/Common/interface/View.h"
 
+#include "../interface/BaseExtractor.h"
 #include "../interface/MCExtractor.h"
 
 //Include std C++
@@ -29,27 +31,27 @@
 #include "TLorentzVector.h"
 #include "TClonesArray.h"
 
-class JetExtractor
+class JetMETExtractor: public BaseExtractor<pat::Jet>
 {
 
  public:
 
-  JetExtractor(bool doTree, edm::InputTag tag, bool correctJets, const std::string& jetCorrectorLabel);
-  JetExtractor(TFile *a_file);
-  ~JetExtractor();
+  JetMETExtractor(const std::string& name, const std::string& met_name, const edm::InputTag& tag, const edm::InputTag& metTag,
+    bool doJetTree, bool doMETTree, bool correctJets, const std::string& jetCorrectorLabel);
+  JetMETExtractor(const std::string& name, const std::string& met_name, TFile *a_file);
+  virtual ~JetMETExtractor();
 
+  void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* m_MC); 
 
-  void writeInfo(const edm::Event *event, const edm::EventSetup& iSetup, MCExtractor* m_MC, bool doMC); 
+  void writeInfo(const pat::Jet& part, int index); 
+  void writeInfo(const pat::MET& part, int index); 
 
-  void writeInfo(const pat::Jet *part, int index); 
   void getInfo(int ievt); 
 
   void reset();
   void fillTree(); 
-  void fillSize(int size);
-  int  getSize();
 
-  int getMatch(const pat::Jet *part, MCExtractor* m_MC);
+  virtual void doMCMatch(const pat::Jet& object, MCExtractor* mcExtractor, int index);
 
   TLorentzVector *getJetLorentzVector(int jetidx) {return (TLorentzVector*)m_jet_lorentzvector->At(jetidx);}
 
@@ -61,8 +63,6 @@ class JetExtractor
   
   int getJetMCIndex(int jetidx){return m_jet_MCIndex[jetidx];}
   
-  bool isOK() {return m_OK;}
-
   /**
    * This method is need for inline JEC. We need to be able to change jet pt on-the-fly
    */
@@ -81,10 +81,14 @@ class JetExtractor
     delete v;
   }
 
+  TLorentzVector *getMETLorentzVector(int metidx) {return (TLorentzVector*)m_met_lorentzvector->At(metidx);}
+  void setMETLorentzVector(int idx, float E, float Px, float Py, float Pz);
+
   // Jet ID
   bool isPFJetLoose(const pat::Jet& jet);
 
-  pat::JetCollection correctJets(pat::JetCollection& jets, const edm::Event& iEvent, const edm::EventSetup& iSetup);
+  void correctJets(pat::JetCollection& jets, const edm::Event& iEvent, const edm::EventSetup& iSetup);
+  void extractRawJets(pat::JetCollection& jets);
 
  private:
   
@@ -96,11 +100,7 @@ class JetExtractor
 
   static const int 	m_jets_MAX       = 200;
 
-  edm::InputTag m_tag;
   float m_deltaR_cut;
-
-  bool m_OK;
-  int   m_n_jets;
 
   TClonesArray* m_jet_lorentzvector;
   float	m_jet_vx[m_jets_MAX];
@@ -121,7 +121,13 @@ class JetExtractor
   float	m_jet_btag_TCHP[m_jets_MAX];
   float	m_jet_btag_CSV[m_jets_MAX];
 
-  int   m_jet_MCIndex[m_jets_MAX];
+  int  m_jet_MCIndex[m_jets_MAX];
+
+  // MET
+
+  edm::InputTag m_metTag;
+  TTree* m_tree_met;
+  TClonesArray* m_met_lorentzvector;
 };
 
 #endif 

@@ -84,17 +84,18 @@ void PatExtractor::beginRun(Run const& run, EventSetup const& setup)
   nevent = 0;
 
   // If we start from existing file we don't have to loop over events
-  if (!do_fill_ && m_event->n_events()) 
+  std::shared_ptr<EventExtractor> eventExtractor = std::static_pointer_cast<EventExtractor>(getExtractor("event"));
+  if (!do_fill_ && eventExtractor->n_events()) 
   {    
     // If you start from an extracted file, the number of events you want to loop on
     // is defined as an option, not in CMSSW...
 
-    nevent = min(nevts_,m_event->n_events()); 
+    nevent = min(nevts_, eventExtractor->n_events()); 
 
     for (int i=0;i<nevent;++i) 
     {
       if (i%10000 == 0)
-	std::cout << "Processing " << i << "th event" << std::endl;
+        std::cout << "Processing " << i << "th event" << std::endl;
 
       PatExtractor::getInfo(i);// Retrieve the info from an existing ROOTuple      
       PatExtractor::doAna(setup);   // Then do the analysis on request  
@@ -110,13 +111,13 @@ void PatExtractor::beginRun(Run const& run, EventSetup const& setup)
 void PatExtractor::analyze(const edm::Event& event, const edm::EventSetup& setup)
 {
   using namespace reco;
-  
+
   if (do_fill_) 
   {
     PatExtractor::fillInfo(&event, setup); // Fill the ROOTuple
     PatExtractor::doAna(setup);            // Then do the analysis on request    
   }
-    
+
   ++nevent;
   ++nevent_tot;
 }
@@ -152,17 +153,25 @@ void PatExtractor::endJob() {
 
 void PatExtractor::fillInfo(const edm::Event *event, const edm::EventSetup& iSetup) 
 {
-  m_event->writeInfo(event,do_MC_);
+  // m_event->writeInfo(event,do_MC_);
 
-  if (do_HLT_)      m_HLT->writeInfo(event);
-  if (do_MET_)      m_MET->writeInfo(event);
-  if (do_Vertex_)   m_vertex->writeInfo(event);
-  if (do_Trk_)      m_track->writeInfo(event);
-  if (do_MC_)       m_MC->writeInfo(event);
-  if (do_Electron_) m_electron->writeInfo(event, m_MC, do_MC_);
-  if (do_Muon_)     m_muon->writeInfo(event, m_MC, do_MC_);
-  if (do_Jet_)      m_jet->writeInfo(event, iSetup, m_MC, do_MC_);
-  if (do_Photon_)   m_photon->writeInfo(event, m_MC, do_MC_);
+  //if (do_HLT_)      m_HLT->writeInfo(event);
+  //if (do_MET_)      m_MET->writeInfo(event);
+  //if (do_Vertex_)   m_vertex->writeInfo(event);
+  //if (do_Trk_)      m_track->writeInfo(event);
+  //if (do_MC_)       m_MC->writeInfo(event);
+  //if (do_Electron_) m_electron->writeInfo(event, m_MC, do_MC_);
+  //if (do_Muon_)     m_muon->writeInfo(event, m_MC, do_MC_);
+  //if (do_Jet_)      m_jet->writeInfo(event, iSetup, m_MC, do_MC_);
+
+  //if (do_Photon_)   m_photon->writeInfo(event, m_MC, do_MC_);
+
+  MCExtractor* mcExtractor = nullptr;
+  if (do_MC_)
+    mcExtractor = static_cast<MCExtractor*>(getExtractor("MC").get());
+
+  for (auto& extractor: m_extractors)
+    extractor->writeInfo(*event, iSetup, mcExtractor);
 }
 
 
@@ -170,17 +179,20 @@ void PatExtractor::fillInfo(const edm::Event *event, const edm::EventSetup& iSet
 
 void PatExtractor::getInfo(int ievent) 
 {
-  m_event->getInfo(ievent);
-  
-  if (do_HLT_)      m_HLT->getInfo(ievent);
-  if (do_MC_)       m_MC->getInfo(ievent);
-  if (do_Trk_)      m_track->getInfo(ievent);
-  if (do_Vertex_)   m_vertex->getInfo(ievent);
-  if (do_MET_)      m_MET->getInfo(ievent);
-  if (do_Muon_)     m_muon->getInfo(ievent);
-  if (do_Electron_) m_electron->getInfo(ievent);
-  if (do_Jet_)      m_jet->getInfo(ievent);
-  if (do_Photon_)   m_photon->getInfo(ievent);
+  //m_event->getInfo(ievent);
+
+  //if (do_HLT_)      m_HLT->getInfo(ievent);
+  //if (do_MC_)       m_MC->getInfo(ievent);
+  //if (do_Trk_)      m_track->getInfo(ievent);
+  //if (do_Vertex_)   m_vertex->getInfo(ievent);
+  //if (do_MET_)      m_MET->getInfo(ievent);
+  //if (do_Muon_)     m_muon->getInfo(ievent);
+  //if (do_Electron_) m_electron->getInfo(ievent);
+  //if (do_Jet_)      m_jet->getInfo(ievent);
+  //if (do_Photon_)   m_photon->getInfo(ievent);
+
+  for (auto& extractor: m_extractors)
+    extractor->getInfo(ievent);
 }
 
 
@@ -190,17 +202,44 @@ void PatExtractor::getInfo(int ievent)
 void PatExtractor::initialize() 
 {
   m_outfile  = TFile::Open(outFilename_.c_str(),"RECREATE");
-  m_event    = new EventExtractor();
+  //m_event    = new EventExtractor();
 
-  m_HLT      = new HLTExtractor(do_HLT_);
-  m_MC       = new MCExtractor(do_MC_);
-  m_photon   = new PhotonExtractor(do_Photon_,photon_tag_);
-  m_electron = new ElectronExtractor(do_Electron_,electron_tag_);
-  m_jet      = new JetExtractor(do_Jet_, jet_tag_, correctJets_, jetCorrectorLabel_);
-  m_MET      = new METExtractor(do_MET_,met_tag_);
-  m_muon     = new MuonExtractor(do_Muon_,muon_tag_);
-  m_vertex   = new VertexExtractor(do_Vertex_,vtx_tag_);
-  m_track    = new TrackExtractor(do_Trk_,trk_tag_);
+  //m_HLT      = new HLTExtractor(do_HLT_);
+  //m_MC       = new MCExtractor(do_MC_);
+  //m_photon   = new PhotonExtractor(do_Photon_,photon_tag_);
+  //m_electron = new ElectronExtractor(do_Electron_,electron_tag_);
+  //m_jet      = new JetExtractor(do_Jet_, jet_tag_, correctJets_, jetCorrectorLabel_);
+  //m_MET      = new METExtractor(do_MET_,met_tag_);
+  //m_muon     = new MuonExtractor(do_Muon_,muon_tag_);
+  //m_vertex   = new VertexExtractor(do_Vertex_,vtx_tag_);
+  //m_track    = new TrackExtractor(do_Trk_,trk_tag_);
+
+  // Register extractors
+  addExtractor("event", new EventExtractor("event"));
+
+  if (do_MC_)
+    addExtractor("MC", new MCExtractor("MC", do_MC_));
+
+  if (do_HLT_)
+    addExtractor("HLT", new HLTExtractor("HLT", do_HLT_));
+
+  if (do_Trk_)
+    addExtractor("track", new TrackExtractor("track", trk_tag_, do_Trk_));
+
+  if (do_Vertex_)
+    addExtractor("vertex", new VertexExtractor("Vertices", vtx_tag_, do_Vertex_));
+
+  if (do_Electron_)
+    addExtractor("electrons", new ElectronExtractor("electron_PF", electron_tag_, do_Electron_));
+
+  if (do_Muon_)
+    addExtractor("muons", new MuonExtractor("muon_PF", muon_tag_, do_Muon_));
+
+  if (do_Jet_ || do_MET_)
+    addExtractor("JetMET", new JetMETExtractor("jet_PF", "MET_PF", jet_tag_, met_tag_, do_Jet_, do_MET_, correctJets_, jetCorrectorLabel_));
+
+  if (do_Photon_)
+    addExtractor("photons", new PhotonExtractor("photon", photon_tag_, do_Photon_));
 }
 
 
@@ -214,30 +253,41 @@ void PatExtractor::retrieve()
   m_outfile    = TFile::Open(outFilename_.c_str(),"RECREATE");
 
   // AOD content
-  m_event      = new EventExtractor(m_infile);
-  m_HLT        = new HLTExtractor(m_infile);
-  m_MC         = new MCExtractor(m_infile);
-  m_vertex     = new VertexExtractor(m_infile);
-  m_track      = new TrackExtractor(m_infile);
+  //m_event      = new EventExtractor(m_infile);
+  //m_HLT        = new HLTExtractor(m_infile);
+  //m_MC         = new MCExtractor(m_infile);
+  //m_vertex     = new VertexExtractor(m_infile);
+  //m_track      = new TrackExtractor(m_infile);
 
   // PAT content
-  m_MET        = new METExtractor(m_infile);
-  m_muon       = new MuonExtractor(m_infile);
-  m_photon     = new PhotonExtractor(m_infile);
-  m_electron   = new ElectronExtractor(m_infile);
-  m_jet        = new JetExtractor(m_infile);
+  //m_MET        = new METExtractor(m_infile);
+  //m_muon       = new MuonExtractor(m_infile);
+  //m_photon     = new PhotonExtractor(m_infile);
+  //m_electron   = new ElectronExtractor(m_infile);
+  //m_jet        = new JetExtractor(m_infile);
 
+  // Register extractors
+  addExtractor("event", new EventExtractor("event", m_infile));
+  addExtractor("MC", new MCExtractor("MC", m_infile));
+  addExtractor("HLT", new HLTExtractor("HLT", m_infile));
+  addExtractor("track", new TrackExtractor("track", m_infile));
+
+  addExtractor("vertex", new VertexExtractor("Vertices", m_infile));
+  addExtractor("electrons", new ElectronExtractor("electron_PF", m_infile));
+  addExtractor("muons", new MuonExtractor("electron_PF", m_infile));
+  addExtractor("JetMET", new JetMETExtractor("jet_PF", "MET_PF", m_infile));
+  addExtractor("photons", new PhotonExtractor("photon", m_infile));
 
   // We set some variables wrt the info retrieved (if the tree is not there, don't go further...)  
-  do_HLT_      = m_HLT->isOK();
-  do_MC_       = m_MC->isOK();
-  do_Photon_   = m_photon->isOK();
-  do_Electron_ = m_electron->isOK();
-  do_Jet_      = m_jet->isOK();
-  do_Muon_     = m_muon->isOK();
-  do_MET_      = m_MET->isOK();
-  do_Vertex_   = m_vertex->isOK();
-  do_Trk_      = m_track->isOK();
+  do_HLT_      = getExtractor("HLT")->isOK();
+  do_MC_       = getExtractor("MC")->isOK();
+  do_Photon_   = getExtractor("photons")->isOK();
+  do_Electron_ = getExtractor("electrons")->isOK();
+  do_Jet_      = getExtractor("JetMET")->isOK();
+  do_Muon_     = getExtractor("muons")->isOK();
+  do_MET_      = getExtractor("MET")->isOK();
+  do_Vertex_   = getExtractor("vertex")->isOK();
+  do_Trk_      = getExtractor("track")->isOK();
 }
 
 
@@ -248,27 +298,26 @@ void PatExtractor::retrieve()
 
 void PatExtractor::doAna(const edm::EventSetup& setup) 
 {
-  
+
   if (do_Mtt_ && do_Muon_ && do_Electron_ && do_Jet_ && do_MET_ && do_Vertex_ && do_HLT_) 
   {   
-    m_Mtt_analysis_new->mtt_Sel(do_MC_, m_event, m_HLT, m_MC, m_muon, m_electron, m_jet, m_MET, m_vertex, setup);
-
+    m_Mtt_analysis_new->mtt_Sel(setup, do_MC_, this);
     m_Mtt_analysis_new->fillTree();
   }
-  
+
 
   // Our example analysis
 
   if (do_dimu_&& do_Muon_) 
   {
-    m_dimuon_analysis->dimuon_Sel(m_muon,nevent_tot);
+    //m_dimuon_analysis->dimuon_Sel(m_muon,nevent_tot);
   }
 
   // A four top trigger analysis
 
   if (do_ftt_&& do_HLT_ && do_MC_) 
   {
-    m_fourtop_trigger_analysis->fourtop_trigger_Sel(m_HLT,m_MC,nevent_tot);
+    //m_fourtop_trigger_analysis->fourtop_trigger_Sel(m_HLT,m_MC,nevent_tot);
   }
 
 }
