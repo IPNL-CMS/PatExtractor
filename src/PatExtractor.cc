@@ -185,7 +185,7 @@ void PatExtractor::getInfo(int ievent)
 
 void PatExtractor::initialize() 
 {
-  m_outfile  = new TFile(outFilename_.c_str(),"RECREATE");
+  m_outfile  = TFile::Open(outFilename_.c_str(),"RECREATE");
   m_event    = new EventExtractor();
 
   m_HLT      = new HLTExtractor(do_HLT_);
@@ -206,8 +206,8 @@ void PatExtractor::initialize()
 
 void PatExtractor::retrieve() 
 {
-  m_infile     = new TFile(inFilename_.c_str(),"READ");
-  m_outfile    = new TFile(outFilename_.c_str(),"RECREATE");
+  m_infile     = TFile::Open(inFilename_.c_str(),"READ");
+  m_outfile    = TFile::Open(outFilename_.c_str(),"RECREATE");
 
   // AOD content
   m_event      = new EventExtractor(m_infile);
