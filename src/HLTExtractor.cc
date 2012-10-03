@@ -39,6 +39,7 @@ HLTExtractor::HLTExtractor(TFile *a_file)
   m_OK = true;
 
   // Branches definition
+  m_HLT_vector = new std::vector<std::string>();
 
   if (m_tree_HLT->FindBranch("n_paths")) 
     m_tree_HLT->SetBranchAddress("n_paths",  &m_n_HLTs);       
