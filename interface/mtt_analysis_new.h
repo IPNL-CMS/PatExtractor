@@ -156,6 +156,18 @@ private:
   int m_MC_channel;
   float m_MC_mtt;
   int m_nPU; // number of interactions
+
+  // Indexes of gen particle in a semi-lept event
+  int m_leptonIndex;
+  int m_neutrinoIndex;
+
+  int m_leptonicBIndex;
+  int m_hadronicBIndex;
+  int m_leptonicWIndex;
+
+  int m_firstJetIndex;
+  int m_secondJetIndex;
+
   /// Number of lepton/neutrino from Top->W and quark b from Top
   int nEle;
   int nMu;
@@ -176,8 +188,6 @@ private:
   int SelLeptIdx;
   //Reco stuff
 
-
-
   int m_mtt_isSel;
   int m_mtt_IsBestSolMatched;
   int m_mtt_OneMatchedCombi;
@@ -194,6 +204,14 @@ private:
   float m_mtt_AfterChi2;
   float m_mLepTop_AfterChi2;
   float m_mHadTop_AfterChi2;
+  float m_mHadW_AfterChi2;
+
+  // Indexes of selected particles for mtt computation
+  int m_selectedLeptonIndex;
+  int m_selectedLeptonicBIndex;
+  int m_selectedHadronicBIndex;
+  int m_selectedHadronicFirstJetIndex;
+  int m_selectedHadronicSecondJetIndex;
 
 
 

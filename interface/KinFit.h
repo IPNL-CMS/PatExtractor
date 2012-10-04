@@ -34,7 +34,7 @@ public:
   double Chi2();
   double GlobalSimpleChi2(double TotPt);
   
-  int ReadObjects(TLorentzVector* Jet1, TLorentzVector* Jet2, TLorentzVector* BJetH, TLorentzVector* Lepton, TLorentzVector* Neutrino, TLorentzVector* BJetL, bool doSemiMu);
+  int ReadObjects(const TLorentzVector& Jet1, const TLorentzVector& Jet2, const TLorentzVector& BJetH, const TLorentzVector& Lepton, const TLorentzVector& Neutrino, const TLorentzVector& BJetL, bool doSemiMu);
   
   bool Fit();
   
@@ -44,7 +44,7 @@ public:
   const int GetParamNber();
   inline void SetDebugMode(int DBL){ DEBUG_Level = DBL; return; }
   int ReadErrors(TString ParamsFile);
-  double DKFJetResol(TLorentzVector *Jet,int JetFlavor, int IPar);
+  double DKFJetResol(const TLorentzVector& Jet, int JetFlavor, int IPar);
   
   TLorentzVector* GetFittedFirstLightJet();
   TLorentzVector* GetFittedSecondLightJet();
@@ -53,8 +53,32 @@ public:
   TLorentzVector* GetFittedJet(int index);
   TLorentzVector* GetFittedLepton();
   TLorentzVector* GetFittedNeutrino();
+
+  const TLorentzVector& GetMeasuredFirstLightJet() {
+    return MeasuredJet1;
+  }
+
+  const TLorentzVector& GetMeasuredSecondLightJet() {
+    return MeasuredJet2;
+  }
+
+  const TLorentzVector& GetMeasuredLeptonicBJet() {
+    return MeasuredBJetL;
+  }
+
+  const TLorentzVector& GetMeasuredHadronicBJet() {
+    return MeasuredBJetH;
+  }
+
+  const TLorentzVector& GetMeasuredLepton() {
+    return MeasuredLepton;
+  }
+
+  const TLorentzVector& GetMeasuredNeutrino() {
+    return MeasuredNeutrino;
+  }
   
-  double PzNeutrino(TLorentzVector *lept, TLorentzVector *neut, TLorentzVector *bJet);
+  double PzNeutrino(const TLorentzVector& lept, TLorentzVector& neut, const TLorentzVector& bJet);
   
   void FuncChi2(const int &npar, double &f, double *par, int iflag);
   
@@ -129,12 +153,11 @@ public:
   
   //double MeasParams[30];
   TLorentzVector MeasuredNeutrino;
-
-  TLorentzVector* MeasuredLepton;
-  TLorentzVector* MeasuredBJetH;
-  TLorentzVector* MeasuredBJetL;
-  TLorentzVector* MeasuredJet1;
-  TLorentzVector* MeasuredJet2;
+  TLorentzVector MeasuredLepton;
+  TLorentzVector MeasuredBJetH;
+  TLorentzVector MeasuredBJetL;
+  TLorentzVector MeasuredJet1;
+  TLorentzVector MeasuredJet2;
   
   std::shared_ptr<TLorentzVector> FittedLepton;
   std::shared_ptr<TLorentzVector> FittedNeutrino;

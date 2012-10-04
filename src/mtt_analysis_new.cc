@@ -40,6 +40,16 @@ mtt_analysis_new::mtt_analysis_new(AnalysisSettings *settings)
   m_tree_Mtt->Branch("MC_mtt"             , &m_MC_mtt                 , "MC_mtt/F");
   m_tree_Mtt->Branch("MC_nPU"             , &m_nPU                    , "m_nPU/I");
 
+  // Indexes of gen particles inside the MC collection. Only valid for semi-lept events
+  m_tree_Mtt->Branch("MC_leptonIndex"     , &m_leptonIndex            , "MC_leptonIndex/I");
+  m_tree_Mtt->Branch("MC_neutrinoIndex"   , &m_neutrinoIndex          , "MC_neutrinoIndex/I");
+  m_tree_Mtt->Branch("MC_leptonicWIndex"  , &m_leptonicWIndex         , "MC_leptonicWIndex/I");
+  m_tree_Mtt->Branch("MC_leptonicBIndex"  , &m_leptonicBIndex         , "MC_leptonicBIndex/I");
+
+  m_tree_Mtt->Branch("MC_hadronicBIndex"  , &m_hadronicBIndex         , "MC_hadronicBIndex/I");
+  m_tree_Mtt->Branch("MC_hadronicFirstJetIndex" , &m_firstJetIndex    , "MC_hadronicFirstJetIndex/I");
+  m_tree_Mtt->Branch("MC_hadronicSecondJetIndex", &m_secondJetIndex   , "MC_hadronicSecondJetIndex/I");
+
   m_tree_Mtt->Branch("nGoodMuons"         , &m_mtt_NGoodMuons         , "nGoodMuons/I");
   m_tree_Mtt->Branch("nLooseGoodMuons"    , &m_mtt_NLooseGoodMuons    , "nLooseGoodMuons/I");
   m_tree_Mtt->Branch("muonPt"             , &m_mtt_MuonPt             , "muonPt[nGoodMuons]/F");
@@ -85,6 +95,7 @@ mtt_analysis_new::mtt_analysis_new(AnalysisSettings *settings)
   m_tree_Mtt->Branch("solChi2"            , &m_mtt_SolChi2                , "solChi2[numComb]/F");
 
 
+  m_tree_Mtt->Branch("mHadW_AfterChi2"        , &m_mHadW_AfterChi2       , "mHadW_AfterChi2/F");
   m_tree_Mtt->Branch("mLepTop_AfterChi2"      , &m_mLepTop_AfterChi2     , "mLepTop_AfterChi2/F");
   m_tree_Mtt->Branch("mHadTop_AfterChi2"      , &m_mHadTop_AfterChi2     , "mHadTop_AfterChi2/F");
   m_tree_Mtt->Branch("mtt_AfterChi2"          , &m_mtt_AfterChi2         , "mtt_AfterChi2/F");
@@ -92,6 +103,14 @@ mtt_analysis_new::mtt_analysis_new(AnalysisSettings *settings)
   m_tree_Mtt->Branch("mLepTop_AfterChi2andKF" , &m_mLepTop_AfterChi2andKF, "mLepTop_AfterChi2andKF/F");
   m_tree_Mtt->Branch("mHadTop_AfterChi2andKF" , &m_mHadTop_AfterChi2andKF, "mHadTop_AfterChi2andKF/F");
   m_tree_Mtt->Branch("mtt_AfterChi2andKF"     , &m_mtt_AfterChi2andKF    , "mtt_AfterChi2andKF/F");
+
+  // Index of selected particles inside respective collection for mtt computation
+  m_tree_Mtt->Branch("selectedLeptonIndex"        , &m_selectedLeptonIndex       , "selectedLeptonIndex/I");
+  m_tree_Mtt->Branch("selectedLeptonicBIndex"     , &m_selectedLeptonicBIndex    , "selectedLeptonicBIndex/I");
+  m_tree_Mtt->Branch("selectedHadronicBIndex"     , &m_selectedHadronicBIndex    , "selectedHadronicBIndex/I");
+  m_tree_Mtt->Branch("selectedHadronicFirstJetIndex"  , &m_selectedHadronicFirstJetIndex  , "selectedHadronicFirstJetIndex/I");
+  m_tree_Mtt->Branch("selectedHadronicSecondJetIndex" , &m_selectedHadronicSecondJetIndex , "selectedHadronicSecondJetIndex/I");
+
 
   m_tree_Mtt->Branch("trigger_passed", &m_trigger_passed, "trigger_passed/O");
 
@@ -410,6 +429,7 @@ int mtt_analysis_new::MuonSel()
   }
 
   m_refLept = m_muon->getMuLorentzVector(goodmuidx);
+  m_selectedLeptonIndex = goodmuidx;
 
   return 1;
 }
@@ -515,6 +535,7 @@ int mtt_analysis_new::ElectronSel()
 
 
   m_refLept = m_electron->getEleLorentzVector(goodelidx);
+  m_selectedLeptonIndex = goodelidx;
 
   return 1;
 }
@@ -782,12 +803,12 @@ void mtt_analysis_new::loopOverCombinations(bool do_MC_)
           if (do_MC_)
             m_mtt_OneMatchedCombi = match_MC(c_j1, c_j2, c_j3, c_j4, 0);
 
-          int res = m_KinFit->ReadObjects(m_jet->getJetLorentzVector(c_j3),
-              m_jet->getJetLorentzVector(c_j4),
-              m_jet->getJetLorentzVector(c_j1),
-              m_refLept,
-              m_MET->getMETLorentzVector(0),
-              m_jet->getJetLorentzVector(c_j2),
+          int res = m_KinFit->ReadObjects(*m_jet->getJetLorentzVector(c_j3),
+              *m_jet->getJetLorentzVector(c_j4),
+              *m_jet->getJetLorentzVector(c_j1),
+              *m_refLept,
+              *m_MET->getMETLorentzVector(0),
+              *m_jet->getJetLorentzVector(c_j2),
               m_MAIN_doSemiMu
               );
 
@@ -823,32 +844,46 @@ void mtt_analysis_new::loopOverCombinations(bool do_MC_)
     } // j2 close
   } // we out of the loop over jet pairings
 
+  m_selectedHadronicBIndex = bestj1;
+  m_selectedLeptonicBIndex = bestj2;
+  m_selectedHadronicFirstJetIndex = bestj3;
+  m_selectedHadronicSecondJetIndex = bestj4;
+
   // Do second KinFit
   // We looped over the combinations and do the kinfit (if not already done)
   if (m_mtt_NumComb > 0)
   {
+    
+    // Put selected object inside KinFit. This will correct MET and everything we need
+    m_KinFit->ReadObjects(*m_jet->getJetLorentzVector(bestj3),
+        *m_jet->getJetLorentzVector(bestj4),
+        *m_jet->getJetLorentzVector(bestj1),
+        *m_refLept,
+        *m_MET->getMETLorentzVector(0),
+        *m_jet->getJetLorentzVector(bestj2),
+        m_MAIN_doSemiMu
+        );
+
+    const TLorentzVector& measuredLepton = m_KinFit->GetMeasuredLepton();
+    const TLorentzVector& measuredNeutrino = m_KinFit->GetMeasuredNeutrino();
+    const TLorentzVector& measuredLeptonicB = m_KinFit->GetMeasuredLeptonicBJet();
+    const TLorentzVector& measuredHadronicB = m_KinFit->GetMeasuredHadronicBJet();
+    const TLorentzVector& measuredHadronicFirstJet = m_KinFit->GetMeasuredFirstLightJet();
+    const TLorentzVector& measuredHadronicSecondJet = m_KinFit->GetMeasuredSecondLightJet();
 
     /**
      * Compute Mtt after doing KinFit
      */
-    m_mLepTop_AfterChi2 = (*m_jet->getJetLorentzVector(bestj2) + *m_refLept + *m_MET->getMETLorentzVector(0)).M();
-    m_mHadTop_AfterChi2 = (*m_jet->getJetLorentzVector(bestj1) + *m_jet->getJetLorentzVector(bestj3) + *m_jet->getJetLorentzVector(bestj4)).M();
-    m_mtt_AfterChi2     = (*m_jet->getJetLorentzVector(bestj2) + *m_refLept + *m_MET->getMETLorentzVector(0) + *m_jet->getJetLorentzVector(bestj1) + *m_jet->getJetLorentzVector(bestj3) + *m_jet->getJetLorentzVector(bestj4)).M();
+    m_mHadW_AfterChi2   = (measuredHadronicFirstJet + measuredHadronicSecondJet).M();
+    m_mLepTop_AfterChi2 = (measuredLepton + measuredNeutrino + measuredLeptonicB).M();
+    m_mHadTop_AfterChi2 = (measuredHadronicFirstJet + measuredHadronicSecondJet + measuredHadronicB).M();
+    m_mtt_AfterChi2     = (measuredLepton + measuredNeutrino + measuredLeptonicB + measuredHadronicB + measuredHadronicFirstJet + measuredHadronicSecondJet).M();
 
     /*
        std::cout << "Mt lepton: " << m_mLepTop_AfterChi2 << std::endl;
        std::cout << "Mt hadronic: " << m_mHadTop_AfterChi2 << std::endl;
        std::cout << "Mtt: " << m_mtt_AfterChi2 << std::endl;
        */
-
-    m_KinFit->ReadObjects(m_jet->getJetLorentzVector(bestj3),
-        m_jet->getJetLorentzVector(bestj4),
-        m_jet->getJetLorentzVector(bestj1),
-        m_refLept,
-        m_MET->getMETLorentzVector(0),
-        m_jet->getJetLorentzVector(bestj2),
-        m_MAIN_doSemiMu
-        );
 
     (m_KinFit->Fit()) // Do the kinfit converged
       ? fitchi2 = m_KinFit->GetKFChi2()
@@ -880,6 +915,18 @@ void mtt_analysis_new::loopOverCombinations(bool do_MC_)
 
 
 // MC stuff
+
+#define ID_B (5)
+#define ID_T (6)
+
+#define ID_E (11)
+#define ID_NEUTRINO_E (12)
+#define ID_MU (13)
+#define ID_NEUTRINO_MU (14)
+#define ID_TAU (15)
+#define ID_NEUTRINO_TAU (16)
+
+#define ID_W (24)
 
 void mtt_analysis_new::MCidentification()
 {
@@ -1020,6 +1067,105 @@ void mtt_analysis_new::MCidentification()
   } else {
     m_MC_mtt = -1;
   }
+
+  // Extract index of semi-leptonic event, and store them in tree. Useful if you want to know how many jets you have selected right
+  if (false) {
+    std::cout << "New event" << std::endl;
+    for (int i = 0; i < n_MC; i++) {
+      std::cout << "\tType: " << m_MC->getType(i) << std::endl;
+    }
+  }
+
+  bool keepEvent = true;
+  for (int i = 0; i < n_MC; i++) {
+    if (m_MC->getMom1Index(i) == -1 || m_MC->getMom1Index(m_MC->getMom1Index(i)) == -1)
+      continue;
+
+    // Look only event coming (directly / indirectly) from a top
+    if (fabs(m_MC->getType(m_MC->getMom1Index(i))) == ID_T ||
+        fabs(m_MC->getType(m_MC->getMom1Index(m_MC->getMom1Index(i)))) == ID_T)  {
+
+      int type = (int) fabs(m_MC->getType(i));
+      // W? Continue
+      if (type == ID_W)
+        continue;
+
+      // Only semi-mu or semi-e events are interesting, so throw away event with a tau
+      if (type == ID_TAU) {
+        keepEvent = false;
+        break;
+      }
+
+      switch (type) {
+        case ID_E:
+          if (m_leptonIndex != -1) {
+            keepEvent = false;
+            break;
+          }
+          m_leptonIndex = i;
+          break;
+
+        case ID_MU:
+          if (m_leptonIndex != -1) {
+            keepEvent = false;
+            break;
+          }
+          m_leptonIndex = i;
+          break;
+
+        case ID_NEUTRINO_E:
+        case ID_NEUTRINO_MU:
+        case ID_NEUTRINO_TAU:
+          if (m_neutrinoIndex != -1) {
+            keepEvent = false;
+            break;
+          }
+          m_neutrinoIndex = i;
+
+          m_leptonicWIndex = m_MC->getMom1Index(i);
+          break;
+
+        case ID_B:
+          if (m_leptonicBIndex == -1) {
+            m_leptonicBIndex = i;
+          } else {
+            if (m_hadronicBIndex != -1) {
+              keepEvent = false;
+              break;
+            }
+            m_hadronicBIndex = i;
+          }
+          break;
+
+        default: // Other jets
+          if (m_firstJetIndex == -1) {
+            m_firstJetIndex = i;
+          } else {
+            if (m_secondJetIndex != -1) {
+              keepEvent = false;
+              break;
+            }
+            m_secondJetIndex = i;
+          }
+          break;
+      }
+
+      if (! keepEvent)
+        break;
+    }
+  }
+
+  if (m_leptonIndex == -1 || m_neutrinoIndex == -1 || m_leptonicBIndex == -1 || m_hadronicBIndex == -1)
+    keepEvent = false;
+
+  if (! keepEvent)
+    return;
+
+  // Reorder B jet indexes
+  if (m_MC->getMom1Index(m_leptonicBIndex) != m_leptonicWIndex) {
+    // Wrong combinaison, swap
+    std::swap(m_leptonicBIndex, m_hadronicBIndex);
+  }
 }
 
 int mtt_analysis_new::match_MC(int idxJetbH, int idxJetbL, int idxJet1,	int idxJet2,
@@ -1109,6 +1255,13 @@ void mtt_analysis_new::reset()
   m_mtt_AfterChi2     = -1.;
   m_mLepTop_AfterChi2 = -1.;
   m_mHadTop_AfterChi2 = -1.;
+  m_mHadW_AfterChi2   = -1.;
+
+  m_selectedLeptonIndex               = -1;
+  m_selectedLeptonicBIndex            = -1;
+  m_selectedHadronicBIndex            = -1;
+  m_selectedHadronicFirstJetIndex     = -1;
+  m_selectedHadronicSecondJetIndex    = -1;
 
   m_mtt_NGoodMuons = 0;
   m_mtt_NLooseGoodMuons = 0;
@@ -1153,5 +1306,15 @@ void mtt_analysis_new::reset()
   m_MC_channel = 0;
   m_MC_mtt     = -1.;
 
+  m_leptonIndex = -1;
+  m_neutrinoIndex = -1;
+
+  m_leptonicBIndex = -1;
+  m_hadronicBIndex = -1;
+  m_leptonicWIndex = -1;
+
+  m_firstJetIndex = -1;
+  m_secondJetIndex = -1;
+  
   m_trigger_passed = false;
 }

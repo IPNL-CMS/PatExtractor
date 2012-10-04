@@ -144,7 +144,7 @@ int KinFit::ReadErrors(TString ParamsFile)
 }
 
 // ------------------------------------------------------------------------------------------
-int KinFit::ReadObjects(TLorentzVector *Jet1, TLorentzVector *Jet2, TLorentzVector *BJetH, TLorentzVector *Lepton, TLorentzVector *Neutrino, TLorentzVector *BJetL, bool doSemiMu)
+int KinFit::ReadObjects(const TLorentzVector& Jet1, const TLorentzVector& Jet2, const TLorentzVector& BJetH, const TLorentzVector& Lepton, const TLorentzVector& Neutrino, const TLorentzVector& BJetL, bool doSemiMu)
 {
 
   /*(Lepton->M()>0.05) // This is a muon    
@@ -160,19 +160,19 @@ int KinFit::ReadObjects(TLorentzVector *Jet1, TLorentzVector *Jet2, TLorentzVect
   MeasuredBJetL    = BJetL;
   MeasuredJet1     = Jet1;
   MeasuredJet2     = Jet2;
-  MeasuredNeutrino = *Neutrino;
+  MeasuredNeutrino = Neutrino;
 
 
   /// We compute Pz of the neutrino
 
-  if (! PzNeutrino(Lepton, &MeasuredNeutrino, BJetL))
+  if (! PzNeutrino(Lepton, MeasuredNeutrino, BJetL))
     return 0; // Don't go further if things are bad
 
-  FittedLepton.reset(new TLorentzVector(*Lepton));
-  FittedBJetH.reset(new TLorentzVector(*BJetH));
-  FittedBJetL.reset(new TLorentzVector(*BJetL));
-  FittedJet1.reset(new TLorentzVector(*Jet1));
-  FittedJet2.reset(new TLorentzVector(*Jet2));
+  FittedLepton.reset(new TLorentzVector(Lepton));
+  FittedBJetH.reset(new TLorentzVector(BJetH));
+  FittedBJetL.reset(new TLorentzVector(BJetL));
+  FittedJet1.reset(new TLorentzVector(Jet1));
+  FittedJet2.reset(new TLorentzVector(Jet2));
   FittedNeutrino.reset(new TLorentzVector(MeasuredNeutrino));
 
   /// Sigma termes
@@ -200,8 +200,8 @@ int KinFit::ReadObjects(TLorentzVector *Jet1, TLorentzVector *Jet2, TLorentzVect
   SigmEtaBJetL = DKFJetResol(BJetL,2,2);
 
   (m_isMuon) // This is a muon
-    ? SigmEMu = C_mu+B_mu*Lepton->E()+A_mu*Lepton->E()*Lepton->E()
-    : SigmEMu = C_ele+B_ele*Lepton->E()+A_ele*Lepton->E()*Lepton->E();
+    ? SigmEMu = C_mu+B_mu*Lepton.E()+A_mu*Lepton.E()*Lepton.E()
+    : SigmEMu = C_ele+B_ele*Lepton.E()+A_ele*Lepton.E()*Lepton.E();
 
   return 1;
 
@@ -233,9 +233,9 @@ bool KinFit::Fit()
     "FitEJ1","FitEJ2","FitEBH","FitEBL","FitEMU",
     "FitPxNu","FitPyNu","FitPzNu"};
 
-  double vstart[ParamNber] = {MeasuredJet1->Eta(),MeasuredJet2->Eta(),MeasuredBJetH->Eta(),MeasuredBJetL->Eta(),
-    MeasuredJet1->Phi(),MeasuredJet2->Phi(),MeasuredBJetH->Phi(),MeasuredBJetL->Phi(),
-    MeasuredJet1->E(),MeasuredJet2->E(),MeasuredBJetH->E(),MeasuredBJetL->E(),MeasuredLepton->E(),
+  double vstart[ParamNber] = {MeasuredJet1.Eta(),MeasuredJet2.Eta(),MeasuredBJetH.Eta(),MeasuredBJetL.Eta(),
+    MeasuredJet1.Phi(),MeasuredJet2.Phi(),MeasuredBJetH.Phi(),MeasuredBJetL.Phi(),
+    MeasuredJet1.E(),MeasuredJet2.E(),MeasuredBJetH.E(),MeasuredBJetL.E(),MeasuredLepton.E(),
     MeasuredNeutrino.Px(),MeasuredNeutrino.Py(),MeasuredNeutrino.Pz()};
 
   double step[ParamNber];
@@ -322,7 +322,7 @@ void KinFit::FuncChi2(const int &npar, double &f, double *par, int iflag)
 
   FittedBJetL.reset(new TLorentzVector(sqrt((par[11]*par[11]-m_b*m_b))*TMath::Cos(par[7])/TMath::CosH(par[3]), sqrt((par[11]*par[11]-m_b*m_b))*TMath::Sin(par[7])/TMath::CosH(par[3]), sqrt((par[11]*par[11]-m_b*m_b))*TMath::TanH(par[3]),par[11]));
 
-  FittedLepton.reset(new TLorentzVector(par[12]*TMath::Cos(MeasuredLepton->Phi())/TMath::CosH(MeasuredLepton->Eta()), par[12]*TMath::Sin(MeasuredLepton->Phi())/TMath::CosH(MeasuredLepton->Eta()), par[12]*TMath::TanH(MeasuredLepton->Eta()),par[12]));
+  FittedLepton.reset(new TLorentzVector(par[12]*TMath::Cos(MeasuredLepton.Phi())/TMath::CosH(MeasuredLepton.Eta()), par[12]*TMath::Sin(MeasuredLepton.Phi())/TMath::CosH(MeasuredLepton.Eta()), par[12]*TMath::TanH(MeasuredLepton.Eta()),par[12]));
 
   FittedNeutrino.reset(new TLorentzVector(par[13], par[14], par[15], sqrt(par[13] * par[13] + par[14] * par[14] + par[15] * par[15])));
   
@@ -332,19 +332,19 @@ void KinFit::FuncChi2(const int &npar, double &f, double *par, int iflag)
 
 double KinFit::Chi2()
 {
-  double ResJet1Eta    = (*FittedJet1).Eta()-(*MeasuredJet1).Eta();
-  double ResJet2Eta    = (*FittedJet2).Eta()-(*MeasuredJet2).Eta();
-  double ResBJetHEta   = (*FittedBJetH).Eta()-(*MeasuredBJetH).Eta();
-  double ResBJetLEta   = (*FittedBJetL).Eta()-(*MeasuredBJetL).Eta();
-  double ResJet1Phi    = (*FittedJet1).Phi()-(*MeasuredJet1).Phi();
-  double ResJet2Phi    = (*FittedJet2).Phi()-(*MeasuredJet2).Phi();
-  double ResBJetHPhi   = (*FittedBJetH).Phi()-(*MeasuredBJetH).Phi();
-  double ResBJetLPhi   = (*FittedBJetL).Phi()-(*MeasuredBJetL).Phi();
-  double ResJet1E      = (*FittedJet1).E()-(*MeasuredJet1).E();
-  double ResJet2E      = (*FittedJet2).E()-(*MeasuredJet2).E();
-  double ResBJetHE     = (*FittedBJetH).E()-(*MeasuredBJetH).E();
-  double ResBJetLE     = (*FittedBJetL).E()-(*MeasuredBJetL).E();   
-  double ResLeptonE    = (*FittedLepton).E()-(*MeasuredLepton).E();
+  double ResJet1Eta    = (*FittedJet1).Eta()-(MeasuredJet1).Eta();
+  double ResJet2Eta    = (*FittedJet2).Eta()-(MeasuredJet2).Eta();
+  double ResBJetHEta   = (*FittedBJetH).Eta()-(MeasuredBJetH).Eta();
+  double ResBJetLEta   = (*FittedBJetL).Eta()-(MeasuredBJetL).Eta();
+  double ResJet1Phi    = (*FittedJet1).Phi()-(MeasuredJet1).Phi();
+  double ResJet2Phi    = (*FittedJet2).Phi()-(MeasuredJet2).Phi();
+  double ResBJetHPhi   = (*FittedBJetH).Phi()-(MeasuredBJetH).Phi();
+  double ResBJetLPhi   = (*FittedBJetL).Phi()-(MeasuredBJetL).Phi();
+  double ResJet1E      = (*FittedJet1).E()-(MeasuredJet1).E();
+  double ResJet2E      = (*FittedJet2).E()-(MeasuredJet2).E();
+  double ResBJetHE     = (*FittedBJetH).E()-(MeasuredBJetH).E();
+  double ResBJetLE     = (*FittedBJetL).E()-(MeasuredBJetL).E();   
+  double ResLeptonE    = (*FittedLepton).E()-(MeasuredLepton).E();
   double ResNeutrinoPx = (*FittedNeutrino).Px()-(MeasuredNeutrino).Px();
   double ResNeutrinoPy = (*FittedNeutrino).Py()-(MeasuredNeutrino).Py();
   double ResNeutrinoPz = (*FittedNeutrino).Pz()-(MeasuredNeutrino).Pz();
@@ -403,14 +403,14 @@ double KinFit::GlobalSimpleChi2(double totPt)
   std::cout << "Total pt: " << totPt << std::endl;
   */
 
-  float MW          = sqrt(max(0.,(*MeasuredJet1+*MeasuredJet2).M2()));
+  float MW          = sqrt(max(0.,(MeasuredJet1 + MeasuredJet2).M2()));
   //std::cout << "MW: " << MW << std::endl;
-  float MtopH       = sqrt(max(0.,(*MeasuredJet1+*MeasuredJet2+*MeasuredBJetH).M2()));
+  float MtopH       = sqrt(max(0.,(MeasuredJet1 + MeasuredJet2 + MeasuredBJetH).M2()));
   //std::cout << "MTopH: " << MtopH << std::endl;
-  float MtopL       = sqrt(max(0.,(MeasuredNeutrino+*MeasuredLepton+*MeasuredBJetL).M2()));
+  float MtopL       = sqrt(max(0.,(MeasuredNeutrino + MeasuredLepton + MeasuredBJetL).M2()));
   //std::cout << "MTopL: " << MtopL << std::endl;
   //float SolPtSystem = (*MeasuredJet1+*MeasuredJet2+*MeasuredBJetL+*MeasuredBJetH).Pt()/totPt;
-  float SolPtSystem = (MeasuredJet1->Pt() + MeasuredJet2->Pt() + MeasuredBJetL->Pt() + MeasuredBJetH->Pt()) / totPt;
+  float SolPtSystem = (MeasuredJet1.Pt() + MeasuredJet2.Pt() + MeasuredBJetL.Pt() + MeasuredBJetH.Pt()) / totPt;
   //std::cout << "Pt syst: " << SolPtSystem << std::endl;
 
 
@@ -425,7 +425,7 @@ double KinFit::GlobalSimpleChi2(double totPt)
   float MtopL_ref =  168.6;
 
 
-  float TTbarSystemPt = ((*MeasuredJet1+*MeasuredJet2+*MeasuredBJetL+*MeasuredBJetH+MeasuredNeutrino+*MeasuredLepton).Pt());
+  float TTbarSystemPt = ((MeasuredJet1 + MeasuredJet2 + MeasuredBJetL + MeasuredBJetH + MeasuredNeutrino + MeasuredLepton).Pt());
 
   /// I dont divide for sqrt(5) since it will not affect the minimization
   float chi2 = ((MtopH-MtopH_ref)*(MtopH-MtopH_ref)/255.)+((MW-m_w)*(MW-m_w)/96.04)+((SolPtSystem-1.)*(SolPtSystem-1.)/0.0228)+((TTbarSystemPt-0.)*(TTbarSystemPt-0.)/3173.1);
@@ -474,7 +474,7 @@ double KinFit::GetErrorFitVar(const int Num)
 
 // arg1 : TLorentzVector, arg2: jet type (1=W, 2=b), arg3: type de resolution 1=Ene, 2=Eta, 3=Phi	   
 
-double KinFit::DKFJetResol(TLorentzVector *Jet,int JetFlavor, int IPar)
+double KinFit::DKFJetResol(const TLorentzVector& Jet, int JetFlavor, int IPar)
 {
   double res=1E10;
 
@@ -502,8 +502,8 @@ double KinFit::DKFJetResol(TLorentzVector *Jet,int JetFlavor, int IPar)
   /// parametres pour JetW
   double A=0, B=0, C=0, D=0;
 
-  double Eta=Jet->Eta();
-  double Ene=Jet->E();
+  double Eta = Jet.Eta();
+  double Ene = Jet.E();
 
   unsigned int ieta=0;
 
@@ -586,43 +586,44 @@ TLorentzVector* KinFit::GetFittedNeutrino()
 ///////////////////////////////
 
 
-double  KinFit::PzNeutrino( TLorentzVector *lept, TLorentzVector *neut, TLorentzVector *bJet)
+double  KinFit::PzNeutrino(const TLorentzVector& lept, TLorentzVector& neut, const TLorentzVector& bJet)
 {
-  if(!lept->E()) return 0;
+  if(!lept.E()) return 0;
 
-  double x = (m_w*m_w-lept->M()*lept->M()+2.*(neut->Px()*lept->Px()+neut->Py()*lept->Py()))/(2*lept->E());
-  double a = 1-(lept->Pz()*lept->Pz())/(lept->E()*lept->E());
-  double b = -2.*(lept->Pz()/lept->E())*x;
-  double c = neut->Pt()*neut->Pt()-x*x;
+  double x = (m_w * m_w - lept.M() * lept.M() + 2. * (neut.Px() * lept.Px() + neut.Py() * lept.Py())) / (2 * lept.E());
+  double a = 1 - (lept.Pz() * lept.Pz()) / (lept.E() * lept.E());
+  double b = -2. * (lept.Pz() / lept.E()) * x;
+  double c = neut.Pt() * neut.Pt() - x * x;
 
-  if(!a && !b) return 0;
+  if (!a && !b) return 0;
 
   if(!a)
   {     
-    neut->SetPz(-1*c/b);
-    neut->SetE(sqrt(neut->Px()*neut->Px()+neut->Py()*neut->Py()+neut->Pz()*neut->Pz()));
+    neut.SetPz(-1 * c / b);
+    neut.SetE(sqrt(neut.Px() * neut.Px() + neut.Py() * neut.Py() + neut.Pz() * neut.Pz()));
     return 1;
   }
 
 
-  double delta= b*b-4*a*c ;
+  double delta = b * b - 4 * a *c;
 
 
-  if(delta<0)     // No solution, try to correct MET
+  if (delta < 0)     // No solution, try to correct MET
   {
-    double rat = neut->Py()/neut->Px();
+    double rat = neut.Py() / neut.Px();
 
-    double u = 4./(lept->E()*lept->E())*((lept->Px()+rat*lept->Py())*(lept->Px()+rat*lept->Py())/(1+rat*rat)
-        -(lept->E()*lept->E())+(lept->Pz()*lept->Pz()));
+    double u = 4./(lept.E()*lept.E())*((lept.Px()+rat*lept.Py())*(lept.Px()+rat*lept.Py())/(1+rat*rat)
+        -(lept.E()*lept.E())+(lept.Pz()*lept.Pz()));
 
-    double v = 4./(lept->E()*lept->E())*(m_w*m_w-lept->M()*lept->M())
-      *(lept->Px()+rat*lept->Py())/sqrt(1+rat*rat);
+    double v = 4./(lept.E()*lept.E())*(m_w*m_w-lept.M()*lept.M())
+      *(lept.Px()+rat*lept.Py())/sqrt(1+rat*rat);
 
-    double w = (m_w*m_w-lept->M()*lept->M())*(m_w*m_w-lept->M()*lept->M())/(lept->E()*lept->E());
+    double w = (m_w*m_w-lept.M()*lept.M())*(m_w*m_w-lept.M()*lept.M())/(lept.E()*lept.E());
 
-    double deltan = v*v-4*u*w;
+    double deltan = v * v - 4 * u * w;
 
-    if(deltan<0) return 0; // Hopeless, MET can't be corrected
+    if (deltan < 0)
+      return 0; // Hopeless, MET can't be corrected
 
     double pt      = 0.;
     double corfact = 0.;
@@ -632,7 +633,7 @@ double  KinFit::PzNeutrino( TLorentzVector *lept, TLorentzVector *neut, TLorentz
       pt = -w/v;
       if (pt <= 0) return 0; // There is no way out...
 
-      corfact = pt/neut->Pt();
+      corfact = pt / neut.Pt();
     }
     else // Deltan>=0 and u!=0
     {
@@ -646,25 +647,25 @@ double  KinFit::PzNeutrino( TLorentzVector *lept, TLorentzVector *neut, TLorentz
       if(pt2>0 && pt1<0) pt=pt2;
       if(pt1>0 && pt2>0)
       {
-        (fabs(pt1-neut->Pt())<=fabs(pt2-neut->Pt()))
+        (fabs(pt1-neut.Pt())<=fabs(pt2-neut.Pt()))
           ? pt=pt1
           : pt=pt2;     
       }
 
-      corfact = pt/neut->Pt();
+      corfact = pt/neut.Pt();
     }
 
     // Now we have the correction factor
 
-    neut->SetPx(corfact*neut->Px());
-    neut->SetPy(corfact*neut->Py());
+    neut.SetPx(corfact*neut.Px());
+    neut.SetPy(corfact*neut.Py());
 
     // Recompute the new parameters
 
-    x = (m_w*m_w-lept->M()*lept->M()+2.*(neut->Px()*lept->Px()+neut->Py()*lept->Py()))/(2*lept->E());
-    a = 1-(lept->Pz()*lept->Pz())/(lept->E()*lept->E());
-    b = -2.*(lept->Pz()/lept->E())*x;
-    c = neut->Px()*neut->Px()+neut->Py()*neut->Py()-x*x;
+    x = (m_w*m_w-lept.M()*lept.M()+2.*(neut.Px()*lept.Px()+neut.Py()*lept.Py()))/(2*lept.E());
+    a = 1-(lept.Pz()*lept.Pz())/(lept.E()*lept.E());
+    b = -2.*(lept.Pz()/lept.E())*x;
+    c = neut.Px()*neut.Px()+neut.Py()*neut.Py()-x*x;
 
 //         std::cout << "We have rescaled the MET " << lept->E() << " / " << corfact <<  " , now delta should be null:" << std::endl;
 //         std::cout << "Previous delta: " << delta<< std::endl;
@@ -682,24 +683,24 @@ double  KinFit::PzNeutrino( TLorentzVector *lept, TLorentzVector *neut, TLorentz
 
   // We can go back to the normal path: 
 
-  TLorentzVector TopCand1 = *lept+*bJet;
-  TLorentzVector TopCand2 = *lept+*bJet;
+  TLorentzVector TopCand1 = lept + bJet;
+  TLorentzVector TopCand2 = lept + bJet;
 
-  neut->SetPz((-b-(sqrt(delta)))/(2*a));
-  neut->SetE(sqrt(neut->Px()*neut->Px()+neut->Py()*neut->Py()+neut->Pz()*neut->Pz()));
-  TopCand1 += *neut;
+  neut.SetPz((-b-(sqrt(delta)))/(2*a));
+  neut.SetE(sqrt(neut.Px()*neut.Px()+neut.Py()*neut.Py()+neut.Pz()*neut.Pz()));
+  TopCand1 += neut;
 
-  neut->SetPz((-b+(sqrt(delta)))/(2*a));
-  neut->SetE(sqrt(neut->Px()*neut->Px()+neut->Py()*neut->Py()+neut->Pz()*neut->Pz()));
-  TopCand2 += *neut;
+  neut.SetPz((-b+(sqrt(delta)))/(2*a));
+  neut.SetE(sqrt(neut.Px()*neut.Px()+neut.Py()*neut.Py()+neut.Pz()*neut.Pz()));
+  TopCand2 += neut;
 
   double mtt_1 = sqrt(std::max(0.,TopCand1.M2()));
   double mtt_2 = sqrt(std::max(0.,TopCand2.M2()));
 
   if(fabs(mtt_1-m_top) <= fabs(mtt_2-m_top)) // Otherwise it's OK
   {
-    neut->SetPz((-b-(sqrt(delta)))/(2*a));
-    neut->SetE(sqrt(neut->Px()*neut->Px()+neut->Py()*neut->Py()+neut->Pz()*neut->Pz()));
+    neut.SetPz((-b-(sqrt(delta)))/(2*a));
+    neut.SetE(sqrt(neut.Px()*neut.Px()+neut.Py()*neut.Py()+neut.Pz()*neut.Pz()));
   }
 
   return 1;
