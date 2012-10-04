@@ -35,7 +35,7 @@ process.maxEvents = cms.untracked.PSet(
     )
 
 #Global tag and data type choice
-process.GlobalTag.globaltag = 'START53_V11::All'
+process.GlobalTag.globaltag = 'START53_V7A::All'
 process.PATextraction.doMC  = True
 
 #Input PAT file to extract
@@ -76,7 +76,7 @@ process.PATextraction.doMtt      = True
 
 # Jets correction : needs a valid global tags, or an external DB where JEC are stored
 process.PATextraction.correctJets       = True
-process.PATextraction.jetCorrectorLabel = "ak5PFL1FastL2L3"
+process.PATextraction.jetCorrectorLabel = "ak5PFchsL1FastL2L3"
 
 # Analysis cuts
 process.PATextraction.analysisSettings = cms.untracked.vstring(

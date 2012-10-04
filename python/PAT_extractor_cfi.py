@@ -1,5 +1,21 @@
 import FWCore.ParameterSet.Config as cms
 
+from JetMETCorrections.Configuration.JetCorrectionProducers_cff import *
+
+# Do some CHS stuff
+ak5PFchsL1Fastjet  = ak5PFL1Fastjet.clone(algorithm = 'AK5PFchs')
+ak5PFchsL2Relative = ak5PFL2Relative.clone(algorithm = 'AK5PFchs')
+ak5PFchsL3Absolute = ak5PFL3Absolute.clone(algorithm = 'AK5PFchs')
+ak5PFchsResidual   = ak5PFResidual.clone(algorithm = 'AK5PFchs')
+ak5PFchsL1FastL2L3 = cms.ESProducer(
+  'JetCorrectionESChain',
+  correctors = cms.vstring('ak5PFchsL1Fastjet', 'ak5PFchsL2Relative','ak5PFchsL3Absolute')
+)
+ak5PFchsL1FastL2L3Residual = cms.ESProducer(
+  'JetCorrectionESChain',
+  correctors = cms.vstring('ak5PFchsL1Fastjet', 'ak5PFchsL2Relative','ak5PFchsL3Absolute', 'ak5PFchsResidual')
+)
+
 PATextraction = cms.EDAnalyzer("PatExtractor",
 
 

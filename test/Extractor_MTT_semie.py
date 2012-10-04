@@ -77,7 +77,7 @@ process.PATextraction.doMtt      = True
 
 # Jets correction : needs a valid global tags, or an external DB where JEC are stored
 process.PATextraction.correctJets       = True
-process.PATextraction.jetCorrectorLabel = "ak5PFL1FastL2L3Residual"
+process.PATextraction.jetCorrectorLabel = "ak5PFchsL1FastL2L3Residual"
 
 # Analysis cuts
 process.PATextraction.analysisSettings = cms.untracked.vstring(
