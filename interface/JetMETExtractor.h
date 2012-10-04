@@ -34,100 +34,125 @@
 class JetMETExtractor: public BaseExtractor<pat::Jet>
 {
 
- public:
+  public:
 
-  JetMETExtractor(const std::string& name, const std::string& met_name, const edm::InputTag& tag, const edm::InputTag& metTag,
-    bool doJetTree, bool doMETTree, bool correctJets, const std::string& jetCorrectorLabel);
-  JetMETExtractor(const std::string& name, const std::string& met_name, TFile *a_file);
-  virtual ~JetMETExtractor();
+    JetMETExtractor(const std::string& name, const std::string& met_name, const edm::InputTag& tag, const edm::InputTag& metTag,
+        bool doJetTree, bool doMETTree, bool correctJets, const std::string& jetCorrectorLabel);
+    JetMETExtractor(const std::string& name, const std::string& met_name, TFile *a_file);
+    virtual ~JetMETExtractor();
 
-  void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* m_MC); 
+    void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* m_MC); 
 
-  void writeInfo(const pat::Jet& part, int index); 
-  void writeInfo(const pat::MET& part, int index); 
+    void writeInfo(const pat::Jet& part, int index); 
+    void writeInfo(const pat::MET& part, int index); 
 
-  void getInfo(int ievt); 
+    void getInfo(int ievt); 
 
-  void reset();
-  void fillTree(); 
+    void reset();
+    void fillTree(); 
 
-  virtual void doMCMatch(const pat::Jet& object, MCExtractor* mcExtractor, int index);
+    virtual const reco::Candidate* getGenParticle(const pat::Jet& jet) {
+      return jet.genParton();
+    }
 
-  TLorentzVector *getJetLorentzVector(int jetidx) {return (TLorentzVector*)m_jet_lorentzvector->At(jetidx);}
+    virtual void setGenParticleIndex(int genParticleIndex, int index) {
+      m_jet_MCIndex[index] = genParticleIndex;
+    }
 
-  float getJetBTagProb_CSV(int jetidx) const { return m_jet_btag_CSV[jetidx]; }
-  float getJetBTagProb_TCHP(int jetidx) const { return m_jet_btag_TCHP[jetidx]; }
+    virtual float getMCMatchDeltaR() {
+      return 0.2;
+    }
 
-  //float getJetBTagProb_SSVHP(int jetidx) {return m_jet_btag_SSVHP[jetidx];}
-  //float getJetBTagProb_TCHE(int jetidx) {return m_jet_btag_TCHE[jetidx];}
-  
-  int getJetMCIndex(int jetidx){return m_jet_MCIndex[jetidx];}
-  
-  /**
-   * This method is need for inline JEC. We need to be able to change jet pt on-the-fly
-   */
-  void setJetLorentzVector(int index, TLorentzVector* vector)
-  {
-    if (index >= m_jet_lorentzvector->GetEntries())
-      return;
+    virtual float getMCMatchDPtRel() {
+      return 3.0;
+    }
 
-    new((*m_jet_lorentzvector)[index]) TLorentzVector(*vector);
-  }
+    virtual std::vector<int> getPdgIds() {
+      return {1, 2, 3, 4, 5, 21};
+    }
 
-  void setJetLorentzVector(int index, double energy, double px, double py, double pz)
-  {
-    TLorentzVector* v = new TLorentzVector(px, py, pz, energy);
-    setJetLorentzVector(index, v);
-    delete v;
-  }
+    virtual TLorentzVector getP4(const pat::Jet& object) {
+      TLorentzVector p4;
+      p4.SetPxPyPzE(object.px(), object.py(), object.pz(), object.energy());
 
-  TLorentzVector *getMETLorentzVector(int metidx) {return (TLorentzVector*)m_met_lorentzvector->At(metidx);}
-  void setMETLorentzVector(int idx, float E, float Px, float Py, float Pz);
+      return p4;
+    }
 
-  // Jet ID
-  bool isPFJetLoose(const pat::Jet& jet);
+    TLorentzVector *getJetLorentzVector(int jetidx) {return (TLorentzVector*)m_jet_lorentzvector->At(jetidx);}
 
-  void correctJets(pat::JetCollection& jets, const edm::Event& iEvent, const edm::EventSetup& iSetup);
-  void extractRawJets(pat::JetCollection& jets);
+    float getJetBTagProb_CSV(int jetidx) const { return m_jet_btag_CSV[jetidx]; }
+    float getJetBTagProb_TCHP(int jetidx) const { return m_jet_btag_TCHP[jetidx]; }
 
- private:
-  
-  TTree* m_tree_jet;
+    //float getJetBTagProb_SSVHP(int jetidx) {return m_jet_btag_SSVHP[jetidx];}
+    //float getJetBTagProb_TCHE(int jetidx) {return m_jet_btag_TCHE[jetidx];}
 
-  bool mCorrectJets;
-  std::string mJetCorrectorLabel;
-  GreaterByPt<pat::Jet> mSorter;
+    int getJetMCIndex(int jetidx){return m_jet_MCIndex[jetidx];}
 
-  static const int 	m_jets_MAX       = 200;
+    /**
+     * This method is need for inline JEC. We need to be able to change jet pt on-the-fly
+     */
+    void setJetLorentzVector(int index, TLorentzVector* vector)
+    {
+      if (index >= m_jet_lorentzvector->GetEntries())
+        return;
 
-  float m_deltaR_cut;
+      new((*m_jet_lorentzvector)[index]) TLorentzVector(*vector);
+    }
 
-  TClonesArray* m_jet_lorentzvector;
-  float	m_jet_vx[m_jets_MAX];
-  float	m_jet_vy[m_jets_MAX];
-  float	m_jet_vz[m_jets_MAX];
-  int	m_jet_chmult[m_jets_MAX];
-  float	m_jet_chmuEfrac[m_jets_MAX];
-  float	m_jet_chemEfrac[m_jets_MAX];
-  float	m_jet_chhadEfrac[m_jets_MAX];
-  float	m_jet_nemEfrac[m_jets_MAX];
-  float	m_jet_nhadEfrac[m_jets_MAX];
+    void setJetLorentzVector(int index, double energy, double px, double py, double pz)
+    {
+      TLorentzVector* v = new TLorentzVector(px, py, pz, energy);
+      setJetLorentzVector(index, v);
+      delete v;
+    }
 
-  //float	m_jet_btag_BjetProb[m_jets_MAX];
-  //float	m_jet_btag_SSVHE[m_jets_MAX];
-  //float	m_jet_btag_SSVHP[m_jets_MAX];
-  //float	m_jet_btag_TCHE[m_jets_MAX];
-  float	m_jet_btag_jetProb[m_jets_MAX];
-  float	m_jet_btag_TCHP[m_jets_MAX];
-  float	m_jet_btag_CSV[m_jets_MAX];
+    TLorentzVector *getMETLorentzVector(int metidx) {return (TLorentzVector*)m_met_lorentzvector->At(metidx);}
+    void setMETLorentzVector(int idx, float E, float Px, float Py, float Pz);
 
-  int  m_jet_MCIndex[m_jets_MAX];
+    // Jet ID
+    bool isPFJetLoose(const pat::Jet& jet);
 
-  // MET
+    void correctJets(pat::JetCollection& jets, const edm::Event& iEvent, const edm::EventSetup& iSetup);
+    void extractRawJets(pat::JetCollection& jets);
 
-  edm::InputTag m_metTag;
-  TTree* m_tree_met;
-  TClonesArray* m_met_lorentzvector;
+  private:
+
+    TTree* m_tree_jet;
+
+    bool mCorrectJets;
+    std::string mJetCorrectorLabel;
+    GreaterByPt<pat::Jet> mSorter;
+
+    static const int 	m_jets_MAX       = 200;
+
+    float m_deltaR_cut;
+
+    TClonesArray* m_jet_lorentzvector;
+    float	m_jet_vx[m_jets_MAX];
+    float	m_jet_vy[m_jets_MAX];
+    float	m_jet_vz[m_jets_MAX];
+    int	m_jet_chmult[m_jets_MAX];
+    float	m_jet_chmuEfrac[m_jets_MAX];
+    float	m_jet_chemEfrac[m_jets_MAX];
+    float	m_jet_chhadEfrac[m_jets_MAX];
+    float	m_jet_nemEfrac[m_jets_MAX];
+    float	m_jet_nhadEfrac[m_jets_MAX];
+
+    //float	m_jet_btag_BjetProb[m_jets_MAX];
+    //float	m_jet_btag_SSVHE[m_jets_MAX];
+    //float	m_jet_btag_SSVHP[m_jets_MAX];
+    //float	m_jet_btag_TCHE[m_jets_MAX];
+    float	m_jet_btag_jetProb[m_jets_MAX];
+    float	m_jet_btag_TCHP[m_jets_MAX];
+    float	m_jet_btag_CSV[m_jets_MAX];
+
+    int  m_jet_MCIndex[m_jets_MAX];
+
+    // MET
+
+    edm::InputTag m_metTag;
+    TTree* m_tree_met;
+    TClonesArray* m_met_lorentzvector;
 };
 
 #endif 

@@ -42,7 +42,32 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
     void fillTree(); 
     void getInfo(int ievt); 
 
-    virtual void doMCMatch(const pat::Muon& object, MCExtractor* mcExtractor, int index);
+    virtual const reco::Candidate* getGenParticle(const pat::Muon& muon) {
+      return muon.genLepton();
+    }
+
+    virtual void setGenParticleIndex(int genParticleIndex, int index) {
+      m_muo_MCIndex[index] = genParticleIndex;
+    }
+    
+    virtual float getMCMatchDeltaR() {
+      return 0.5;
+    }
+
+    virtual float getMCMatchDPtRel() {
+      return 0.5;
+    }
+
+    virtual std::vector<int> getPdgIds() {
+      return {13};
+    }
+
+    virtual TLorentzVector getP4(const pat::Muon& object) {
+      TLorentzVector p4;
+      p4.SetPxPyPzE(object.px(), object.py(), object.pz(), object.energy());
+
+      return p4;
+    }
 
     // Setters/Getters
 

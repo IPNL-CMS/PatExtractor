@@ -1,5 +1,4 @@
-#ifndef MCEXTRACTOR_H
-#define MCEXTRACTOR_H
+#pragma once
 
 /**
  * MCExtractor
@@ -15,7 +14,7 @@
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
-#include "../interface/BaseExtractor.h"
+#include "../interface/SuperBaseExtractor.h"
 
 //Include std C++
 #include <iostream>
@@ -52,7 +51,9 @@ class MCExtractor: public SuperBaseExtractor
   float getPz(int index){return m_MC_pz[index];}
   float getE(int index){return m_MC_E[index];}
   float getMom1Index(int index){return m_MC_imot1[index];}
-  TLorentzVector* getP4(int index) { return static_cast<TLorentzVector*>((*m_MC_lorentzvector)[index]); }
+  TLorentzVector* getP4(int index) {
+    return static_cast<TLorentzVector*>((*m_MC_lorentzvector)[index]);
+  }
 
 
  private:
@@ -81,5 +82,3 @@ class MCExtractor: public SuperBaseExtractor
 
   void constructGeneration(int gene, int npart);
 };
-
-#endif 

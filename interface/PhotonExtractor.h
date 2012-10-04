@@ -30,35 +30,60 @@
 class PhotonExtractor: public BaseExtractor<pat::Photon>
 {
 
- public:
+  public:
 
-  PhotonExtractor(const std::string& name, const edm::InputTag& tag, bool doTree);
-  PhotonExtractor(const std::string& name, TFile *a_file);
-  virtual ~PhotonExtractor();
+    PhotonExtractor(const std::string& name, const edm::InputTag& tag, bool doTree);
+    PhotonExtractor(const std::string& name, TFile *a_file);
+    virtual ~PhotonExtractor();
 
-  void writeInfo(const pat::Photon& part, int index); 
-  void getInfo(int ievt);
+    void writeInfo(const pat::Photon& part, int index); 
+    void getInfo(int ievt);
 
-  void reset();
-  void fillTree(); 
-  
-  virtual void doMCMatch(const pat::Photon& object, MCExtractor* mcExtractor, int index);
+    void reset();
+    void fillTree(); 
 
-  // Setters/Getters
+    virtual const reco::Candidate* getGenParticle(const pat::Photon& photon) {
+      return photon.genPhoton();
+    }
 
- private:
-  
-  TTree* m_tree_photon;
+    virtual void setGenParticleIndex(int genParticleIndex, int index) {
+      m_pho_MCIndex[index] = genParticleIndex;
+    }
 
-  static const int 	m_photons_MAX    = 100;
+    virtual float getMCMatchDeltaR() {
+      return 0.2;
+    }
 
-  float m_deltaR_cut;
+    virtual float getMCMatchDPtRel() {
+      return 1.0;
+    }
 
-  TClonesArray* m_pho_lorentzvector;
-  float	m_pho_vx[m_photons_MAX];
-  float	m_pho_vy[m_photons_MAX];
-  float	m_pho_vz[m_photons_MAX];
-  int   m_pho_MCIndex[m_photons_MAX];
+    virtual std::vector<int> getPdgIds() {
+      return {22};
+    }
+
+    virtual TLorentzVector getP4(const pat::Photon& object) {
+      TLorentzVector p4;
+      p4.SetPxPyPzE(object.px(), object.py(), object.pz(), object.energy());
+
+      return p4;
+    }
+
+    // Setters/Getters
+
+  private:
+
+    TTree* m_tree_photon;
+
+    static const int 	m_photons_MAX    = 100;
+
+    float m_deltaR_cut;
+
+    TClonesArray* m_pho_lorentzvector;
+    float	m_pho_vx[m_photons_MAX];
+    float	m_pho_vy[m_photons_MAX];
+    float	m_pho_vz[m_photons_MAX];
+    int   m_pho_MCIndex[m_photons_MAX];
 };
 
 #endif 

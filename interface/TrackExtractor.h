@@ -29,45 +29,67 @@
 class TrackExtractor: public BaseExtractor<reco::Track>
 {
 
- public:
+  public:
 
-  TrackExtractor(const std::string& name, const edm::InputTag& tag, bool doTree);
-  TrackExtractor(const std::string& name, TFile* a_file);
-  virtual ~TrackExtractor();
+    TrackExtractor(const std::string& name, const edm::InputTag& tag, bool doTree);
+    TrackExtractor(const std::string& name, TFile* a_file);
+    virtual ~TrackExtractor();
 
-  void writeInfo(const reco::Track& part, int index);
-  
-  virtual void doMCMatch(const reco::Track& object, MCExtractor* mcExtractor, int index) {}
+    void writeInfo(const reco::Track& part, int index);
 
-  void reset();
-  void fillTree();
-  void getInfo(int ievt); 
+    virtual const reco::Candidate* getGenParticle(const reco::Track& track) {
+      return NULL;
+    }
 
-  // Setters/Getters
+    virtual void setGenParticleIndex(int genParticleIndex, int index) {
+    }
 
-  float getTrackpx(int muidx) {return m_trk_px[muidx];}
-  float getTrackpy(int muidx) {return m_trk_py[muidx];}
-  float getTrackpz(int muidx) {return m_trk_pz[muidx];}
-  float getMunormChi2(int muidx) {return m_trk_normChi2[muidx];}
+    virtual float getMCMatchDeltaR() {
+      return 0.;
+    }
 
- private:
-  
-  TTree* m_tree_track;
+    virtual float getMCMatchDPtRel() {
+      return 0.;
+    }
 
-  static const int 	m_tracks_MAX  = 2000;
+    virtual std::vector<int> getPdgIds() {
+      return {};
+    }
 
-  float	m_trk_px[m_tracks_MAX];
-  float	m_trk_py[m_tracks_MAX];
-  float	m_trk_pz[m_tracks_MAX];
-  float	m_trk_vx[m_tracks_MAX];
-  float	m_trk_vy[m_tracks_MAX];
-  float	m_trk_vz[m_tracks_MAX];
-  float	m_trk_eta[m_tracks_MAX];
-  float	m_trk_phi[m_tracks_MAX];
-  float m_trk_normChi2[m_tracks_MAX];
-  int 	m_trk_nValidHits[m_tracks_MAX]; 
-  int	m_trk_charge[m_tracks_MAX];
-  float m_trk_d0[m_tracks_MAX];
+    virtual TLorentzVector getP4(const reco::Track& object) {
+      TLorentzVector p4;
+      return p4;
+    }
+
+    void reset();
+    void fillTree();
+    void getInfo(int ievt); 
+
+    // Setters/Getters
+
+    float getTrackpx(int muidx) {return m_trk_px[muidx];}
+    float getTrackpy(int muidx) {return m_trk_py[muidx];}
+    float getTrackpz(int muidx) {return m_trk_pz[muidx];}
+    float getMunormChi2(int muidx) {return m_trk_normChi2[muidx];}
+
+  private:
+
+    TTree* m_tree_track;
+
+    static const int 	m_tracks_MAX  = 2000;
+
+    float	m_trk_px[m_tracks_MAX];
+    float	m_trk_py[m_tracks_MAX];
+    float	m_trk_pz[m_tracks_MAX];
+    float	m_trk_vx[m_tracks_MAX];
+    float	m_trk_vy[m_tracks_MAX];
+    float	m_trk_vz[m_tracks_MAX];
+    float	m_trk_eta[m_tracks_MAX];
+    float	m_trk_phi[m_tracks_MAX];
+    float m_trk_normChi2[m_tracks_MAX];
+    int 	m_trk_nValidHits[m_tracks_MAX]; 
+    int	m_trk_charge[m_tracks_MAX];
+    float m_trk_d0[m_tracks_MAX];
 
 };
 

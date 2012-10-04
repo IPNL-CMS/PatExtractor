@@ -110,36 +110,3 @@ void PhotonExtractor::fillTree()
 {
   m_tree_photon->Fill(); 
 }
-
-void PhotonExtractor::doMCMatch(const pat::Photon& part, MCExtractor* m_MC, int index)
-{
-  float deltaR_min = 1e6;
-  int idx_min    = -1;
-
-  for(int mcPart_i=0; mcPart_i < m_MC->getSize(); ++mcPart_i) 
-  {
-    if (m_MC->getStatus(mcPart_i)!=3) continue;
-    if (fabs(m_MC->getType(mcPart_i))!=22) continue;
-
-
-    TLorentzVector TL_genPart(m_MC->getPx(mcPart_i),m_MC->getPy(mcPart_i),m_MC->getPz(mcPart_i),m_MC->getE(mcPart_i));
-    TLorentzVector TL_photon(part.px(),part.py(),part.pz(),part.energy());
-
-    if(TL_genPart.Pt())
-    {
-      float deltaR = TL_genPart.DeltaR(TL_photon);
-      //float deltaP = fabs(TL_genPart.Pt()-TL_photon.Pt());
-
-      if(deltaR<deltaR_min)
-      {
-        deltaR_min = deltaR;
-        idx_min = mcPart_i;
-      }
-    }
-  }
-
-  if (deltaR_min>m_deltaR_cut)
-    idx_min = -2;
-
-  m_pho_MCIndex[index] = idx_min;
-}

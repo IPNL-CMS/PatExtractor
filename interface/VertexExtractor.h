@@ -29,41 +29,64 @@
 class VertexExtractor: public BaseExtractor<reco::Vertex>
 {
 
- public:
+  public:
 
-  VertexExtractor(const std::string& name, const edm::InputTag& tag, bool doTree);
-  VertexExtractor(const std::string& name, TFile *a_file);
-  virtual ~VertexExtractor();
+    VertexExtractor(const std::string& name, const edm::InputTag& tag, bool doTree);
+    VertexExtractor(const std::string& name, TFile *a_file);
+    virtual ~VertexExtractor();
 
-  void writeInfo(const reco::Vertex& part, int index); 
-  void getInfo(int ievt); 
-  virtual void doMCMatch(const reco::Vertex& object, MCExtractor* mcExtractor, int index) {}
+    void writeInfo(const reco::Vertex& part, int index); 
+    void getInfo(int ievt); 
 
-  void reset();
-  void fillTree(); 
-  float dist_to_vtx(int vtxidx, float x, float y, float z);
+    virtual const reco::Candidate* getGenParticle(const reco::Vertex& vtx) {
+      return NULL;
+    }
 
-  float vx(int vtxidx)           {return m_vtx_vx[vtxidx];}
-  float vy(int vtxidx)           {return m_vtx_vy[vtxidx];}
-  float vz(int vtxidx)           {return m_vtx_vz[vtxidx];}
-  float getVtxNdof(int vtxidx)   {return m_vtx_ndof[vtxidx];}
-  bool  getVtxIsFake(int vtxidx) {return m_vtx_isFake[vtxidx];}
-  int   getNtracks(int vtxidx)   {return m_vtx_ntracks[vtxidx];}
-  float getNormChi2(int vtxidx)  {return m_vtx_normChi2[vtxidx];}
+    virtual void setGenParticleIndex(int genParticleIndex, int index) {
+    }
 
- private:
-  
-  TTree* m_tree_vtx;
+    virtual float getMCMatchDeltaR() {
+      return 0.;
+    }
 
-  static const int 	m_vertices_MAX   = 50;
+    virtual float getMCMatchDPtRel() {
+      return 0.;
+    }
 
-  float	m_vtx_vx[m_vertices_MAX];
-  float	m_vtx_vy[m_vertices_MAX];
-  float	m_vtx_vz[m_vertices_MAX];
-  bool  m_vtx_isFake[m_vertices_MAX];
-  float m_vtx_ndof[m_vertices_MAX];
-  float m_vtx_normChi2[m_vertices_MAX];
-  int   m_vtx_ntracks[m_vertices_MAX];
+    virtual std::vector<int> getPdgIds() {
+      return {};
+    }
+
+    virtual TLorentzVector getP4(const reco::Vertex& object) {
+      TLorentzVector p4;
+      return p4;
+    }
+
+    void reset();
+    void fillTree(); 
+    float dist_to_vtx(int vtxidx, float x, float y, float z);
+
+    float vx(int vtxidx)           {return m_vtx_vx[vtxidx];}
+    float vy(int vtxidx)           {return m_vtx_vy[vtxidx];}
+    float vz(int vtxidx)           {return m_vtx_vz[vtxidx];}
+    float getVtxNdof(int vtxidx)   {return m_vtx_ndof[vtxidx];}
+    bool  getVtxIsFake(int vtxidx) {return m_vtx_isFake[vtxidx];}
+    int   getNtracks(int vtxidx)   {return m_vtx_ntracks[vtxidx];}
+    float getNormChi2(int vtxidx)  {return m_vtx_normChi2[vtxidx];}
+
+  private:
+
+    TTree* m_tree_vtx;
+
+    static const int 	m_vertices_MAX   = 50;
+
+    float	m_vtx_vx[m_vertices_MAX];
+    float	m_vtx_vy[m_vertices_MAX];
+    float	m_vtx_vz[m_vertices_MAX];
+    bool  m_vtx_isFake[m_vertices_MAX];
+    float m_vtx_ndof[m_vertices_MAX];
+    float m_vtx_normChi2[m_vertices_MAX];
+    int   m_vtx_ntracks[m_vertices_MAX];
 };
 
 #endif 

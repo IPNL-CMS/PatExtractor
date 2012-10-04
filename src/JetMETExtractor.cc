@@ -177,13 +177,23 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
 
   for (unsigned int i = 0; i < p_jets.size(); ++i)
   {
-    if (! isPFJetLoose(*(p_jets.at(i).userData<pat::Jet>("rawJet"))))
+    const pat::Jet& rawJet = *(p_jets.at(i).userData<pat::Jet>("rawJet"));
+    if (false) {
+      if (! mCorrectJets) {
+        // Test if jet id works the same on our stored raw jets and the jet itself
+        if (isPFJetLoose(rawJet) != isPFJetLoose(p_jets.at(i))) {
+          std::cout << "Error: there's something wrong with your jets!" << std::endl;
+        }
+      }
+    }
+
+    if (! isPFJetLoose(rawJet))
       continue;
 
     JetMETExtractor::writeInfo(p_jets.at(i), m_size); 
 
     if (m_MC)
-      doMCMatch(p_jets.at(i), m_MC, i);
+      doMCMatch(p_jets.at(i), event, m_MC, m_size);
 
     m_size++;
   }
@@ -297,41 +307,6 @@ void JetMETExtractor::fillTree()
     m_tree_met->Fill();
 }
 
-void JetMETExtractor::doMCMatch(const pat::Jet& part, MCExtractor* m_MC, int index)
-{
-  float deltaR_min = 1e6;
-  int idx_min    = -1;
-  float deltaR;      
-  float deltaP;
-  TLorentzVector TL_genPart;
-  TLorentzVector TL_jet;
-
-  for(int mcPart_i=0; mcPart_i<m_MC->getSize(); ++mcPart_i) 
-  {
-    if (m_MC->getStatus(mcPart_i)!=3) continue;
-    if (fabs(m_MC->getType(mcPart_i))>5 && fabs(m_MC->getType(mcPart_i))!=21) continue;
-    TL_genPart.SetPxPyPzE(m_MC->getPx(mcPart_i),m_MC->getPy(mcPart_i),m_MC->getPz(mcPart_i),m_MC->getE(mcPart_i));
-    TL_jet.SetPxPyPzE(part.px(),part.py(),part.pz(),part.energy());
-    if(TL_genPart.Pt())
-    {
-      deltaR = TL_genPart.DeltaR(TL_jet);
-      deltaP = fabs(TL_genPart.Pt()-TL_jet.Pt())/(TL_jet.Pt());
-      if (deltaP>3.) continue; //min DPrel for jets 3.
-      if (deltaR>0.4) continue; //min DR for jets 0.4
-      if(deltaR<deltaR_min)
-      {
-        deltaR_min = deltaR;
-        idx_min = mcPart_i;
-      }
-    }
-  }
-
-  if (deltaR_min>m_deltaR_cut)
-    idx_min = -2;
-
-  m_jet_MCIndex[index] = idx_min;
-}
-
 void JetMETExtractor::correctJets(pat::JetCollection& jets, const edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   // Get Jet corrector
@@ -344,11 +319,26 @@ void JetMETExtractor::correctJets(pat::JetCollection& jets, const edm::Event& iE
     pat::Jet rawJet = jet.correctedJet("Uncorrected");
     jet.addUserData("rawJet", rawJet, true); // Store raw jet inside the jet
 
+    if (false) {
+      std::cout << "---" << std::endl;
+      std::cout << jet.chargedEmEnergy() << std::endl;
+      std::cout << rawJet.chargedEmEnergy() << std::endl;
+
+      std::cout << "Pt: " << jet.pt() << std::endl;
+    }
+
     double toRaw = jet.jecFactor("Uncorrected");
     jet.setP4(jet.p4() * toRaw); // jet is now a raw jet
+    if (false) {
+      std::cout << "True raw pt: " << rawJet.pt() << std::endl;
+      std::cout << "Raw pt: " << jet.pt() << std::endl;
+    }
 
     double corrections = corrector->correction(jet, iEvent, iSetup);
     jet.scaleEnergy(corrections);
+    if (false) {
+      std::cout << "Corrected pt: " << jet.pt() << std::endl;
+    }
   }
 
   // Sort collection by pt

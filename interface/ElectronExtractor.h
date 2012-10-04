@@ -42,7 +42,32 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
     void fillTree(); 
     void getInfo(int ievt); 
 
-    virtual void doMCMatch(const pat::Electron& object, MCExtractor* mcExtractor, int index);
+    virtual const reco::Candidate* getGenParticle(const pat::Electron& electron) {
+      return electron.genLepton();
+    }
+
+    virtual void setGenParticleIndex(int genParticleIndex, int index) {
+      m_ele_MCIndex[index] = genParticleIndex;
+    }
+
+    virtual float getMCMatchDeltaR() {
+      return 0.5;
+    }
+
+    virtual float getMCMatchDPtRel() {
+      return 0.5;
+    }
+
+    virtual std::vector<int> getPdgIds() {
+      return {11};
+    }
+
+    virtual TLorentzVector getP4(const pat::Electron& object) {
+      TLorentzVector p4;
+      p4.SetPxPyPzE(object.px(), object.py(), object.pz(), object.energy());
+
+      return p4;
+    }
 
     TLorentzVector *getEleLorentzVector(int eidx) {return (TLorentzVector*)m_ele_lorentzvector->At(eidx);}
     float getEledB(int eidx) {return m_ele_dB[eidx];}
