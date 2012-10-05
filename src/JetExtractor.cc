@@ -5,7 +5,7 @@
 JetExtractor::JetExtractor(bool doTree, edm::InputTag tag, bool correctJets, const std::string& jetCorrectorLabel)
 {
   m_tag = tag;
-  m_deltaR_cut = 0.2; // Maximum acceptable distance for MC matching
+  m_deltaR_cut = 0.4; // Maximum acceptable distance for MC matching
 
   mCorrectJets = correctJets;
   mJetCorrectorLabel = jetCorrectorLabel;
