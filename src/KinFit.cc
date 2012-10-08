@@ -16,6 +16,8 @@
  ************************************************************************/
 
 #include "../interface/KinFit.h"
+#include "../interface/AnalysisSettings.h"
+
 using namespace std;
 
 static void * vdummy = 0;
@@ -26,31 +28,52 @@ static void MinuitFunc(int &npar, double *ddummy, double &cf, double *par, int i
 }
 
 
-KinFit::KinFit(TString ParamsFile
-    , double wmass, double topmass, double bmass
-    , double wmass_e, double topmass_e) 
+KinFit::KinFit(const std::string& ParamsFile, AnalysisSettings* settings)
 { 
   /// argument = parametrisation file
   /// initialisations : KFChi2 kin fit chi2 set to 10^10
   /// debug level 1 by default
+  
+  settings->getSetting("W_mass", m_w);
+  settings->getSetting("b_mass", m_b);
+  settings->getSetting("Top_mass", m_top);
+
+  settings->getSetting("W_mass_err", SigmMW);
+  settings->getSetting("Top_mass_err", SigmMT);
+
+
+  // Chi2 optimal values and errors
+
+  settings->getSetting("chi2_hadronic_top_mass", chi2_hadronic_top_mass);
+  settings->getSetting("chi2_leptonic_top_mass_semimu", chi2_leptonic_top_mass_semimu);
+  settings->getSetting("chi2_leptonic_top_mass_semie", chi2_leptonic_top_mass_semie);
+  settings->getSetting("chi2_hadronic_w_mass", chi2_hadronic_w_mass);
+  settings->getSetting("chi2_pt_ttbar_system", chi2_pt_ttbar_system);
+  settings->getSetting("chi2_ht_frac", chi2_ht_frac);
+
+  settings->getSetting("chi2_sigma_hadronic_top_mass", chi2_sigma_hadronic_top_mass);
+  settings->getSetting("chi2_sigma_leptonic_top_mass_semimu", chi2_sigma_leptonic_top_mass_semimu);
+  settings->getSetting("chi2_sigma_leptonic_top_mass_semie", chi2_sigma_leptonic_top_mass_semie);
+  settings->getSetting("chi2_sigma_hadronic_w_mass", chi2_sigma_hadronic_w_mass);
+  settings->getSetting("chi2_sigma_pt_ttbar_system", chi2_sigma_pt_ttbar_system);
+  settings->getSetting("chi2_sigma_ht_frac", chi2_sigma_ht_frac);
+
+  chi2_sigma_hadronic_top_mass_square = chi2_sigma_hadronic_top_mass * chi2_sigma_hadronic_top_mass;
+  chi2_sigma_leptonic_top_mass_semimu_square = chi2_sigma_leptonic_top_mass_semimu * chi2_sigma_leptonic_top_mass_semimu;
+  chi2_sigma_leptonic_top_mass_semie_square = chi2_sigma_leptonic_top_mass_semie * chi2_sigma_leptonic_top_mass_semie;
+  chi2_sigma_hadronic_w_mass_square = chi2_sigma_hadronic_w_mass * chi2_sigma_hadronic_w_mass;
+  chi2_sigma_pt_ttbar_system_square = chi2_sigma_pt_ttbar_system * chi2_sigma_pt_ttbar_system;
+  chi2_sigma_ht_frac_square = chi2_sigma_ht_frac * chi2_sigma_ht_frac;
 
   if(vdummy != 0) vdummy = 0;
   KFChi2      = 10.E10;
   DEBUG_Level = -1;
 
 
-
   MyMinuit = new TMinuit(ParamNber);
   NStudiedFlavor=2;
   StudiedFlavor[0]=1;
   StudiedFlavor[1]=3;
-
-  m_w   = wmass;
-  m_b   = bmass;
-  m_top = topmass;
-
-  SigmMW=wmass_e;
-  SigmMT=topmass_e;
 
   /// reads the errors from the .dat file => create one object KinFit for each type of fit
   /// This is the remaining hardcoded part which has to disappear at some point
@@ -403,37 +426,26 @@ double KinFit::GlobalSimpleChi2(double totPt)
   std::cout << "Total pt: " << totPt << std::endl;
   */
 
-  float MW          = sqrt(max(0.,(MeasuredJet1 + MeasuredJet2).M2()));
+  float MW          = sqrt(max(0., (MeasuredJet1 + MeasuredJet2).M2()));
   //std::cout << "MW: " << MW << std::endl;
-  float MtopH       = sqrt(max(0.,(MeasuredJet1 + MeasuredJet2 + MeasuredBJetH).M2()));
+  float MtopH       = sqrt(max(0., (MeasuredJet1 + MeasuredJet2 + MeasuredBJetH).M2()));
   //std::cout << "MTopH: " << MtopH << std::endl;
-  float MtopL       = sqrt(max(0.,(MeasuredNeutrino + MeasuredLepton + MeasuredBJetL).M2()));
+  float MtopL       = sqrt(max(0., (MeasuredNeutrino + MeasuredLepton + MeasuredBJetL).M2()));
   //std::cout << "MTopL: " << MtopL << std::endl;
   //float SolPtSystem = (*MeasuredJet1+*MeasuredJet2+*MeasuredBJetL+*MeasuredBJetH).Pt()/totPt;
   float SolPtSystem = (MeasuredJet1.Pt() + MeasuredJet2.Pt() + MeasuredBJetL.Pt() + MeasuredBJetH.Pt()) / totPt;
   //std::cout << "Pt syst: " << SolPtSystem << std::endl;
-
-
-  /**********************************************************************************
-   * here comes the new (nov 2010) version, aachen-like                             *
-   * i take the mean values and resolution from aachen (AN-10-333 version 30/11/10) *
-   * for the moment i horribly hard code the numerical values                       *
-   * (the values at denominator are already sigma^2 (GeV^2))                        *
-   **********************************************************************************/
-
-  float MtopH_ref =  168.4;
-  float MtopL_ref =  168.6;
-
-
   float TTbarSystemPt = ((MeasuredJet1 + MeasuredJet2 + MeasuredBJetL + MeasuredBJetH + MeasuredNeutrino + MeasuredLepton).Pt());
 
-  /// I dont divide for sqrt(5) since it will not affect the minimization
-  float chi2 = ((MtopH-MtopH_ref)*(MtopH-MtopH_ref)/255.)+((MW-m_w)*(MW-m_w)/96.04)+((SolPtSystem-1.)*(SolPtSystem-1.)/0.0228)+((TTbarSystemPt-0.)*(TTbarSystemPt-0.)/3173.1);
+  float chi2 = ((MtopH - chi2_hadronic_top_mass) * (MtopH - chi2_hadronic_top_mass) / (chi2_sigma_hadronic_top_mass_square)) + 
+    ((MW - chi2_hadronic_w_mass) * (MW - chi2_hadronic_w_mass) / (chi2_sigma_hadronic_w_mass_square)) + 
+    ((SolPtSystem - chi2_ht_frac) * (SolPtSystem - chi2_ht_frac) / (chi2_sigma_ht_frac_square)) + 
+    ((TTbarSystemPt - chi2_pt_ttbar_system) * (TTbarSystemPt - chi2_pt_ttbar_system) / chi2_sigma_pt_ttbar_system_square);
 
   /// lepton dependant part
   (m_isMuon)
-    ? chi2 += (MtopL-MtopL_ref)*(MtopL-MtopL_ref)/217.6
-    : chi2 += (MtopL-MtopL_ref)*(MtopL-MtopL_ref)/199.7;
+    ? chi2 += (MtopL - chi2_leptonic_top_mass_semimu) * (MtopL - chi2_leptonic_top_mass_semimu) / (chi2_sigma_leptonic_top_mass_semimu_square)
+    : chi2 += (MtopL - chi2_leptonic_top_mass_semie) * (MtopL - chi2_leptonic_top_mass_semie) / (chi2_sigma_leptonic_top_mass_semie_square);
 
   return  chi2;
 }

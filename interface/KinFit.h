@@ -19,6 +19,7 @@
 static const int ParamNber = 16;
 static const int MaxEtaBins=4;
 
+class AnalysisSettings;
 
 
 class KinFit
@@ -26,9 +27,7 @@ class KinFit
 public:
   
 
-  KinFit(TString ParamsFile
-	 , double wmass, double topmass, double bmass
-	 , double wmass_e, double topmass_e); 
+  KinFit(const std::string& ParamsFile, AnalysisSettings* settings);
   virtual ~KinFit();
   
   double Chi2();
@@ -137,6 +136,27 @@ public:
   double m_b;  
   double m_top;
   
+  // Chi2
+  double chi2_hadronic_top_mass;
+  double chi2_leptonic_top_mass_semimu;
+  double chi2_leptonic_top_mass_semie;
+  double chi2_hadronic_w_mass;
+  double chi2_pt_ttbar_system;
+  double chi2_ht_frac;
+
+  double chi2_sigma_hadronic_top_mass;
+  double chi2_sigma_leptonic_top_mass_semimu;
+  double chi2_sigma_leptonic_top_mass_semie;
+  double chi2_sigma_hadronic_w_mass;
+  double chi2_sigma_pt_ttbar_system;
+  double chi2_sigma_ht_frac;
+
+  double chi2_sigma_hadronic_top_mass_square;
+  double chi2_sigma_leptonic_top_mass_semimu_square;
+  double chi2_sigma_leptonic_top_mass_semie_square;
+  double chi2_sigma_hadronic_w_mass_square;
+  double chi2_sigma_pt_ttbar_system_square;
+  double chi2_sigma_ht_frac_square;
   
   int DEBUG_Level;
   

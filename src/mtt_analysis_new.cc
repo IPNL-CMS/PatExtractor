@@ -261,7 +261,7 @@ mtt_analysis_new::mtt_analysis_new(AnalysisSettings *settings)
     m_trigger_regex = boost::regex(m_trigger, boost::regex_constants::optimize);
   }
 
-  TString fname = "kfparams_semilept.dat";
+  std::string fname = "kfparams_semilept.dat";
 
   // Kinfit()
   settings->getSetting("W_mass", m_w);
@@ -280,7 +280,7 @@ mtt_analysis_new::mtt_analysis_new(AnalysisSettings *settings)
 //    ? m_b = settings->getSetting("b_mass")
 //    : m_b = 0;
 
-  m_KinFit = new KinFit(fname, m_w, m_t, m_b, m_we, m_te);
+  m_KinFit = new KinFit(fname, settings);
 
   //put the complete path to the JEScorr.root file if you run on lyon tier3
   //otherwise remember to put it as an "additional_input_files" in your crab.cfg

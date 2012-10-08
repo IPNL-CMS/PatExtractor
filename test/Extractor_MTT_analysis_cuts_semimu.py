@@ -48,5 +48,20 @@ analysisSettings = cms.untracked.vstring(
     "doUseBTaginChi2          1",
     "doChoiceWKF              0",
 
+    #Chi2
+    "chi2_hadronic_top_mass           176.583",
+    "chi2_leptonic_top_mass_semimu    170.884",
+    "chi2_leptonic_top_mass_semie     171.265",
+    "chi2_hadronic_w_mass             84.0483",
+    "chi2_pt_ttbar_system             0",
+    "chi2_ht_frac                     1",
+
+    "chi2_sigma_hadronic_top_mass           20.398",
+    "chi2_sigma_leptonic_top_mass_semimu    20.4832",
+    "chi2_sigma_leptonic_top_mass_semie     20.7838",
+    "chi2_sigma_hadronic_w_mass             10.136",
+    "chi2_sigma_pt_ttbar_system             56.93",
+    "chi2_sigma_ht_frac                     0.151",
+
     "trigger                  ^HLT_IsoMu17_eta2p1_TriCentralPF(NoPU)?Jet[0-9]{0,3}(_[0-9]{0,3}){0,2}_v[0-9]{0,2}$"
     )
