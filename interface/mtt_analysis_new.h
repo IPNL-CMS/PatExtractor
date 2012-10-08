@@ -212,6 +212,7 @@ private:
   float m_mLepTop_AfterChi2;
   float m_mHadTop_AfterChi2;
   float m_mHadW_AfterChi2;
+  float m_mLepW_AfterChi2;
 
   // Indexes of selected particles for mtt computation
   int m_selectedLeptonIndex;

@@ -112,6 +112,7 @@ mtt_analysis_new::mtt_analysis_new(const edm::ParameterSet& cmsswSettings, Analy
   m_tree_Mtt->Branch("solChi2"            , &m_mtt_SolChi2                , "solChi2[numComb]/F");
 
 
+  m_tree_Mtt->Branch("mLepW_AfterChi2"        , &m_mLepW_AfterChi2       , "mLepW_AfterChi2/F");
   m_tree_Mtt->Branch("mHadW_AfterChi2"        , &m_mHadW_AfterChi2       , "mHadW_AfterChi2/F");
   m_tree_Mtt->Branch("mLepTop_AfterChi2"      , &m_mLepTop_AfterChi2     , "mLepTop_AfterChi2/F");
   m_tree_Mtt->Branch("mHadTop_AfterChi2"      , &m_mHadTop_AfterChi2     , "mHadTop_AfterChi2/F");
@@ -892,6 +893,7 @@ void mtt_analysis_new::loopOverCombinations(bool do_MC_)
     /**
      * Compute Mtt before doing KinFit
      */
+    m_mLepW_AfterChi2   = (measuredNeutrino + measuredLepton).M();
     m_mHadW_AfterChi2   = (measuredHadronicFirstJet + measuredHadronicSecondJet).M();
     m_mLepTop_AfterChi2 = (measuredLepton + measuredNeutrino + measuredLeptonicB).M();
     m_mHadTop_AfterChi2 = (measuredHadronicFirstJet + measuredHadronicSecondJet + measuredHadronicB).M();
