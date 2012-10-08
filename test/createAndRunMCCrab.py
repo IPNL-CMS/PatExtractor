@@ -6,6 +6,7 @@ datasets = {
     "/TTJets_TuneZ2star_8TeV-madgraph-tauola/sbrochet-TTJets_2012_v1-265c9c69c37a8e555f9b98fa1aae946f/USER": "TTJets",
     "/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/sbrochet-DYJetsToLL_M-50_2012_PF2PAT_v1-265c9c69c37a8e555f9b98fa1aae946f/USER": "DYJetsToLL_M-50",
     "/T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/sbrochet-T_tW-channel_2012_PF2PAT_v1-265c9c69c37a8e555f9b98fa1aae946f/USER": "T_tW-channel",
+    "/T_s-channel_TuneZ2star_8TeV-powheg-tauola/sbrochet-T_s-channel_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER": "T_s-channel",
     "/Tbar_t-channel_TuneZ2star_8TeV-powheg-tauola/sbrochet-Tbar_t-channel_2012_PF2PAT_v1-265c9c69c37a8e555f9b98fa1aae946f/USER": "Tbar_t-channel",
     "/Tbar_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/sbrochet-Tbar_tW-channel_2012_PF2PAT_v1-265c9c69c37a8e555f9b98fa1aae946f/USER": "Tbar_tW-channel",
     "/Tbar_s-channel_TuneZ2star_8TeV-powheg-tauola/sbrochet-Tbar_s-channel_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER": "Tbar_s-channel",
@@ -63,3 +64,6 @@ for dataset, ui in datasets.items():
   f = open(output_file, "w")
   f.write(full_template.substitute(ui_working_dir=ui_working_dir, dataset=dataset, remote_dir_semie=output_dir_semie, remote_dir_semimu=output_dir_semimu, name=name))
   f.close()
+
+  cmd = "multicrab -create -submit -cfg %s" % (output_file)
+  os.system(cmd);
