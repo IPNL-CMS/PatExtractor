@@ -81,57 +81,8 @@ process.PATextraction.correctJets       = True
 process.PATextraction.jetCorrectorLabel = "ak5PFchsL1FastL2L3"
 
 # Analysis cuts
-process.PATextraction.analysisSettings = cms.untracked.vstring(
-    "VTX_Ndof_Min             4",
-    
-    "MET_Pt_Min               20",
-    
-    "MU_Pt_min_loose          10",
-    "MU_Eta_max_loose         2.5",
-    "MU_Iso_min               0.125",
-    "MU_Pt_min                20",
-    "MU_Eta_max               2.4",
-    "MU_normChi2_max          10",
-    "MU_nValTrackHits_min     10",
-    "MU_nMatches_min          1",
-    "MU_nValPixHits_min       1",
-    "MU_dB_min                0.02",
-    "MU_ePt_min               15",
-    "MU_eEta_max              2.5",
-    "MU_eEtaW_min             1.4442",
-    "MU_eEtaW_max             1.5560",
-    "MU_eIso_min              0.2",
-
-    "ELE_Iso_min              0.1",
-    "ELE_Pt_min               30",
-    "ELE_Eta_max              2.5",
-    "ELE_Zmass                91",
-    "ELE_Zwin                 15",
-    "ELE_dB_min               0.02",
-    
-    "JET_Pt_min               30",
-    "JET_Eta_max              2.4",
-
-    "JET_btag_CSVL_min        0.244",
-    "JET_btag_CSVM_min        0.679",
-    "JET_btag_CSVT_min        0.898",
-    "JET_btag_TCHPT_min       3.41",
-
-    "W_mass                   80.399",
-    "Top_mass                 172.0",
-    "W_mass_err               10",
-    "Top_mass_err             15.2",
-    "b_mass                   4.67",
-
-    "doSemiMu                 1",
-    "doSyst                   0",
-    "systvalue                1",
-    "doUseBTaginChi2          1",
-    "doChoiceWKF              0",
-
-    "trigger                  ^HLT_IsoMu17_eta2p1_TriCentralPF(NoPU)?Jet[0-9]{0,3}(_[0-9]{0,3}){0,2}_v[0-9]{0,2}$"
-    )
-
+from Extractor_MTT_analysis_cuts_semimu import *
+process.PATextraction.analysisSettings = analysisSettings
 
 #########################################
 #
