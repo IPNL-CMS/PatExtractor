@@ -60,7 +60,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     }
 
     virtual float getMCMatchDeltaR() {
-      return 0.2;
+      return 0.4;
     }
 
     virtual float getMCMatchDPtRel() {
