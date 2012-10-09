@@ -186,6 +186,9 @@ public:
   std::shared_ptr<TLorentzVector> FittedJet1;
   std::shared_ptr<TLorentzVector> FittedJet2;
 
+  // Chi2 testing
+  bool m_usePtSystInChi2;
+  bool m_useHtFracInChi2;
 };
 
 

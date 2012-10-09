@@ -43,7 +43,6 @@ KinFit::KinFit(const std::string& ParamsFile, AnalysisSettings* settings)
 
 
   // Chi2 optimal values and errors
-
   settings->getSetting("chi2_hadronic_top_mass", chi2_hadronic_top_mass);
   settings->getSetting("chi2_leptonic_top_mass_semimu", chi2_leptonic_top_mass_semimu);
   settings->getSetting("chi2_leptonic_top_mass_semie", chi2_leptonic_top_mass_semie);
@@ -57,6 +56,9 @@ KinFit::KinFit(const std::string& ParamsFile, AnalysisSettings* settings)
   settings->getSetting("chi2_sigma_hadronic_w_mass", chi2_sigma_hadronic_w_mass);
   settings->getSetting("chi2_sigma_pt_ttbar_system", chi2_sigma_pt_ttbar_system);
   settings->getSetting("chi2_sigma_ht_frac", chi2_sigma_ht_frac);
+
+  settings->getSetting("chi2_use_pt_syst", m_usePtSystInChi2);
+  settings->getSetting("chi2_use_ht_frac", m_useHtFracInChi2);
 
   chi2_sigma_hadronic_top_mass_square = chi2_sigma_hadronic_top_mass * chi2_sigma_hadronic_top_mass;
   chi2_sigma_leptonic_top_mass_semimu_square = chi2_sigma_leptonic_top_mass_semimu * chi2_sigma_leptonic_top_mass_semimu;
@@ -438,9 +440,15 @@ double KinFit::GlobalSimpleChi2(double totPt)
   float TTbarSystemPt = ((MeasuredJet1 + MeasuredJet2 + MeasuredBJetL + MeasuredBJetH + MeasuredNeutrino + MeasuredLepton).Pt());
 
   float chi2 = ((MtopH - chi2_hadronic_top_mass) * (MtopH - chi2_hadronic_top_mass) / (chi2_sigma_hadronic_top_mass_square)) + 
-    ((MW - chi2_hadronic_w_mass) * (MW - chi2_hadronic_w_mass) / (chi2_sigma_hadronic_w_mass_square)) + 
-    ((SolPtSystem - chi2_ht_frac) * (SolPtSystem - chi2_ht_frac) / (chi2_sigma_ht_frac_square)) + 
-    ((TTbarSystemPt - chi2_pt_ttbar_system) * (TTbarSystemPt - chi2_pt_ttbar_system) / chi2_sigma_pt_ttbar_system_square);
+    ((MW - chi2_hadronic_w_mass) * (MW - chi2_hadronic_w_mass) / (chi2_sigma_hadronic_w_mass_square));
+
+  if (m_usePtSystInChi2) {
+    chi2 += ((SolPtSystem - chi2_ht_frac) * (SolPtSystem - chi2_ht_frac) / (chi2_sigma_ht_frac_square));
+  }
+
+  if (m_useHtFracInChi2) {
+    chi2 += ((TTbarSystemPt - chi2_pt_ttbar_system) * (TTbarSystemPt - chi2_pt_ttbar_system) / chi2_sigma_pt_ttbar_system_square);
+  }
 
   /// lepton dependant part
   (m_isMuon)

@@ -63,5 +63,8 @@ analysisSettings = cms.untracked.vstring(
     "chi2_sigma_pt_ttbar_system             56.93",
     "chi2_sigma_ht_frac                     0.151",
 
+    "chi2_use_pt_syst                 1",
+    "chi2_use_ht_frac                 1",
+
     "trigger                  ^HLT_Ele25_CaloIdVT_CaloIso(VL|T)_TrkId(VL|T)_TrkIsoT_TriCentralPF(NoPU)?Jet30_v[0-9]{0,2}$"
     )
