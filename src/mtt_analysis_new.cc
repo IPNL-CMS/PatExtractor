@@ -252,7 +252,6 @@ mtt_analysis_new::mtt_analysis_new(AnalysisSettings *settings)
   //  ? m_JET_btag_SSVHPT_min = settings->getSetting("JET_btag_SSVHPT_min")
   //  : m_JET_btag_SSVHPT_min = 0;
 
-
   // Triggers
   m_trigger = "";
   settings->getSetting<std::string>("trigger", m_trigger);
@@ -1068,6 +1067,10 @@ void mtt_analysis_new::MCidentification()
     m_MC_mtt = -1;
   }
 
+  if (m_MC_channel != 1 && m_MC_channel != 2) {
+    return;
+  }
+
   // Extract index of semi-leptonic event, and store them in tree. Useful if you want to know how many jets you have selected right
   if (false) {
     std::cout << "New event" << std::endl;
@@ -1158,8 +1161,10 @@ void mtt_analysis_new::MCidentification()
   if (m_leptonIndex == -1 || m_neutrinoIndex == -1 || m_leptonicBIndex == -1 || m_hadronicBIndex == -1)
     keepEvent = false;
 
-  if (! keepEvent)
+  if (! keepEvent) {
+    m_leptonIndex = m_leptonicBIndex = m_hadronicBIndex = m_neutrinoIndex = m_firstJetIndex = m_secondJetIndex = m_leptonicWIndex = -1;
     return;
+  }
 
   // Reorder B jet indexes
   if (m_MC->getMom1Index(m_leptonicBIndex) != m_leptonicWIndex) {
