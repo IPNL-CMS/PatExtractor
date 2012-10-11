@@ -45,7 +45,7 @@ analysisSettings = cms.untracked.vstring(
     "doSemiMu                 1",
     "doSyst                   0",
     "systvalue                1",
-    "doUseBTaginChi2          1",
+    "doUseBTaginChi2          0",
     "doChoiceWKF              0",
 
     #Chi2
@@ -64,7 +64,7 @@ analysisSettings = cms.untracked.vstring(
     "chi2_sigma_ht_frac                     0.151",
 
     "chi2_use_pt_syst                 1",
-    "chi2_use_ht_frac                 1",
+    "chi2_use_ht_frac                 0",
 
     "trigger                  ^HLT_IsoMu17_eta2p1_TriCentralPF(NoPU)?Jet[0-9]{0,3}(_[0-9]{0,3}){0,2}_v[0-9]{0,2}$"
     )
