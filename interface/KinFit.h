@@ -14,10 +14,19 @@
 #include <string>
 
 #include <memory> // for std::shared_ptr
+#include <cstdint>
 
 /// modif BDE, reduction nombre de parametre car mtop fixee
 static const int ParamNber = 16;
 static const int MaxEtaBins=4;
+
+enum class JetFlavor: std::uint8_t {
+  W = 0, B = 1
+};
+
+enum class Parameter: std::uint8_t {
+  Energy = 0, Eta = 1, Phi = 2
+};
 
 class AnalysisSettings;
 
@@ -43,7 +52,8 @@ public:
   const int GetParamNber();
   inline void SetDebugMode(int DBL){ DEBUG_Level = DBL; return; }
   int ReadErrors(TString ParamsFile);
-  double DKFJetResol(const TLorentzVector& Jet, int JetFlavor, int IPar);
+
+  double DKFJetResol(const TLorentzVector& Jet, JetFlavor flavor, Parameter IPar);
   
   TLorentzVector* GetFittedFirstLightJet();
   TLorentzVector* GetFittedSecondLightJet();

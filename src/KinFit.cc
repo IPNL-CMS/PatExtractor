@@ -205,24 +205,22 @@ int KinFit::ReadObjects(const TLorentzVector& Jet1, const TLorentzVector& Jet2, 
   /// -- Utiliser cette parametrisation
 
   /// Resol en energie
-  SigmEJet1    = DKFJetResol(Jet1,1,1);   
-  SigmEJet2    = DKFJetResol(Jet2,1,1);   
-  SigmEBJetH   = DKFJetResol(BJetH,2,1); 
-  SigmEBJetL   = DKFJetResol(BJetL,2,1); 
-
-
+  SigmEJet1    = DKFJetResol(Jet1, JetFlavor::W, Parameter::Energy);
+  SigmEJet2    = DKFJetResol(Jet2, JetFlavor::W, Parameter::Energy);
+  SigmEBJetH   = DKFJetResol(BJetH, JetFlavor::B, Parameter::Energy);
+  SigmEBJetL   = DKFJetResol(BJetL, JetFlavor::B, Parameter::Energy);
 
   /// Resol en phi
-  SigmPhiJet1  = DKFJetResol(Jet1,1,3);
-  SigmPhiJet2  = DKFJetResol(Jet2,1,3);
-  SigmPhiBJetH = DKFJetResol(BJetH,2,3);
-  SigmPhiBJetL = DKFJetResol(BJetL,2,3);
+  SigmPhiJet1  = DKFJetResol(Jet1,  JetFlavor::W, Parameter::Phi);
+  SigmPhiJet2  = DKFJetResol(Jet2,  JetFlavor::W, Parameter::Phi);
+  SigmPhiBJetH = DKFJetResol(BJetH, JetFlavor::B, Parameter::Phi);
+  SigmPhiBJetL = DKFJetResol(BJetL, JetFlavor::B, Parameter::Phi);
 
   /// Resol en Eta
-  SigmEtaJet1  = DKFJetResol(Jet1,1,2);
-  SigmEtaJet2  = DKFJetResol(Jet2,1,2);
-  SigmEtaBJetH = DKFJetResol(BJetH,2,2);
-  SigmEtaBJetL = DKFJetResol(BJetL,2,2);
+  SigmEtaJet1  = DKFJetResol(Jet1,  JetFlavor::W, Parameter::Eta);
+  SigmEtaJet2  = DKFJetResol(Jet2,  JetFlavor::W, Parameter::Eta);
+  SigmEtaBJetH = DKFJetResol(BJetH, JetFlavor::B, Parameter::Eta);
+  SigmEtaBJetL = DKFJetResol(BJetL, JetFlavor::B, Parameter::Eta);
 
   (m_isMuon) // This is a muon
     ? SigmEMu = C_mu+B_mu*Lepton.E()+A_mu*Lepton.E()*Lepton.E()
@@ -253,15 +251,20 @@ bool KinFit::Fit()
 
   /// Initialize Minuit Parameters
 
-  TString Name[ParamNber]={"FitEtaJ1","FitEtaJ2","FitEtaBH","FitEtaBL",
-    "FitPhiJ1","FitPhiJ2","FitPhiBH","FitPhiBL",
-    "FitEJ1","FitEJ2","FitEBH","FitEBL","FitEMU",
-    "FitPxNu","FitPyNu","FitPzNu"};
+  TString Name[ParamNber] = {
+    "FitEtaJ1", "FitEtaJ2", "FitEtaBH", "FitEtaBL",
+    "FitPhiJ1", "FitPhiJ2", "FitPhiBH", "FitPhiBL",
+    "FitEJ1",   "FitEJ2",   "FitEBH",   "FitEBL",
+    "FitEMU",
+    "FitPxNu",  "FitPyNu",  "FitPzNu"};
 
-  double vstart[ParamNber] = {MeasuredJet1.Eta(),MeasuredJet2.Eta(),MeasuredBJetH.Eta(),MeasuredBJetL.Eta(),
-    MeasuredJet1.Phi(),MeasuredJet2.Phi(),MeasuredBJetH.Phi(),MeasuredBJetL.Phi(),
-    MeasuredJet1.E(),MeasuredJet2.E(),MeasuredBJetH.E(),MeasuredBJetL.E(),MeasuredLepton.E(),
-    MeasuredNeutrino.Px(),MeasuredNeutrino.Py(),MeasuredNeutrino.Pz()};
+  double vstart[ParamNber] = {
+    MeasuredJet1.Eta(),    MeasuredJet2.Eta(),    MeasuredBJetH.Eta(), MeasuredBJetL.Eta(),
+    MeasuredJet1.Phi(),    MeasuredJet2.Phi(),    MeasuredBJetH.Phi(), MeasuredBJetL.Phi(),
+    MeasuredJet1.E(),      MeasuredJet2.E(),      MeasuredBJetH.E(),   MeasuredBJetL.E(),
+    MeasuredLepton.E(),
+    MeasuredNeutrino.Px(), MeasuredNeutrino.Py(), MeasuredNeutrino.Pz()
+  };
 
   double step[ParamNber];
   double LowerBound[ParamNber];
@@ -269,39 +272,38 @@ bool KinFit::Fit()
 
   for(int i=0 ; i < ParamNber ; ++i )
   {
-    (i<8)
+    (i < 8)
       ? step[i]=1E-6
       : step[i]=1E-4;
 
-    if (i<4) // Eta bound
+    if (i < 4) // Eta bound
     {
-      LowerBound[i]=vstart[i]-2.;
-      UpperBound[i]=vstart[i]+2.;
+      LowerBound[i]= vstart[i] - 2.;
+      UpperBound[i]= vstart[i] + 2.;
     }    
 
-    if (i>=4 && i<8) // Phi bound
+    if (i >= 4 && i < 8) // Phi bound
     {
-      LowerBound[i]=vstart[i]-1.;
-      UpperBound[i]=vstart[i]+1.;
+      LowerBound[i] = vstart[i] - 1.;
+      UpperBound[i] = vstart[i] + 1.;
     }
 
-    if (i>=8 && i<13) // NRJ bound
+    if (i >= 8 && i < 13) // NRJ bound
     {
-      LowerBound[i]=0.5*vstart[i];
-      UpperBound[i]=1.5*vstart[i];
+      LowerBound[i] = 0.5 * vstart[i];
+      UpperBound[i] = 1.5 * vstart[i];
     }
 
-    if (i>=13 && i<16) // Neutrino p bound
+    if (i >= 13 && i < 16) // Neutrino p bound
     {
-      LowerBound[i]=vstart[i]-0.5*fabs(vstart[i]);
-      UpperBound[i]=vstart[i]+0.5*fabs(vstart[i]);
+      LowerBound[i] = vstart[i] - 0.5 * fabs(vstart[i]);
+      UpperBound[i] = vstart[i] + 0.5 * fabs(vstart[i]);
     }
 
-    MyMinuit->mnparm(i,Name[i], vstart[i], step[i],LowerBound[i],UpperBound[i],ierflg);
+    MyMinuit->mnparm(i, Name[i], vstart[i], step[i], LowerBound[i], UpperBound[i], ierflg);
     if(ierflg)
     {
-      std::cout << "PROBLEM WITH PARAMETER " << i << "\t => ierflg=" << ierflg 
-        << std::endl;
+      std::cout << "PROBLEM WITH PARAMETER " << i << "\t => ierflg=" << ierflg << std::endl;
       std::cout << "ParamNum= " << i << "\tName = " << Name[i] 
         << "\tvstart=" << vstart[i] << "\tstep="<< step[i] 
         << std::endl;
@@ -313,27 +315,30 @@ bool KinFit::Fit()
   arglist[1] = 1.;
 
   /// minimisation
-  MyMinuit->mnexcm("MIGRAD", arglist ,2,ierflg);
+  MyMinuit->mnexcm("MIGRAD", arglist, 2, ierflg);
 
   /// Print results
   vdummy = 0;
   double amin,edm,errdef;
   int nvpar,nparx,icstat;
 
-  MyMinuit->mnstat(amin,edm,errdef,nvpar,nparx,icstat);
+  MyMinuit->mnstat(amin, edm, errdef, nvpar, nparx, icstat);
 
   /// Get parameters
-  for(int i=0; i<ParamNber; ++i)
+  for(int i = 0; i < ParamNber; ++i)
   {
-    MyMinuit->GetParameter(i,FittedParam[i], ErrFitParam[i]);
+    MyMinuit->GetParameter(i, FittedParam[i], ErrFitParam[i]);
   }
 
-  FuncChi2(ParamNber,KFChi2,FittedParam,0); 
+  FuncChi2(ParamNber, KFChi2, FittedParam, 0); 
 
   // status = 1 if minuit output is "CONVERGED";
   return (MyMinuit->fCstatu == "CONVERGED ");
 }
 
+
+// Change this, and use LorentzVector from ROOT instead
+// See: http://project-mathlibs.web.cern.ch/project-mathlibs/sw/html/Vector.html
 
 
 /// Function chi2 dont le pointeur est fourni a minuit pour minimisation
@@ -494,7 +499,7 @@ double KinFit::GetErrorFitVar(const int Num)
 
 // arg1 : TLorentzVector, arg2: jet type (1=W, 2=b), arg3: type de resolution 1=Ene, 2=Eta, 3=Phi	   
 
-double KinFit::DKFJetResol(const TLorentzVector& Jet, int JetFlavor, int IPar)
+double KinFit::DKFJetResol(const TLorentzVector& Jet, JetFlavor flavor, Parameter IPar)
 {
   double res=1E10;
 
@@ -502,11 +507,13 @@ double KinFit::DKFJetResol(const TLorentzVector& Jet, int JetFlavor, int IPar)
 
   if (!m_isMuon) ind_lept = 1; // Error index for electrons
 
+/*
   if(IPar>3)
   {
     std::cout<<" <!> ERROR in DKFJetResol. Unknown parameter "<<IPar<<". Parameter number is limitted to 1 -> 3"<<std::endl;
     return res;
   }
+*/
 
   if (fabs(Errors[ind_lept][0][0][0][0])<1E-10 &&
       fabs(Errors[ind_lept][0][0][0][1])<1E-10 &&
@@ -541,10 +548,10 @@ double KinFit::DKFJetResol(const TLorentzVector& Jet, int JetFlavor, int IPar)
   else if(fabs(Eta)>=2.6) ieta = 3;
 
   /// nouvelles (par fichier .dat)
-  A=Errors[ind_lept][IPar-1][JetFlavor-1][ieta][0];
-  B=Errors[ind_lept][IPar-1][JetFlavor-1][ieta][1];
-  C=Errors[ind_lept][IPar-1][JetFlavor-1][ieta][2];
-  D=Errors[ind_lept][IPar-1][JetFlavor-1][ieta][3];
+  A=Errors[ind_lept][static_cast<int>(IPar)][static_cast<int>(flavor)][ieta][0];
+  B=Errors[ind_lept][static_cast<int>(IPar)][static_cast<int>(flavor)][ieta][1];
+  C=Errors[ind_lept][static_cast<int>(IPar)][static_cast<int>(flavor)][ieta][2];
+  D=Errors[ind_lept][static_cast<int>(IPar)][static_cast<int>(flavor)][ieta][3];
 
   (Ene>0)
     ? res= A+B*sqrt(Ene)+C/Ene+D/(Ene*Ene)
