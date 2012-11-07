@@ -95,6 +95,8 @@ class PatExtractor : public edm::EDAnalyzer {
 
   std::vector<std::string> m_settings_;
 
+  edm::ParameterSet m_mttParameterSet;
+
   TFile* m_infile;
   TFile* m_outfile;
 

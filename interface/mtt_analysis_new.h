@@ -38,7 +38,7 @@ namespace edm {
 
 class mtt_analysis_new {
 public:
-  mtt_analysis_new(AnalysisSettings* settings);
+  mtt_analysis_new(const edm::ParameterSet& cmsswSettings, AnalysisSettings* settings);
   ~mtt_analysis_new();
 
   //Selections
@@ -168,6 +168,11 @@ private:
   int m_firstJetIndex;
   int m_secondJetIndex;
 
+  float m_MC_hadronicWMass;
+  float m_MC_leptonicWMass;
+  float m_MC_hadronicTopMass;
+  float m_MC_leptonicTopMass;
+
   /// Number of lepton/neutrino from Top->W and quark b from Top
   int nEle;
   int nMu;
@@ -274,6 +279,28 @@ private:
   int  nGoodJets;
 
 
+  // Kin Fit
+  /// maximal number of iterations to be performed for the fit
+  unsigned int maxNrIter_;
+  /// maximal chi2 equivalent
+  double maxDeltaS_;
+  /// maximal deviation for contstraints
+  double maxF_;
+  unsigned int jetParam_;
+  unsigned int lepParam_;
+  unsigned int metParam_;
+  /// constrains
+  std::vector<unsigned> constraints_;
+  double mW_;
+  double mTop_;
+  /// scale factors for jet energy resolution
+  std::vector<double> jetEnergyResolutionScaleFactors_;
+  std::vector<double> jetEnergyResolutionEtaBinning_;
+  /// config-file-based object resolutions
+  std::vector<edm::ParameterSet> udscResolutions_;
+  std::vector<edm::ParameterSet> bResolutions_;
+  std::vector<edm::ParameterSet> lepResolutions_;
+  std::vector<edm::ParameterSet> metResolutions_;
 };
 
 #endif

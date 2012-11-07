@@ -22,12 +22,24 @@
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "JetMETCorrections/Objects/interface/JetCorrectionsRecord.h"
 #include <FWCore/Framework/interface/EventSetup.h>
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "../interface/mtt_analysis_new.h"
 
 using namespace std;
 
-mtt_analysis_new::mtt_analysis_new(AnalysisSettings *settings)
+mtt_analysis_new::mtt_analysis_new(const edm::ParameterSet& cmsswSettings, AnalysisSettings *settings):
+  maxNrIter_                        (cmsswSettings.getParameter<unsigned>     ("maxNrIter"           )),
+  maxDeltaS_                        (cmsswSettings.getParameter<double>       ("maxDeltaS"           )),
+  maxF_                             (cmsswSettings.getParameter<double>       ("maxF"                )),
+  jetParam_                         (cmsswSettings.getParameter<unsigned>     ("jetParametrisation"  )),
+  lepParam_                         (cmsswSettings.getParameter<unsigned>     ("lepParametrisation"  )),
+  metParam_                         (cmsswSettings.getParameter<unsigned>     ("metParametrisation"  )),
+  constraints_                      (cmsswSettings.getParameter<std::vector<unsigned> >("constraints")),
+  mW_                               (cmsswSettings.getParameter<double>       ("mW"                  )),
+  mTop_                             (cmsswSettings.getParameter<double>       ("mTop"                )),
+  jetEnergyResolutionScaleFactors_  (cmsswSettings.getParameter<std::vector<double> >("jetEnergyResolutionScaleFactors")),
+  jetEnergyResolutionEtaBinning_    (cmsswSettings.getParameter<std::vector<double> >("jetEnergyResolutionEtaBinning"))
 {
   reset();
 
@@ -49,6 +61,12 @@ mtt_analysis_new::mtt_analysis_new(AnalysisSettings *settings)
   m_tree_Mtt->Branch("MC_hadronicBIndex"  , &m_hadronicBIndex         , "MC_hadronicBIndex/I");
   m_tree_Mtt->Branch("MC_hadronicFirstJetIndex" , &m_firstJetIndex    , "MC_hadronicFirstJetIndex/I");
   m_tree_Mtt->Branch("MC_hadronicSecondJetIndex", &m_secondJetIndex   , "MC_hadronicSecondJetIndex/I");
+
+  m_tree_Mtt->Branch("MC_hadronicWMass"   , &m_MC_hadronicWMass       , "MC_hadronicWMass/F");
+  m_tree_Mtt->Branch("MC_leptonicWMass"   , &m_MC_leptonicWMass       , "MC_leptonicWMass/F");
+  m_tree_Mtt->Branch("MC_hadronicTopMass" , &m_MC_hadronicTopMass     , "MC_hadronicTopMass/F");
+  m_tree_Mtt->Branch("MC_leptonicTopMass" , &m_MC_leptonicTopMass     , "MC_leptonicTopMass/F");
+
 
   m_tree_Mtt->Branch("nGoodMuons"         , &m_mtt_NGoodMuons         , "nGoodMuons/I");
   m_tree_Mtt->Branch("nLooseGoodMuons"    , &m_mtt_NLooseGoodMuons    , "nLooseGoodMuons/I");
@@ -1171,6 +1189,12 @@ void mtt_analysis_new::MCidentification()
     // Wrong combinaison, swap
     std::swap(m_leptonicBIndex, m_hadronicBIndex);
   }
+
+  // Compute masses
+  m_MC_hadronicWMass = (*m_MC->getP4(m_firstJetIndex) + *m_MC->getP4(m_secondJetIndex)).M();
+  m_MC_hadronicTopMass = (*m_MC->getP4(m_firstJetIndex) + *m_MC->getP4(m_secondJetIndex) + *m_MC->getP4(m_hadronicBIndex)).M();
+  m_MC_leptonicWMass = (*m_MC->getP4(m_neutrinoIndex) + *m_MC->getP4(m_leptonIndex)).M();
+  m_MC_leptonicTopMass = (*m_MC->getP4(m_neutrinoIndex) + *m_MC->getP4(m_leptonIndex) + *m_MC->getP4(m_leptonicBIndex)).M();
 }
 
 int mtt_analysis_new::match_MC(int idxJetbH, int idxJetbL, int idxJet1,	int idxJet2,
@@ -1322,4 +1346,9 @@ void mtt_analysis_new::reset()
   m_secondJetIndex = -1;
   
   m_trigger_passed = false;
+
+  m_MC_hadronicWMass = -1;
+  m_MC_leptonicWMass = -1;
+  m_MC_hadronicTopMass = -1;
+  m_MC_leptonicTopMass = -1;
 }

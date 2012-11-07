@@ -47,7 +47,7 @@ process.source = cms.Source("PoolSource",
     )
 
 #Output extracted file name
-process.PATextraction.extractedRootFile=cms.string('extracted_mc.root')
+process.PATextraction.extractedRootFile=cms.string('extracted_mc_semie.root')
 
 
 
@@ -79,8 +79,52 @@ process.PATextraction.correctJets       = True
 process.PATextraction.jetCorrectorLabel = "ak5PFchsL1FastL2L3"
 
 # Analysis cuts
+import sys
+sys.path.append('.')
+
 from Extractor_MTT_analysis_cuts_semie import *
 process.PATextraction.analysisSettings = analysisSettings
+
+# MTT analysis configuration
+process.PATextraction.mtt = cms.PSet(
+    # ------------------------------------------------
+    # settings for the KinFitter
+    # ------------------------------------------------    
+    maxNrIter = cms.uint32(500),
+    maxDeltaS = cms.double(5e-05),
+    maxF      = cms.double(0.0001),
+    # ------------------------------------------------
+    # select parametrisation
+    # 0: EMom, 1: EtEtaPhi, 2: EtThetaPhi
+    # ------------------------------------------------
+    jetParametrisation = cms.uint32(1),
+    lepParametrisation = cms.uint32(1),
+    metParametrisation = cms.uint32(1),
+
+    # ------------------------------------------------
+    # set constraints
+    # 1: Whad-mass, 2: Wlep-mass, 3: thad-mass,
+    # 4: tlep-mass, 5: nu-mass, 6: equal t-masses
+    # 7: sum-pt conservation
+    # ------------------------------------------------
+    constraints = cms.vuint32(1, 2, 3, 4),
+
+    # ------------------------------------------------
+    # set mass values used in the constraints
+    # ------------------------------------------------
+    mW   = cms.double(80.4),
+    mTop = cms.double(173.),
+
+    # ------------------------------------------------
+    # set correction factor(s) for the jet energy resolution:
+    # - (optional) eta dependence assumed to be symmetric
+    #   around eta=0, i.e. parametrized in |eta|
+    # - any negative value as last bin edge is read as "inf"
+    # - make sure that number of entries in vector with
+    #   bin edges = number of scale factors + 1
+    # ------------------------------------------------
+    jetEnergyResolutionScaleFactors = cms.vdouble(1.0),
+    jetEnergyResolutionEtaBinning = cms.vdouble(0.0,-1.0))
 
 #########################################
 #

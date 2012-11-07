@@ -54,6 +54,7 @@ class MCExtractor
   float getPz(int index){return m_MC_pz[index];}
   float getE(int index){return m_MC_E[index];}
   float getMom1Index(int index){return m_MC_imot1[index];}
+  TLorentzVector* getP4(int index) { return static_cast<TLorentzVector*>((*m_MC_lorentzvector)[index]); }
 
 
  private:
