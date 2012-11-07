@@ -49,17 +49,17 @@ analysisSettings = cms.untracked.vstring(
     "doChoiceWKF              0",
 
     #Chi2
-    "chi2_hadronic_top_mass           176.583",
-    "chi2_leptonic_top_mass_semimu    170.884",
-    "chi2_leptonic_top_mass_semie     171.265",
-    "chi2_hadronic_w_mass             84.0483",
+    "chi2_hadronic_top_mass           175.164",
+    "chi2_leptonic_top_mass_semimu    170.937",
+    "chi2_leptonic_top_mass_semie     170.875",
+    "chi2_hadronic_w_mass             84.0569",
     "chi2_pt_ttbar_system             0",
     "chi2_ht_frac                     1",
 
-    "chi2_sigma_hadronic_top_mass           20.398",
-    "chi2_sigma_leptonic_top_mass_semimu    20.4832",
-    "chi2_sigma_leptonic_top_mass_semie     20.7838",
-    "chi2_sigma_hadronic_w_mass             10.136",
+    "chi2_sigma_hadronic_top_mass           17.3484",
+    "chi2_sigma_leptonic_top_mass_semimu    17.3594",
+    "chi2_sigma_leptonic_top_mass_semie     17.2875",
+    "chi2_sigma_hadronic_w_mass             10.1166",
     "chi2_sigma_pt_ttbar_system             56.93",
     "chi2_sigma_ht_frac                     0.151",
 
