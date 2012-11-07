@@ -163,7 +163,7 @@ private:
 
   int m_leptonicBIndex;
   int m_hadronicBIndex;
-  int m_leptonicWIndex;
+  int m_leptonicTopIndex;
 
   int m_firstJetIndex;
   int m_secondJetIndex;

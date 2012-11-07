@@ -55,7 +55,7 @@ mtt_analysis_new::mtt_analysis_new(const edm::ParameterSet& cmsswSettings, Analy
   // Indexes of gen particles inside the MC collection. Only valid for semi-lept events
   m_tree_Mtt->Branch("MC_leptonIndex"     , &m_leptonIndex            , "MC_leptonIndex/I");
   m_tree_Mtt->Branch("MC_neutrinoIndex"   , &m_neutrinoIndex          , "MC_neutrinoIndex/I");
-  m_tree_Mtt->Branch("MC_leptonicWIndex"  , &m_leptonicWIndex         , "MC_leptonicWIndex/I");
+  m_tree_Mtt->Branch("MC_leptonicTopIndex", &m_leptonicTopIndex       , "MC_leptonicTopIndex/I");
   m_tree_Mtt->Branch("MC_leptonicBIndex"  , &m_leptonicBIndex         , "MC_leptonicBIndex/I");
 
   m_tree_Mtt->Branch("MC_hadronicBIndex"  , &m_hadronicBIndex         , "MC_hadronicBIndex/I");
@@ -889,7 +889,7 @@ void mtt_analysis_new::loopOverCombinations(bool do_MC_)
     const TLorentzVector& measuredHadronicSecondJet = m_KinFit->GetMeasuredSecondLightJet();
 
     /**
-     * Compute Mtt after doing KinFit
+     * Compute Mtt before doing KinFit
      */
     m_mHadW_AfterChi2   = (measuredHadronicFirstJet + measuredHadronicSecondJet).M();
     m_mLepTop_AfterChi2 = (measuredLepton + measuredNeutrino + measuredLeptonicB).M();
@@ -1143,7 +1143,7 @@ void mtt_analysis_new::MCidentification()
           }
           m_neutrinoIndex = i;
 
-          m_leptonicWIndex = m_MC->getMom1Index(i);
+          m_leptonicTopIndex = m_MC->getMom1Index(m_MC->getMom1Index(i));
           break;
 
         case ID_B:
@@ -1180,12 +1180,12 @@ void mtt_analysis_new::MCidentification()
     keepEvent = false;
 
   if (! keepEvent) {
-    m_leptonIndex = m_leptonicBIndex = m_hadronicBIndex = m_neutrinoIndex = m_firstJetIndex = m_secondJetIndex = m_leptonicWIndex = -1;
+    m_leptonIndex = m_leptonicBIndex = m_hadronicBIndex = m_neutrinoIndex = m_firstJetIndex = m_secondJetIndex = m_leptonicTopIndex = -1;
     return;
   }
 
   // Reorder B jet indexes
-  if (m_MC->getMom1Index(m_leptonicBIndex) != m_leptonicWIndex) {
+  if (m_MC->getMom1Index(m_leptonicBIndex) != m_leptonicTopIndex) {
     // Wrong combinaison, swap
     std::swap(m_leptonicBIndex, m_hadronicBIndex);
   }
@@ -1340,7 +1340,7 @@ void mtt_analysis_new::reset()
 
   m_leptonicBIndex = -1;
   m_hadronicBIndex = -1;
-  m_leptonicWIndex = -1;
+  m_leptonicTopIndex = -1;
 
   m_firstJetIndex = -1;
   m_secondJetIndex = -1;
