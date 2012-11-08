@@ -47,7 +47,7 @@ process.source = cms.Source("PoolSource",
     )
 
 #Output extracted file name
-process.PATextraction.extractedRootFile=cms.string('extracted_mc_semie.root')
+process.PATextraction.extractedRootFile=cms.string('extracted_mc.root')
 
 
 

@@ -31,7 +31,7 @@ process.options = cms.untracked.PSet(
     )
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1) #
+    input = cms.untracked.int32(10000) #
     )
 
 #Global tag and data type choice
@@ -50,7 +50,7 @@ process.source = cms.Source("PoolSource",
     )
 
 #Output extracted file name
-process.PATextraction.extractedRootFile=cms.string('extracted_mc_semimu.root')
+process.PATextraction.extractedRootFile=cms.string('extracted_mc.root')
 
 
 
