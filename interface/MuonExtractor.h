@@ -101,6 +101,12 @@ class MuonExtractor
   float m_muo_pfPhotonIso[m_muons_MAX]; // Returns the isolation calculated with only the photon PFCandidates
   int   m_muo_MCIndex[m_muons_MAX];
 
+  int   m_muo_nMatchedStations[m_muons_MAX];
+  float m_muo_trackerLayersWithMeasurement[m_muons_MAX];
+  float m_muo_dZ[m_muons_MAX];
+  float m_muo_pixelLayerWithMeasurement[m_muons_MAX];
+  float m_muo_globalTrackNumberOfValidHits[m_muons_MAX];
+
   bool m_OK;
 };
 

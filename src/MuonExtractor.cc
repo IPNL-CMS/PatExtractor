@@ -46,6 +46,12 @@ MuonExtractor::MuonExtractor(bool doTree, edm::InputTag tag)
     m_tree_muon->Branch("muon_d0",      &m_muo_d0,"muon_d0[n_muons]/F");
     m_tree_muon->Branch("muon_d0error", &m_muo_d0error,"muon_d0error[n_muons]/F");
     m_tree_muon->Branch("muon_mcParticleIndex",&m_muo_MCIndex,"muon_mcParticleIndex[n_muons]/I");
+
+    m_tree_muon->Branch("muon_nMatchedStations",              &m_muo_nMatchedStations,             "muon_nMatches[n_muons]/I");
+    m_tree_muon->Branch("muon_trackerLayersWithMeasurement",  &m_muo_trackerLayersWithMeasurement, "muon_trackerLayersWithMeasurement[n_muons]/F");
+    m_tree_muon->Branch("muon_dZ",                            &m_muo_dZ,                           "muon_dZ/F");
+    m_tree_muon->Branch("muon_pixelLayerWithMeasurement",     &m_muo_pixelLayerWithMeasurement,    "muon_pixelLayerWithMeasurement/F");
+    m_tree_muon->Branch("muon_globalTrackNumberOfValidHits",  &m_muo_globalTrackNumberOfValidHits, "muon_globalTrackNumberOfValidHits/F");
   }
 
 }
@@ -118,6 +124,21 @@ MuonExtractor::MuonExtractor(TFile *a_file)
     m_tree_muon->SetBranchAddress("muon_d0error", &m_muo_d0error);
   if (m_tree_muon->FindBranch("muon_mcParticleIndex"))
     m_tree_muon->SetBranchAddress("muon_mcParticleIndex",&m_muo_MCIndex);  
+
+  if (m_tree_muon->FindBranch("muon_nMatchedStations"))
+    m_tree_muon->SetBranchAddress("muon_nMatchedStations", &m_muo_nMatchedStations);
+
+  if (m_tree_muon->FindBranch("muon_trackerLayersWithMeasurement"))
+    m_tree_muon->SetBranchAddress("muon_trackerLayersWithMeasurement", &m_muo_trackerLayersWithMeasurement);
+
+  if (m_tree_muon->FindBranch("muon_dZ"))
+    m_tree_muon->SetBranchAddress("muon_dZ", &m_muo_dZ);
+
+  if (m_tree_muon->FindBranch("muon_pixelLayerWithMeasurement"))
+    m_tree_muon->SetBranchAddress("muon_pixelLayerWithMeasurement", &m_muo_pixelLayerWithMeasurement);
+
+  if (m_tree_muon->FindBranch("muon_globalTrackNumberOfValidHits"))
+    m_tree_muon->SetBranchAddress("muon_globalTrackNumberOfValidHits", &m_muo_globalTrackNumberOfValidHits);
 }
 
 MuonExtractor::~MuonExtractor()
@@ -175,6 +196,9 @@ void MuonExtractor::writeInfo(const pat::Muon *part, int index)
   m_muo_isGlobal[index]        = part->isGlobalMuon();
   m_muo_isTracker[index]       = part->isTrackerMuon();
   m_muo_charge[index]          = part->charge();
+  m_muo_nMatchedStations[index] = part->numberOfMatchedStations();
+  //m_muon_dZ[index]             = fabs(recoMu.muonBestTrack()->dz(vertex->position()))
+  m_muo_trackerLayersWithMeasurement[index] = part->track()->hitPattern().trackerLayersWithMeasurement();
   
   if (part->outerTrack().isNonnull())
   {
@@ -185,7 +209,8 @@ void MuonExtractor::writeInfo(const pat::Muon *part, int index)
   if (part->innerTrack().isNonnull())
   {
     m_muo_dB[index]                = part->dB();
-    m_muo_nValPixelHits[index]     = part->innerTrack()->hitPattern().pixelLayersWithMeasurement();
+    m_muo_pixelLayerWithMeasurement[index] = part->innerTrack()->hitPattern().pixelLayersWithMeasurement();
+    m_muo_nValPixelHits[index]     = part->innerTrack()->hitPattern().numberOfValidPixelHits();
     m_muo_nValTrackerHits[index]   = part->innerTrack()->hitPattern().numberOfValidTrackerHits();
     m_muo_d0[index]                = part->innerTrack()->d0(); 
     m_muo_d0error[index]           = part->innerTrack()->d0Error();
@@ -195,6 +220,7 @@ void MuonExtractor::writeInfo(const pat::Muon *part, int index)
   {
     m_muo_nValTrackerHits[index]   = part->numberOfValidHits();
     m_muo_normChi2[index]          = part->normChi2();
+    m_muo_globalTrackNumberOfValidHits[index] = part->globalTrack()->hitPattern().numberOfValidMuonHits();
   }
 
   m_muo_trackIso[index]        = part->trackIso();
@@ -240,6 +266,12 @@ void MuonExtractor::reset()
     m_muo_d0[i]=0.;
     m_muo_d0error[i]=0.;
     m_muo_MCIndex[i]=-1;
+
+    m_muo_nMatchedStations[i] = -1;
+    m_muo_trackerLayersWithMeasurement[i] = -1;
+    m_muo_dZ[i] = -1;
+    m_muo_pixelLayerWithMeasurement[i] = -1;
+    m_muo_globalTrackNumberOfValidHits[i] = -1;
   }
   m_muo_lorentzvector->Clear();
 }
