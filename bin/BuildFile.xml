@@ -1,0 +1,11 @@
+<use   name="boost"/>
+<use   name="root"/>
+<use   name="clhep"/>
+<use   name="Extractors/PatExtractor" />
+<use   name="FWCore/ParameterSet" />
+<use   name="FWCore/PythonParameterSet" />
+<use   name="TopQuarkAnalysis/TopKinFitter" />
+<use   name="FWCore/MessageService" />
+<bin   file="studyKinFitOnGoodCombinaisons.cpp KinFitter.cpp GaussianProfile.cpp" name="studyKinFitOnGoodCombinaisons" />
+<bin   file="computeKinFitEfficiency.cpp KinFitter.cpp GaussianProfile.cpp" name="computeKinFitEfficiency" />
+<bin   file="computeKinFitMttResolution.cpp KinFitter.cpp GaussianProfile.cpp" name="computeKinFitMttResolution" />
