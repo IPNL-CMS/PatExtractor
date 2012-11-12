@@ -41,6 +41,9 @@ class BaseExtractor: public SuperBaseExtractor
 
       edm::Handle<edm::View<ObjectType>> handle;
       event.getByLabel(m_tag, handle);
+      if (!handle.isValid())
+        return;
+
       edm::View<ObjectType> collection = *handle;
 
       reset();
