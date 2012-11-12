@@ -240,6 +240,12 @@ void PatExtractor::initialize()
 
   if (do_Photon_)
     addExtractor("photons", new PhotonExtractor("photon", photon_tag_, do_Photon_));
+
+  if (do_Mtt_) {
+    // Add non isolated leptons for vetoes
+    addExtractor("electrons_loose", new ElectronExtractor("electron_loose_PF", edm::InputTag("selectedPatElectronsLoosePFlow"), true));
+    addExtractor("muons_loose", new MuonExtractor("muon_loose_PF", edm::InputTag("selectedPatMuonsLoosePFlow"), true));
+  }
 }
 
 
