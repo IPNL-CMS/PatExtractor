@@ -9,8 +9,6 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   m_tag = tag;
   m_metTag = metTag;
 
-  m_deltaR_cut = 0.2; // Maximum acceptable distance for MC matching
-
   mCorrectJets = correctJets;
   mJetCorrectorLabel = jetCorrectorLabel;
 
@@ -198,9 +196,20 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
     m_size++;
   }
 
-  edm::Handle<edm::View<pat::MET>> metHandle;
+  edm::Handle<pat::METCollection> metHandle;
   event.getByLabel(m_metTag, metHandle);
-  const pat::MET& MET = metHandle->back();
+  pat::MET MET = (*metHandle).at(0);
+
+  if (mCorrectJets) {
+    // Raw MET
+    edm::Handle<pat::METCollection> rawMetHandle;
+    event.getByLabel("patPFMetPFlow", rawMetHandle);
+
+    if (rawMetHandle.isValid()) {
+      const pat::MET& rawMet = rawMetHandle->back();
+      correctMETWithTypeI(rawMet, MET, p_jets);
+    }
+  }
 
   writeInfo(MET, 0);
 
@@ -318,6 +327,8 @@ void JetMETExtractor::correctJets(pat::JetCollection& jets, const edm::Event& iE
 
     pat::Jet rawJet = jet.correctedJet("Uncorrected");
     jet.addUserData("rawJet", rawJet, true); // Store raw jet inside the jet
+    const pat::Jet L1Jet  = jet.correctedJet("L1FastJet");
+    jet.addUserData("L1Jet", L1Jet, true); // Embed L1 corrected jet for TypeI correction
 
     if (false) {
       std::cout << "---" << std::endl;
@@ -345,10 +356,8 @@ void JetMETExtractor::correctJets(pat::JetCollection& jets, const edm::Event& iE
   std::sort(jets.begin(), jets.end(), mSorter);
 }
 
-/*
 void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets) {
   double deltaPx = 0., deltaPy = 0.;
-  static StringCutObjectSelector<reco::Muon> skipMuonSelection("isGlobalMuon | isStandAloneMuon");
 
   // See https://indico.cern.ch/getFile.py/access?contribId=1&resId=0&materialId=slides&confId=174324 slide 4
   // and http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/CMSSW/JetMETCorrections/Type1MET/interface/PFJetMETcorrInputProducerT.h?revision=1.8&view=markup
@@ -358,25 +367,27 @@ void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met,
     if (jet.pt() > 10) {
 
       const pat::Jet* rawJet = jet.userData<pat::Jet>("rawJet");
+      const pat::Jet* L1Jet  = jet.userData<pat::Jet>("L1Jet");
 
       double emEnergyFraction = rawJet->chargedEmEnergyFraction() + rawJet->neutralEmEnergyFraction();
       if (emEnergyFraction > 0.90)
         continue;
 
-      reco::Candidate::LorentzVector rawJetP4 = rawJet->p4();
+      //reco::Candidate::LorentzVector rawJetP4 = rawJet->p4();
+      reco::Candidate::LorentzVector L1JetP4  = L1Jet->p4();
 
       // Skip muons
       /*std::vector<reco::PFCandidatePtr> cands = rawJet->getPFConstituents();
-        for (std::vector<reco::PFCandidatePtr>::const_iterator cand = cands.begin(); cand != cands.end(); ++cand) {
+      for (std::vector<reco::PFCandidatePtr>::const_iterator cand = cands.begin(); cand != cands.end(); ++cand) {
         if ((*cand)->muonRef().isNonnull() && skipMuonSelection(*(*cand)->muonRef())) {
-        reco::Candidate::LorentzVector muonP4 = (*cand)->p4();
-        rawJetP4 -= muonP4;
+          reco::Candidate::LorentzVector muonP4 = (*cand)->p4();
+          rawJetP4 -= muonP4;
         }
-        }
+      }*/
 
 
-      deltaPx += (jet.px() - rawJetP4.px());
-      deltaPy += (jet.py() - rawJetP4.py());
+      deltaPx += (jet.px() - L1JetP4.px());
+      deltaPy += (jet.py() - L1JetP4.py());
     }
   }
 
@@ -386,7 +397,6 @@ void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met,
 
   met.setP4(reco::Candidate::LorentzVector(correctedMetPx, correctedMetPy, 0., correctedMetPt));
 }
-*/
 
 void JetMETExtractor::extractRawJets(pat::JetCollection& jets) {
 
@@ -395,6 +405,8 @@ void JetMETExtractor::extractRawJets(pat::JetCollection& jets) {
 
     const pat::Jet rawJet = jet.correctedJet("Uncorrected");
     jet.addUserData("rawJet", rawJet, true);
+    const pat::Jet L1Jet  = jet.correctedJet("L1FastJet");
+    jet.addUserData("L1Jet", L1Jet, true); // Embed L1 corrected jet for TypeI correction
   }
 
 }

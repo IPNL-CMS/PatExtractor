@@ -112,6 +112,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     // Jet ID
     bool isPFJetLoose(const pat::Jet& jet);
 
+    void correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets);
     void correctJets(pat::JetCollection& jets, const edm::Event& iEvent, const edm::EventSetup& iSetup);
     void extractRawJets(pat::JetCollection& jets);
 
@@ -124,8 +125,6 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     GreaterByPt<pat::Jet> mSorter;
 
     static const int 	m_jets_MAX       = 200;
-
-    float m_deltaR_cut;
 
     TClonesArray* m_jet_lorentzvector;
     float	m_jet_vx[m_jets_MAX];
