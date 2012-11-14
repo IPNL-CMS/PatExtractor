@@ -2,8 +2,10 @@
 
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 
+#define DEBUG false
+
 JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met_name, const edm::InputTag& tag, const edm::InputTag& metTag,
-    bool doJetTree, bool doMETTree, bool correctJets, const std::string& jetCorrectorLabel)
+    bool doJetTree, bool doMETTree, bool correctJets, const std::string& jetCorrectorLabel, bool redoTypeI)
 : BaseExtractor(name)
 {
   m_tag = tag;
@@ -11,6 +13,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
 
   mCorrectJets = correctJets;
   mJetCorrectorLabel = jetCorrectorLabel;
+  mRedoTypeI = redoTypeI;
 
   // Set everything to 0
   m_jet_lorentzvector = new TClonesArray("TLorentzVector");
@@ -176,14 +179,14 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
   for (unsigned int i = 0; i < p_jets.size(); ++i)
   {
     const pat::Jet& rawJet = *(p_jets.at(i).userData<pat::Jet>("rawJet"));
-    if (false) {
+#if DEBUG
       if (! mCorrectJets) {
         // Test if jet id works the same on our stored raw jets and the jet itself
         if (isPFJetLoose(rawJet) != isPFJetLoose(p_jets.at(i))) {
           std::cout << "Error: there's something wrong with your jets!" << std::endl;
         }
       }
-    }
+#endif
 
     if (! isPFJetLoose(rawJet))
       continue;
@@ -200,7 +203,8 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
   event.getByLabel(m_metTag, metHandle);
   pat::MET MET = (*metHandle).at(0);
 
-  if (mCorrectJets) {
+  // If we are redoing jet correction, or if the user forces it, recompute TypeI MEt corrections
+  if (mCorrectJets || mRedoTypeI) {
     // Raw MET
     edm::Handle<pat::METCollection> rawMetHandle;
     event.getByLabel("patPFMetPFlow", rawMetHandle);
@@ -330,26 +334,23 @@ void JetMETExtractor::correctJets(pat::JetCollection& jets, const edm::Event& iE
     const pat::Jet L1Jet  = jet.correctedJet("L1FastJet");
     jet.addUserData("L1Jet", L1Jet, true); // Embed L1 corrected jet for TypeI correction
 
-    if (false) {
-      std::cout << "---" << std::endl;
-      std::cout << jet.chargedEmEnergy() << std::endl;
-      std::cout << rawJet.chargedEmEnergy() << std::endl;
-
-      std::cout << "Pt: " << jet.pt() << std::endl;
-    }
+#if DEBUG
+    std::cout << "---" << std::endl;
+    std::cout << "Pt: " << jet.pt() << std::endl;
+#endif
 
     double toRaw = jet.jecFactor("Uncorrected");
     jet.setP4(jet.p4() * toRaw); // jet is now a raw jet
-    if (false) {
-      std::cout << "True raw pt: " << rawJet.pt() << std::endl;
-      std::cout << "Raw pt: " << jet.pt() << std::endl;
-    }
+#if DEBUG
+    std::cout << "True raw pt: " << rawJet.pt() << std::endl;
+    std::cout << "Raw pt: " << jet.pt() << std::endl;
+#endif
 
     double corrections = corrector->correction(jet, iEvent, iSetup);
     jet.scaleEnergy(corrections);
-    if (false) {
-      std::cout << "Corrected pt: " << jet.pt() << std::endl;
-    }
+#if DEBUG
+    std::cout << "Corrected pt: " << jet.pt() << std::endl;
+#endif
   }
 
   // Sort collection by pt
@@ -358,6 +359,11 @@ void JetMETExtractor::correctJets(pat::JetCollection& jets, const edm::Event& iE
 
 void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets) {
   double deltaPx = 0., deltaPy = 0.;
+#if DEBUG
+    std::cout << "---" << std::endl;
+    std::cout << "MET Raw et: " << rawMet.et() << std::endl;
+    std::cout << "PAT corrected MET et: " << met.et() << std::endl;
+#endif
 
   // See https://indico.cern.ch/getFile.py/access?contribId=1&resId=0&materialId=slides&confId=174324 slide 4
   // and http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/CMSSW/JetMETCorrections/Type1MET/interface/PFJetMETcorrInputProducerT.h?revision=1.8&view=markup
@@ -378,12 +384,12 @@ void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met,
 
       // Skip muons
       /*std::vector<reco::PFCandidatePtr> cands = rawJet->getPFConstituents();
-      for (std::vector<reco::PFCandidatePtr>::const_iterator cand = cands.begin(); cand != cands.end(); ++cand) {
+        for (std::vector<reco::PFCandidatePtr>::const_iterator cand = cands.begin(); cand != cands.end(); ++cand) {
         if ((*cand)->muonRef().isNonnull() && skipMuonSelection(*(*cand)->muonRef())) {
-          reco::Candidate::LorentzVector muonP4 = (*cand)->p4();
-          rawJetP4 -= muonP4;
+        reco::Candidate::LorentzVector muonP4 = (*cand)->p4();
+        rawJetP4 -= muonP4;
         }
-      }*/
+        }*/
 
 
       deltaPx += (jet.px() - L1JetP4.px());
@@ -396,6 +402,10 @@ void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met,
   double correctedMetPt = sqrt(correctedMetPx * correctedMetPx + correctedMetPy * correctedMetPy);
 
   met.setP4(reco::Candidate::LorentzVector(correctedMetPx, correctedMetPy, 0., correctedMetPt));
+
+#if DEBUG
+    std::cout << "Handmade corrected MET et: " << met.et() << std::endl;
+#endif
 }
 
 void JetMETExtractor::extractRawJets(pat::JetCollection& jets) {

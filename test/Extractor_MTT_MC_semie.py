@@ -41,7 +41,8 @@ process.PATextraction.doMC  = True
 #Input PAT file to extract
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-      '/store/user/sbrochet/TTJets_TuneZ2star_8TeV-madgraph-tauola/TTJets_2012_v1/265c9c69c37a8e555f9b98fa1aae946f/patTuple_36_1_VWJ.root'
+      #'/store/user/sbrochet/TTJets_TuneZ2star_8TeV-madgraph-tauola/TTJets_2012_v1/265c9c69c37a8e555f9b98fa1aae946f/patTuple_36_1_VWJ.root'
+      '/store/user/sperries/ZPrimeToTTJets_M750GeV_W7p5GeV_TuneZ2star_8TeV-madgraph-tauola/Zprime_750_Narrow_2012_PF2PAT_v1/165778d6ec003db3c40b0ea37fd1f4fc/patTuple_1_1_pTr.root'
       ),                           
     duplicateCheckMode = cms.untracked.string( 'noDuplicateCheck' )
     )
@@ -77,6 +78,7 @@ process.PATextraction.doMtt      = True
 # Jets correction : needs a valid global tags, or an external DB where JEC are stored
 process.PATextraction.correctJets       = True
 process.PATextraction.jetCorrectorLabel = "ak5PFchsL1FastL2L3"
+process.PATextraction.redoTypeIMET      = False
 
 # Analysis cuts
 import sys

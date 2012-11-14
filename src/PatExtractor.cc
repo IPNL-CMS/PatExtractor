@@ -13,6 +13,7 @@ PatExtractor::PatExtractor(const edm::ParameterSet& config) :
   do_Jet_        (config.getUntrackedParameter<bool>("doJet", false)),
   correctJets_  (config.getUntrackedParameter<bool>("correctJets", false)),
   jetCorrectorLabel_(config.getUntrackedParameter<std::string>("jetCorrectorLabel", "ak5PFL1FastL2L3")),
+  redoTypeI_     (config.getUntrackedParameter<bool>("redoTypeIMET", false)),
 
   do_Muon_       (config.getUntrackedParameter<bool>("doMuon", false)),
   do_MET_        (config.getUntrackedParameter<bool>("doMET", false)),
@@ -236,7 +237,7 @@ void PatExtractor::initialize()
     addExtractor("muons", new MuonExtractor("muon_PF", muon_tag_, do_Muon_));
 
   if (do_Jet_ || do_MET_)
-    addExtractor("JetMET", new JetMETExtractor("jet_PF", "MET_PF", jet_tag_, met_tag_, do_Jet_, do_MET_, correctJets_, jetCorrectorLabel_));
+    addExtractor("JetMET", new JetMETExtractor("jet_PF", "MET_PF", jet_tag_, met_tag_, do_Jet_, do_MET_, correctJets_, jetCorrectorLabel_, redoTypeI_));
 
   if (do_Photon_)
     addExtractor("photons", new PhotonExtractor("photon", photon_tag_, do_Photon_));
