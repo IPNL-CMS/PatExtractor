@@ -36,7 +36,7 @@ class PhotonExtractor: public BaseExtractor<pat::Photon>
     PhotonExtractor(const std::string& name, TFile *a_file);
     virtual ~PhotonExtractor();
 
-    void writeInfo(const pat::Photon& part, int index); 
+    void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Photon& part, int index); 
     void getInfo(int ievt);
 
     void reset();

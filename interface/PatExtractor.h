@@ -72,6 +72,8 @@ class PatExtractor : public edm::EDAnalyzer {
     m_extractorsIndexes[name] = m_extractors.size() - 1;
   }
 
+  bool is_MC_;
+
   bool do_fill_;
   bool do_HLT_;
   bool do_MC_;

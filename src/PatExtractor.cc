@@ -4,6 +4,7 @@ using namespace std;
 using namespace edm;
 
 PatExtractor::PatExtractor(const edm::ParameterSet& config) :
+  is_MC_         (config.getUntrackedParameter<bool>("isMC", true)),
   do_fill_       (config.getUntrackedParameter<bool>("fillTree", true)),
   do_HLT_        (config.getUntrackedParameter<bool>("doHLT", false)),
   do_MC_         (config.getUntrackedParameter<bool>("doMC", false)),
@@ -247,6 +248,9 @@ void PatExtractor::initialize()
     addExtractor("electrons_loose", new ElectronExtractor("electron_loose_PF", edm::InputTag("selectedPatElectronsLoosePFlow"), true));
     addExtractor("muons_loose", new MuonExtractor("muon_loose_PF", edm::InputTag("selectedPatMuonsLoosePFlow"), true));
   }
+
+  for (auto& extractor: m_extractors)
+    extractor->setIsMC(is_MC_);
 }
 
 
@@ -295,6 +299,9 @@ void PatExtractor::retrieve()
   do_MET_      = getExtractor("MET")->isOK();
   do_Vertex_   = getExtractor("vertex")->isOK();
   do_Trk_      = getExtractor("track")->isOK();
+
+  for (auto& extractor: m_extractors)
+    extractor->setIsMC(is_MC_);
 }
 
 

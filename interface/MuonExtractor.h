@@ -36,7 +36,7 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
     MuonExtractor(const std::string& name, TFile *a_file);
     virtual ~MuonExtractor();
 
-    virtual void writeInfo(const pat::Muon& object, int index);
+    virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Muon& object, int index);
 
     void reset();
     void fillTree(); 

@@ -41,5 +41,6 @@
 <use   name="DataFormats/VertexReco"/>
 <use   name="CondFormats/JetMETObjects"/>
 <use   name="JetMETCorrections/Objects" />
+<use   name="EGamma/EGammaAnalysisTools" />
 <lib   name="MathMore"/>
 <flags EDM_PLUGIN="1"/>

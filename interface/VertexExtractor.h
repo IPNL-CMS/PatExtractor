@@ -35,7 +35,7 @@ class VertexExtractor: public BaseExtractor<reco::Vertex>
     VertexExtractor(const std::string& name, TFile *a_file);
     virtual ~VertexExtractor();
 
-    void writeInfo(const reco::Vertex& part, int index); 
+    void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const reco::Vertex& part, int index); 
     void getInfo(int ievt); 
 
     virtual const reco::Candidate* getGenParticle(const reco::Vertex& vtx) {

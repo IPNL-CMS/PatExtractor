@@ -36,7 +36,7 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
     ElectronExtractor(const std::string& name, TFile* f);
     virtual ~ElectronExtractor();
 
-    virtual void writeInfo(const pat::Electron& object, int index);
+    virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Electron& object, int index);
 
     void reset();
     void fillTree(); 
@@ -99,6 +99,8 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
     float	m_ele_vy[m_electrons_MAX];
     float	m_ele_vz[m_electrons_MAX];
     int	m_ele_charge[m_electrons_MAX];
+    float m_ele_SCEta[m_electrons_MAX];
+    bool m_ele_passConversionVeto[m_electrons_MAX];
 
     // electron id's
 
@@ -119,6 +121,11 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
     int m_ele_eidTightMC[m_electrons_MAX];
     int m_ele_eidVeryLooseMC[m_electrons_MAX];
 
+    /// 2012
+    float m_ele_eidMVATrigV0[m_electrons_MAX];
+    bool m_ele_passVetoID[m_electrons_MAX];
+    float m_ele_effectiveArea[m_electrons_MAX];
+    float m_ele_correctedIsolation[m_electrons_MAX]; // Isolation corrected with effective area
 
     //
     int eidBit;

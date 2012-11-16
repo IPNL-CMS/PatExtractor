@@ -51,7 +51,7 @@ class BaseExtractor: public SuperBaseExtractor
 
       int i = 0;
       for (auto& object: collection) {
-        writeInfo(object, i);
+        writeInfo(event, iSetup, object, i);
         if (mcExtractor) {
           doMCMatch(object, event, mcExtractor, i);
         }
@@ -61,7 +61,7 @@ class BaseExtractor: public SuperBaseExtractor
       fillTree();
     }
 
-    virtual void writeInfo(const ObjectType& object, int index) = 0;
+    virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const ObjectType& object, int index) = 0;
 
     virtual const reco::Candidate* getGenParticle(const ObjectType& object) = 0;
     virtual void setGenParticleIndex(int genParticleIndex, int index) = 0;
@@ -186,8 +186,9 @@ class BaseExtractor: public SuperBaseExtractor
 
     std::string m_name;
     edm::InputTag m_tag;
+
     bool  m_isPF;
     TFile* m_file;
 
-    size_t   m_size;
+    size_t m_size;
 };

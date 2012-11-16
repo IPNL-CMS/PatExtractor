@@ -35,7 +35,7 @@ class TrackExtractor: public BaseExtractor<reco::Track>
     TrackExtractor(const std::string& name, TFile* a_file);
     virtual ~TrackExtractor();
 
-    void writeInfo(const reco::Track& part, int index);
+    void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const reco::Track& part, int index);
 
     virtual const reco::Candidate* getGenParticle(const reco::Track& track) {
       return NULL;

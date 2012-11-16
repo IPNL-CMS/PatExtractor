@@ -43,6 +43,12 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
 
 
 ##
+## Are you running on data or MC?
+##
+   isMC          = cms.untracked.bool(True),
+
+
+##
 ## Then you define the content of the output file (all set to false, turn on on request in you config files)
 ##
                                

@@ -1,5 +1,9 @@
 #include "../interface/ElectronExtractor.h"
 
+#include <DataFormats/VertexReco/interface/Vertex.h>
+#include <EGamma/EGammaAnalysisTools/interface/EGammaCutBasedEleId.h>
+#include <EGamma/EGammaAnalysisTools/interface/ElectronEffectiveArea.h>
+
 ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTag& tag, bool doTree)
   : BaseExtractor(name)
 {
@@ -53,6 +57,13 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTa
     m_tree_electron->Branch("electron_pfPhotonIso",              &m_ele_pfPhotonIso,       "electron_pfPhotonIso[n_electrons]/F");  
     m_tree_electron->Branch("electron_numberOfMissedInnerLayer", &m_ele_numberOfMissedInnerLayer, "electron_numberOfMissedInnerLayer[n_electrons]/I");  
     m_tree_electron->Branch("electron_mcParticleIndex",          &m_ele_MCIndex,   "electron_mcParticleIndex[n_electrons]/I");  
+
+    m_tree_electron->Branch("electron_eidMVATrigV0",             &m_ele_eidMVATrigV0, "electron_eidMVATrigV0[n_electrons]/F");
+    m_tree_electron->Branch("electron_passConversionVeto",       &m_ele_passConversionVeto, "electron_passConversionVeto[n_electrons]/O");
+    m_tree_electron->Branch("electron_SCEta",                    &m_ele_SCEta, "electron_SCEta[n_electrons]/F");
+    m_tree_electron->Branch("electron_passVetoID",               &m_ele_passVetoID, "electron_passVetoID[n_electrons]/O");
+    m_tree_electron->Branch("electron_effectiveArea",            &m_ele_effectiveArea, "electron_effectiveArea[n_electrons]/F");
+    m_tree_electron->Branch("electron_correctedIsolation",       &m_ele_correctedIsolation, "electron_correctedIsolation[n_electrons]/F");
   }
 }
 
@@ -136,6 +147,24 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTa
     m_tree_electron->SetBranchAddress("electron_numberOfMissedInnerLayer",&m_ele_numberOfMissedInnerLayer);
   if (m_tree_electron->FindBranch("electron_mcParticleIndex"))
     m_tree_electron->SetBranchAddress("electron_mcParticleIndex",&m_ele_MCIndex);
+
+  if (m_tree_electron->FindBranch("electron_eidMVATrigV0"))
+    m_tree_electron->SetBranchAddress("electron_eidMVATrigV0", &m_ele_eidMVATrigV0);
+
+  if (m_tree_electron->FindBranch("electron_passConversionVeto"))
+    m_tree_electron->SetBranchAddress("electron_passConversionVeto", &m_ele_passConversionVeto);
+
+  if (m_tree_electron->FindBranch("electron_SCEta"))
+    m_tree_electron->SetBranchAddress("electron_SCEta", &m_ele_SCEta);
+
+  if (m_tree_electron->FindBranch("electron_passVetoID"))
+    m_tree_electron->SetBranchAddress("electron_passVetoID", &m_ele_passVetoID);
+
+  if (m_tree_electron->FindBranch("electron_effectiveArea"))
+    m_tree_electron->SetBranchAddress("electron_effectiveArea", &m_ele_effectiveArea);
+
+  if (m_tree_electron->FindBranch("electron_correctedIsolation"))
+    m_tree_electron->SetBranchAddress("electron_correctedIsolation", &m_ele_correctedIsolation);
 }
 
 
@@ -150,7 +179,7 @@ ElectronExtractor::~ElectronExtractor() {
 // Method filling the main particle tree
 //
 
-void ElectronExtractor::writeInfo(const pat::Electron& object, int index) {
+void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Electron& object, int index) {
 
   if (index >= m_electrons_MAX)
     return;
@@ -158,10 +187,16 @@ void ElectronExtractor::writeInfo(const pat::Electron& object, int index) {
   const pat::Electron& part = static_cast<const pat::Electron&>(object);
 
   new((*m_ele_lorentzvector)[index]) TLorentzVector(part.px(),part.py(),part.pz(),part.energy());
-  m_ele_vx[index]               = part.vx();
-  m_ele_vy[index]               = part.vy();
-  m_ele_vz[index]               = part.vz();
-  m_ele_charge[index]           = part.charge();
+  m_ele_vx[index]                 = part.vx();
+  m_ele_vy[index]                 = part.vy();
+  m_ele_vz[index]                 = part.vz();
+  m_ele_charge[index]             = part.charge();
+  m_ele_SCEta[index]              = part.superCluster()->eta();
+  m_ele_passConversionVeto[index] = part.passConversionVeto();
+
+  // 2012 Electron ID based on MVA
+  if (part.isElectronIDAvailable("mvaTrigV0"))
+    m_ele_eidMVATrigV0[index]        = part.electronID("mvaTrigV0");
 
   if (part.isElectronIDAvailable("eidLoose"))
     m_ele_eidLoose[index]            = part.electronID("eidLoose");
@@ -197,9 +232,9 @@ void ElectronExtractor::writeInfo(const pat::Electron& object, int index) {
     m_ele_eidVeryLooseMC[index]   = part.electronID("eidVeryLooseMC");
 
   m_ele_dB[index]               = part.dB() ;
-  m_ele_trackIso[index]         = part.trackIso() ;
-  m_ele_ecalIso[index]          = part.ecalIso() ;
-  m_ele_hcalIso[index]          = part.hcalIso() ;
+  m_ele_trackIso[index]         = part.trackIso();
+  m_ele_ecalIso[index]          = part.ecalIso();
+  m_ele_hcalIso[index]          = part.hcalIso();
 
 
   if (part.gsfTrack().isNonnull())
@@ -215,6 +250,57 @@ void ElectronExtractor::writeInfo(const pat::Electron& object, int index) {
     m_ele_pfPhotonIso[index]        = part.photonIso();
     m_ele_eidpf_evspi[index]        = part.electronID("pf_evspi");
     m_ele_eidpf_evsmu[index]        = part.electronID("pf_evsmu");
+  }
+
+  // See https://twiki.cern.ch/twiki/bin/viewauth/CMS/TWikiTopRefEventSel#Electrons
+
+  {
+    // Check if this electron pass VETO criteria
+    edm::Handle<reco::ConversionCollection> hConversions;
+    event.getByLabel("allConversions", hConversions);
+
+    // beam spot
+    edm::Handle<reco::BeamSpot> hBeamspot;
+    event.getByLabel("offlineBeamSpot", hBeamspot);
+    const reco::BeamSpot &beamSpot = *hBeamspot;
+
+    // vertices
+    edm::Handle<reco::VertexCollection> hVtx;
+    event.getByLabel("goodOfflinePrimaryVertices", hVtx);
+
+    edm::Handle<double> hRhoIso;
+    event.getByLabel(edm::InputTag("kt6PFJets", "rho", "RECO"), hRhoIso);
+    double rhoIso = *hRhoIso;
+
+    //cone size 0.3 
+    const double chIso03 = part.isoDeposit(pat::PfChargedHadronIso)->depositAndCountWithin(0.3).first;
+    const double nhIso03 = part.isoDeposit(pat::PfNeutralHadronIso)->depositAndCountWithin(0.3).first;
+    const double phIso03 = part.isoDeposit(pat::PfGammaIso)->depositAndCountWithin(0.3).first;
+
+    m_ele_passVetoID[index] = EgammaCutBasedEleId::PassWP(
+        EgammaCutBasedEleId::VETO,
+        part,
+        hConversions,
+        beamSpot,
+        hVtx,
+        chIso03,
+        phIso03,
+        nhIso03,
+        rhoIso);
+
+    // Compute effective area
+    float AEff03 = 0.00;
+
+    if (! m_isMC){
+      AEff03 = ElectronEffectiveArea::GetElectronEffectiveArea(ElectronEffectiveArea::kEleGammaAndNeutralHadronIso03, part.superCluster()->eta(), ElectronEffectiveArea::kEleEAData2012);
+    } else {
+      AEff03 = ElectronEffectiveArea::GetElectronEffectiveArea(ElectronEffectiveArea::kEleGammaAndNeutralHadronIso03, part.superCluster()->eta(), ElectronEffectiveArea::kEleEAFall11MC);
+    }
+
+    m_ele_effectiveArea[index] = AEff03;
+
+    const double relIsoCorrected = (chIso03 + std::max(0.0, (nhIso03 + phIso03) - rhoIso * AEff03)) / part.pt();
+    m_ele_correctedIsolation[index] = relIsoCorrected;
   }
 }
 
@@ -264,7 +350,15 @@ void ElectronExtractor::reset()
     m_ele_pfPhotonIso[i]=0;
     m_ele_numberOfMissedInnerLayer[i]=0;
     m_ele_MCIndex[i]=-1;
+
+    m_ele_eidMVATrigV0[i] = -1;
+    m_ele_SCEta[i] = -1;
+    m_ele_passConversionVeto[i] = false;
+    m_ele_effectiveArea[i] = 0;
+    m_ele_correctedIsolation[i] = -1;
+    m_ele_passVetoID[i] = false;
   }
+
   m_ele_lorentzvector->Clear();
 }
 

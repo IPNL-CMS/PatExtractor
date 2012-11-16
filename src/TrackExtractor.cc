@@ -75,7 +75,7 @@ TrackExtractor::~TrackExtractor()
 // Method filling the main particle tree
 //
 
-void TrackExtractor::writeInfo(const reco::Track& part, int index) 
+void TrackExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const reco::Track& part, int index) 
 {
   if (index>=m_tracks_MAX) return;
 

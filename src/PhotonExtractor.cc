@@ -69,7 +69,7 @@ PhotonExtractor::~PhotonExtractor()
 // Method filling the main particle tree
 //
 
-void PhotonExtractor::writeInfo(const pat::Photon& part, int index) 
+void PhotonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Photon& part, int index) 
 {
   if (index>=m_photons_MAX) return;
 

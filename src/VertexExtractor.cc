@@ -66,7 +66,7 @@ VertexExtractor::~VertexExtractor()
 // Method filling the main particle tree
 //
 
-void VertexExtractor::writeInfo(const reco::Vertex& part, int index) 
+void VertexExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const reco::Vertex& part, int index) 
 {
   if (index>=m_vertices_MAX) return;
 

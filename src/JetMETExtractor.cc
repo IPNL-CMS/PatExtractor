@@ -191,7 +191,7 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
     if (! isPFJetLoose(rawJet))
       continue;
 
-    JetMETExtractor::writeInfo(p_jets.at(i), m_size); 
+    JetMETExtractor::writeInfo(event, iSetup, p_jets.at(i), m_size); 
 
     if (m_MC)
       doMCMatch(p_jets.at(i), event, m_MC, m_size);
@@ -215,12 +215,12 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
     }
   }
 
-  writeInfo(MET, 0);
+  writeInfo(event, iSetup, MET, 0);
 
   fillTree();
 }
 
-void JetMETExtractor::writeInfo(const pat::Jet& part, int index) 
+void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Jet& part, int index) 
 {
   if (index>=m_jets_MAX) return;
 
@@ -253,7 +253,7 @@ void JetMETExtractor::writeInfo(const pat::Jet& part, int index)
   }
 }
 
-void JetMETExtractor::writeInfo(const pat::MET& part, int index) 
+void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::MET& part, int index) 
 {
   if (index > 1)
     return;

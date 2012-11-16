@@ -48,9 +48,9 @@ MuonExtractor::MuonExtractor(const std::string& name, const edm::InputTag& tag, 
 
     m_tree_muon->Branch("muon_nMatchedStations",              &m_muo_nMatchedStations,             "muon_nMatches[n_muons]/I");
     m_tree_muon->Branch("muon_trackerLayersWithMeasurement",  &m_muo_trackerLayersWithMeasurement, "muon_trackerLayersWithMeasurement[n_muons]/F");
-    m_tree_muon->Branch("muon_dZ",                            &m_muo_dZ,                           "muon_dZ/F");
-    m_tree_muon->Branch("muon_pixelLayerWithMeasurement",     &m_muo_pixelLayerWithMeasurement,    "muon_pixelLayerWithMeasurement/F");
-    m_tree_muon->Branch("muon_globalTrackNumberOfValidHits",  &m_muo_globalTrackNumberOfValidHits, "muon_globalTrackNumberOfValidHits/F");
+    m_tree_muon->Branch("muon_dZ",                            &m_muo_dZ,                           "muon_dZ[n_muons]/F");
+    m_tree_muon->Branch("muon_pixelLayerWithMeasurement",     &m_muo_pixelLayerWithMeasurement,    "muon_pixelLayerWithMeasurement[n_muons]/F");
+    m_tree_muon->Branch("muon_globalTrackNumberOfValidHits",  &m_muo_globalTrackNumberOfValidHits, "muon_globalTrackNumberOfValidHits[n_muons]/F");
   }
 
 }
@@ -154,7 +154,7 @@ void MuonExtractor::getInfo(int ievt)
   m_tree_muon->GetEntry(ievt); 
 }
 
-void MuonExtractor::writeInfo(const pat::Muon& part, int index) 
+void MuonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Muon& part, int index) 
 {
   if (index>=m_muons_MAX) return;
 

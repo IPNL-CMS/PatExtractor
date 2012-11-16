@@ -36,13 +36,15 @@ process.maxEvents = cms.untracked.PSet(
 
 #Global tag and data type choice
 process.GlobalTag.globaltag = 'GR_R_53_V13::All'
+process.PATextraction.isMC  = False
 process.PATextraction.doMC  = False
 
 #Input PAT file to extract
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
       #'/store/user/sbrochet/MuHad/MuHad_Run2012A_DCSONLY_v1/02979db18d11879dfe0836140c8c76cf/patTuple_76_2_hm9.root'
-      '/store/user/sbrochet/SingleMu/SingleMu_Run2012B-TOPMuPlusJets-PromptSkim_08June/ff2bcae921e303fb6bcdd4793030d79d/patTuple_64_1_Nvx.root'      
+      #'/store/user/sbrochet/SingleMu/SingleMu_Run2012B-TOPMuPlusJets-PromptSkim_08June/ff2bcae921e303fb6bcdd4793030d79d/patTuple_64_1_Nvx.root'
+      'file:patTuple.root'
       ),                           
     duplicateCheckMode = cms.untracked.string( 'noDuplicateCheck' )
     )

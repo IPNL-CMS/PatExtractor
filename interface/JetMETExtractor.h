@@ -43,8 +43,8 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
 
     void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* m_MC); 
 
-    void writeInfo(const pat::Jet& part, int index); 
-    void writeInfo(const pat::MET& part, int index); 
+    void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Jet& part, int index); 
+    void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::MET& part, int index); 
 
     void getInfo(int ievt); 
 
