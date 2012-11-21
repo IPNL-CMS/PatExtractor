@@ -125,7 +125,9 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
     float m_ele_eidMVATrigV0[m_electrons_MAX];
     bool m_ele_passVetoID[m_electrons_MAX];
     float m_ele_effectiveArea[m_electrons_MAX];
-    float m_ele_correctedIsolation[m_electrons_MAX]; // Isolation corrected with effective area
+    float m_ele_rhoCorrectedRelIsolation[m_electrons_MAX]; // Isolation corrected with effective area
+    float m_ele_deltaBetaCorrectedRelIsolation[m_electrons_MAX]; // Isolation corrected with delta beta corrections
+    float m_ele_relIsolation[m_electrons_MAX]; // Isolation
 
     //
     int eidBit;

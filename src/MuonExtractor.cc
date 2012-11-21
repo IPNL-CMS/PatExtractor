@@ -51,6 +51,9 @@ MuonExtractor::MuonExtractor(const std::string& name, const edm::InputTag& tag, 
     m_tree_muon->Branch("muon_dZ",                            &m_muo_dZ,                           "muon_dZ[n_muons]/F");
     m_tree_muon->Branch("muon_pixelLayerWithMeasurement",     &m_muo_pixelLayerWithMeasurement,    "muon_pixelLayerWithMeasurement[n_muons]/F");
     m_tree_muon->Branch("muon_globalTrackNumberOfValidHits",  &m_muo_globalTrackNumberOfValidHits, "muon_globalTrackNumberOfValidHits[n_muons]/F");
+
+    m_tree_muon->Branch("muon_relIsolation",                   &m_muo_relIsolation, "muon_relIsolation[n_muons]/F");
+    m_tree_muon->Branch("muon_deltaBetaCorrectedRelIsolation", &m_muo_deltaBetaCorrectedRelIsolation, "muon_deltaBetaCorrectedRelIsolation[n_muons]/F");
   }
 
 }
@@ -140,6 +143,12 @@ MuonExtractor::MuonExtractor(const std::string& name, TFile *a_file)
 
   if (m_tree_muon->FindBranch("muon_globalTrackNumberOfValidHits"))
     m_tree_muon->SetBranchAddress("muon_globalTrackNumberOfValidHits", &m_muo_globalTrackNumberOfValidHits);
+
+  if (m_tree_muon->FindBranch("muon_relIsolation"))
+    m_tree_muon->SetBranchAddress("muon_relIsolation", &m_muo_relIsolation);
+
+  if (m_tree_muon->FindBranch("muon_deltaBetaCorrectedRelIsolation"))
+    m_tree_muon->SetBranchAddress("muon_deltaBetaCorrectedRelIsolation", &m_muo_deltaBetaCorrectedRelIsolation);
 }
 
 MuonExtractor::~MuonExtractor()
@@ -202,6 +211,9 @@ void MuonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iS
     m_muo_pfChargedHadronIso[index] = part.chargedHadronIso();
     m_muo_pfNeutralHadronIso[index] = part.neutralHadronIso();
     m_muo_pfPhotonIso[index]        = part.photonIso();
+
+    m_muo_relIsolation[index] = (part.chargedHadronIso() + part.neutralHadronIso() + part.photonIso()) / part.pt();
+    m_muo_deltaBetaCorrectedRelIsolation[index] = (part.chargedHadronIso() + std::max((part.neutralHadronIso() + part.photonIso()) - 0.5 * part.puChargedHadronIso(), 0.0)) / part.pt();
   } 
 }
 
@@ -241,6 +253,9 @@ void MuonExtractor::reset()
     m_muo_dZ[i] = -1;
     m_muo_pixelLayerWithMeasurement[i] = -1;
     m_muo_globalTrackNumberOfValidHits[i] = -1;
+
+    m_muo_relIsolation[i] = -1;
+    m_muo_deltaBetaCorrectedRelIsolation[i] = -1;
   }
   m_muo_lorentzvector->Clear();
 }

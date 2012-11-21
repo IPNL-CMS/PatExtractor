@@ -3,6 +3,8 @@
 #include <DataFormats/VertexReco/interface/Vertex.h>
 #include <EGamma/EGammaAnalysisTools/interface/EGammaCutBasedEleId.h>
 #include <EGamma/EGammaAnalysisTools/interface/ElectronEffectiveArea.h>
+#include <DataFormats/RecoCandidate/interface/IsoDeposit.h>
+#include <DataFormats/RecoCandidate/interface/IsoDepositVetos.h>
 
 ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTag& tag, bool doTree)
   : BaseExtractor(name)
@@ -51,10 +53,12 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTa
     m_tree_electron->Branch("electron_trackIso",                 &m_ele_trackIso,  "electron_trackIso[n_electrons]/F");  
     m_tree_electron->Branch("electron_ecalIso",                  &m_ele_ecalIso,   "electron_ecalIso[n_electrons]/F");  
     m_tree_electron->Branch("electron_hcalIso",                  &m_ele_hcalIso,   "electron_hcalIso[n_electrons]/F");  
-    m_tree_electron->Branch("electron_pfParticleIso",            &m_ele_pfParticleIso,     "electron_pfParticleIso[n_electrons]/F");  
-    m_tree_electron->Branch("electron_pfChargedHadronIso",       &m_ele_pfChargedHadronIso,"electron_pfChargedHadronIso[n_electrons]/F");  
-    m_tree_electron->Branch("electron_pfNeutralHadronIso",       &m_ele_pfNeutralHadronIso,"electron_pfNeutralHadronIso[n_electrons]/F");  
-    m_tree_electron->Branch("electron_pfPhotonIso",              &m_ele_pfPhotonIso,       "electron_pfPhotonIso[n_electrons]/F");  
+
+    m_tree_electron->Branch("electron_pfParticleIso",            &m_ele_pfParticleIso,     "electron_pfParticleIso[n_electrons]/F");
+    m_tree_electron->Branch("electron_pfChargedHadronIso",       &m_ele_pfChargedHadronIso,"electron_pfChargedHadronIso[n_electrons]/F");
+    m_tree_electron->Branch("electron_pfNeutralHadronIso",       &m_ele_pfNeutralHadronIso,"electron_pfNeutralHadronIso[n_electrons]/F");
+    m_tree_electron->Branch("electron_pfPhotonIso",              &m_ele_pfPhotonIso,       "electron_pfPhotonIso[n_electrons]/F");
+
     m_tree_electron->Branch("electron_numberOfMissedInnerLayer", &m_ele_numberOfMissedInnerLayer, "electron_numberOfMissedInnerLayer[n_electrons]/I");  
     m_tree_electron->Branch("electron_mcParticleIndex",          &m_ele_MCIndex,   "electron_mcParticleIndex[n_electrons]/I");  
 
@@ -63,7 +67,9 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTa
     m_tree_electron->Branch("electron_SCEta",                    &m_ele_SCEta, "electron_SCEta[n_electrons]/F");
     m_tree_electron->Branch("electron_passVetoID",               &m_ele_passVetoID, "electron_passVetoID[n_electrons]/O");
     m_tree_electron->Branch("electron_effectiveArea",            &m_ele_effectiveArea, "electron_effectiveArea[n_electrons]/F");
-    m_tree_electron->Branch("electron_correctedIsolation",       &m_ele_correctedIsolation, "electron_correctedIsolation[n_electrons]/F");
+    m_tree_electron->Branch("electron_relIsolation",             &m_ele_relIsolation, "electron_relIsolation[n_electrons]/F");
+    m_tree_electron->Branch("electron_rhoCorrectedRelIsolation", &m_ele_rhoCorrectedRelIsolation, "electron_rhoCorrectedRelIsolation[n_electrons]/F");
+    m_tree_electron->Branch("electron_deltaBetaCorrectedRelIsolation", &m_ele_deltaBetaCorrectedRelIsolation, "electron_deltaBetaCorrectedRelIsolation[n_electrons]/F");
   }
 }
 
@@ -163,8 +169,14 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTa
   if (m_tree_electron->FindBranch("electron_effectiveArea"))
     m_tree_electron->SetBranchAddress("electron_effectiveArea", &m_ele_effectiveArea);
 
-  if (m_tree_electron->FindBranch("electron_correctedIsolation"))
-    m_tree_electron->SetBranchAddress("electron_correctedIsolation", &m_ele_correctedIsolation);
+  if (m_tree_electron->FindBranch("electron_relIsolation"))
+    m_tree_electron->SetBranchAddress("electron_relIsolation", &m_ele_relIsolation);
+
+  if (m_tree_electron->FindBranch("electron_rhoCorrectedRelIsolation"))
+    m_tree_electron->SetBranchAddress("electron_rhoCorrectedRelIsolation", &m_ele_rhoCorrectedRelIsolation);
+
+  if (m_tree_electron->FindBranch("electron_deltaBetaCorrectedRelIsolation"))
+    m_tree_electron->SetBranchAddress("electron_deltaBetaCorrectedRelIsolation", &m_ele_deltaBetaCorrectedRelIsolation);
 }
 
 
@@ -272,10 +284,29 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
     event.getByLabel(edm::InputTag("kt6PFJets", "rho", "RECO"), hRhoIso);
     double rhoIso = *hRhoIso;
 
-    //cone size 0.3 
-    const double chIso03 = part.isoDeposit(pat::PfChargedHadronIso)->depositAndCountWithin(0.3).first;
-    const double nhIso03 = part.isoDeposit(pat::PfNeutralHadronIso)->depositAndCountWithin(0.3).first;
-    const double phIso03 = part.isoDeposit(pat::PfGammaIso)->depositAndCountWithin(0.3).first;
+    // Compute isolation in a cone of 0.3. One can use PAT functions chargedHadronIso(), neutralHadronIso() and photonIso(). They are supposed to do the same thing that what follow.
+    // This is just to check that everything is consistant.
+    //reco::isodeposit::AbsVetos chargedHadronVetos;
+    //reco::isodeposit::AbsVetos photonVetos;
+
+    //// PF isolation veto setup EGM recommendation
+    //if (fabs(part.superCluster()->eta()) > 1.479 ) {
+      //reco::isodeposit::Direction Dir = reco::isodeposit::Direction(part.superCluster()->eta(), part.superCluster()->phi());
+      //chargedHadronVetos.push_back(new reco::isodeposit::ConeVeto(Dir, 0.015));
+      //photonVetos.push_back(new reco::isodeposit::ConeVeto(Dir, 0.08));
+    //}
+
+    ////cone size 0.3 
+    //const double chIso03 = part.isoDeposit(pat::PfChargedHadronIso)->depositWithin(0.3, chargedHadronVetos);
+    //const double nhIso03 = part.isoDeposit(pat::PfNeutralHadronIso)->depositWithin(0.3);
+    //const double phIso03 = part.isoDeposit(pat::PfGammaIso)->depositWithin(0.3, photonVetos);
+    //const double puChIso03 = part.isoDeposit(pat::PfPUChargedHadronIso)->depositWithin(0.3, chargedHadronVetos);
+
+    // All of the above can be replaced with
+    const double chIso03 = part.chargedHadronIso();
+    const double nhIso03 = part.neutralHadronIso();
+    const double phIso03 = part.photonIso();
+    const double puChIso03 = part.puChargedHadronIso();
 
     m_ele_passVetoID[index] = EgammaCutBasedEleId::PassWP(
         EgammaCutBasedEleId::VETO,
@@ -299,8 +330,22 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
 
     m_ele_effectiveArea[index] = AEff03;
 
-    const double relIsoCorrected = (chIso03 + std::max(0.0, (nhIso03 + phIso03) - rhoIso * AEff03)) / part.pt();
-    m_ele_correctedIsolation[index] = relIsoCorrected;
+    const double relIso = (chIso03 + nhIso03 + phIso03) / part.pt();
+    m_ele_relIsolation[index] = relIso;
+
+    const double relIsoRhoCorrected = (chIso03 + std::max(0.0, (nhIso03 + phIso03) - rhoIso * AEff03)) / part.pt();
+    m_ele_rhoCorrectedRelIsolation[index] = relIsoRhoCorrected;
+
+    const double relIsoDeltaBetacCorrected = (chIso03 + std::max(0.0, (nhIso03 + phIso03) - 0.5 * puChIso03)) / part.pt();
+    m_ele_deltaBetaCorrectedRelIsolation[index] = relIsoDeltaBetacCorrected;
+
+    /*
+    for (auto& veto: chargedHadronVetos)
+      delete veto;
+
+    for (auto& veto: photonVetos)
+      delete veto;
+    */
   }
 }
 
@@ -355,7 +400,9 @@ void ElectronExtractor::reset()
     m_ele_SCEta[i] = -1;
     m_ele_passConversionVeto[i] = false;
     m_ele_effectiveArea[i] = 0;
-    m_ele_correctedIsolation[i] = -1;
+    m_ele_rhoCorrectedRelIsolation[i] = -1;
+    m_ele_deltaBetaCorrectedRelIsolation[i] = -1;
+    m_ele_relIsolation[i] = -1;
     m_ele_passVetoID[i] = false;
   }
 

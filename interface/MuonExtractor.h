@@ -111,9 +111,13 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
     float m_muo_d0[m_muons_MAX];
     float m_muo_d0error[m_muons_MAX];
     float m_muo_pfParticleIso[m_muons_MAX]; // isolation calculated with all the PFCandidates
+
     float m_muo_pfChargedHadronIso[m_muons_MAX]; // isolation calculated with only the charged hadron PFCandidates
     float m_muo_pfNeutralHadronIso[m_muons_MAX]; // isolation calculated with only the neutral hadron PFCandidates
     float m_muo_pfPhotonIso[m_muons_MAX]; // Returns the isolation calculated with only the photon PFCandidates
+    float m_muo_relIsolation[m_muons_MAX];
+    float m_muo_deltaBetaCorrectedRelIsolation[m_muons_MAX];
+
     int   m_muo_MCIndex[m_muons_MAX];
 
     int   m_muo_nMatchedStations[m_muons_MAX];
