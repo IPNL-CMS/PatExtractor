@@ -34,6 +34,7 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTa
     m_tree_electron->Branch("electron_vz",                       &m_ele_vz,     "electron_vz[n_electrons]/F");  
     m_tree_electron->Branch("electron_charge",                   &m_ele_charge,    "electron_charge[n_electrons]/I");  
 
+    /*
     m_tree_electron->Branch("electron_eidLoose",                 &m_ele_eidLoose,"electron_eidLoose[n_electrons]/I");  
     m_tree_electron->Branch("electron_eidRobustHighEnergy",      &m_ele_eidRobustHighEnergy,"electron_eidRobustHighEnergy[n_electrons]/I");  
     m_tree_electron->Branch("electron_eidRobustLoose",           &m_ele_eidRobustLoose,"electron_eidRobustLoose[n_electrons]/I");  
@@ -49,6 +50,8 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTa
 
     m_tree_electron->Branch("electron_eidpf_evspi",              &m_ele_eidpf_evspi,"electron_eidpf_evspi[n_electrons]/I");  
     m_tree_electron->Branch("electron_eidpf_evsmu",              &m_ele_eidpf_evsmu,"electron_eidpf_evsmu[n_electrons]/I");  
+    */
+
     m_tree_electron->Branch("electron_dB",                       &m_ele_dB,        "electron_dB[n_electrons]/F");  
     m_tree_electron->Branch("electron_trackIso",                 &m_ele_trackIso,  "electron_trackIso[n_electrons]/F");  
     m_tree_electron->Branch("electron_ecalIso",                  &m_ele_ecalIso,   "electron_ecalIso[n_electrons]/F");  
@@ -65,11 +68,15 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTa
     m_tree_electron->Branch("electron_eidMVATrigV0",             &m_ele_eidMVATrigV0, "electron_eidMVATrigV0[n_electrons]/F");
     m_tree_electron->Branch("electron_passConversionVeto",       &m_ele_passConversionVeto, "electron_passConversionVeto[n_electrons]/O");
     m_tree_electron->Branch("electron_SCEta",                    &m_ele_SCEta, "electron_SCEta[n_electrons]/F");
-    m_tree_electron->Branch("electron_passVetoID",               &m_ele_passVetoID, "electron_passVetoID[n_electrons]/O");
     m_tree_electron->Branch("electron_effectiveArea",            &m_ele_effectiveArea, "electron_effectiveArea[n_electrons]/F");
     m_tree_electron->Branch("electron_relIsolation",             &m_ele_relIsolation, "electron_relIsolation[n_electrons]/F");
     m_tree_electron->Branch("electron_rhoCorrectedRelIsolation", &m_ele_rhoCorrectedRelIsolation, "electron_rhoCorrectedRelIsolation[n_electrons]/F");
     m_tree_electron->Branch("electron_deltaBetaCorrectedRelIsolation", &m_ele_deltaBetaCorrectedRelIsolation, "electron_deltaBetaCorrectedRelIsolation[n_electrons]/F");
+
+    m_tree_electron->Branch("electron_passVetoID",               &m_ele_passVetoID, "electron_passVetoID[n_electrons]/O");
+    m_tree_electron->Branch("electron_passLooseID",              &m_ele_passLooseID, "electron_passLooseID[n_electrons]/O");
+    m_tree_electron->Branch("electron_passMediumID",             &m_ele_passMediumID, "electron_passMediumID[n_electrons]/O");
+    m_tree_electron->Branch("electron_passTightID",              &m_ele_passTightID, "electron_passTightID[n_electrons]/O");
   }
 }
 
@@ -107,6 +114,8 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTa
     m_tree_electron->SetBranchAddress("electron_vz",&m_ele_vz);
   if (m_tree_electron->FindBranch("electron_charge"))
     m_tree_electron->SetBranchAddress("electron_charge",&m_ele_charge);
+
+  /*
   if (m_tree_electron->FindBranch("electron_eidLoose"))
     m_tree_electron->SetBranchAddress("electron_eidLoose",&m_ele_eidLoose);
   if (m_tree_electron->FindBranch("electron_eidRobustHighEnergy"))
@@ -133,6 +142,8 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTa
     m_tree_electron->SetBranchAddress("electron_eidpf_evspi",&m_ele_eidpf_evspi);
   if (m_tree_electron->FindBranch("electron_eidpf_evsmu"))
     m_tree_electron->SetBranchAddress("electron_eidpf_evsmu",&m_ele_eidpf_evsmu);
+  */
+
   if (m_tree_electron->FindBranch("electron_dB"))
     m_tree_electron->SetBranchAddress("electron_dB",&m_ele_dB);
   if (m_tree_electron->FindBranch("electron_trackIso"))
@@ -165,6 +176,15 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTa
 
   if (m_tree_electron->FindBranch("electron_passVetoID"))
     m_tree_electron->SetBranchAddress("electron_passVetoID", &m_ele_passVetoID);
+
+  if (m_tree_electron->FindBranch("electron_passLooseID"))
+    m_tree_electron->SetBranchAddress("electron_passLooseID", &m_ele_passLooseID);
+
+  if (m_tree_electron->FindBranch("electron_passMediumID"))
+    m_tree_electron->SetBranchAddress("electron_passMediumID", &m_ele_passMediumID);
+
+  if (m_tree_electron->FindBranch("electron_passTightID"))
+    m_tree_electron->SetBranchAddress("electron_passTightID", &m_ele_passTightID);
 
   if (m_tree_electron->FindBranch("electron_effectiveArea"))
     m_tree_electron->SetBranchAddress("electron_effectiveArea", &m_ele_effectiveArea);
@@ -210,6 +230,7 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
   if (part.isElectronIDAvailable("mvaTrigV0"))
     m_ele_eidMVATrigV0[index]        = part.electronID("mvaTrigV0");
 
+  /*
   if (part.isElectronIDAvailable("eidLoose"))
     m_ele_eidLoose[index]            = part.electronID("eidLoose");
 
@@ -242,6 +263,7 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
 
   if (part.isElectronIDAvailable("eidVeryLooseMC"))
     m_ele_eidVeryLooseMC[index]   = part.electronID("eidVeryLooseMC");
+  */
 
   m_ele_dB[index]               = part.dB() ;
   m_ele_trackIso[index]         = part.trackIso();
@@ -260,8 +282,11 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
     m_ele_pfChargedHadronIso[index] = part.chargedHadronIso();
     m_ele_pfNeutralHadronIso[index] = part.neutralHadronIso();
     m_ele_pfPhotonIso[index]        = part.photonIso();
+
+    /*
     m_ele_eidpf_evspi[index]        = part.electronID("pf_evspi");
     m_ele_eidpf_evsmu[index]        = part.electronID("pf_evsmu");
+    */
   }
 
   // See https://twiki.cern.ch/twiki/bin/viewauth/CMS/TWikiTopRefEventSel#Electrons
@@ -310,6 +335,39 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
 
     m_ele_passVetoID[index] = EgammaCutBasedEleId::PassWP(
         EgammaCutBasedEleId::VETO,
+        part,
+        hConversions,
+        beamSpot,
+        hVtx,
+        chIso03,
+        phIso03,
+        nhIso03,
+        rhoIso);
+
+    m_ele_passLooseID[index] = EgammaCutBasedEleId::PassWP(
+        EgammaCutBasedEleId::LOOSE,
+        part,
+        hConversions,
+        beamSpot,
+        hVtx,
+        chIso03,
+        phIso03,
+        nhIso03,
+        rhoIso);
+
+    m_ele_passMediumID[index] = EgammaCutBasedEleId::PassWP(
+        EgammaCutBasedEleId::MEDIUM,
+        part,
+        hConversions,
+        beamSpot,
+        hVtx,
+        chIso03,
+        phIso03,
+        nhIso03,
+        rhoIso);
+
+    m_ele_passTightID[index] = EgammaCutBasedEleId::PassWP(
+        EgammaCutBasedEleId::TIGHT,
         part,
         hConversions,
         beamSpot,
@@ -371,6 +429,7 @@ void ElectronExtractor::reset()
     m_ele_vz[i] = 0.;
     m_ele_charge[i] = 0;
 
+    /*
     m_ele_eidLoose[i]            = -1; 
     m_ele_eidRobustHighEnergy[i] = -1; 
     m_ele_eidRobustLoose[i]      = -1; 
@@ -385,6 +444,8 @@ void ElectronExtractor::reset()
 
     m_ele_eidpf_evspi[i]=0; 
     m_ele_eidpf_evsmu[i]=0; 
+    */
+
     m_ele_dB[i]=0;                          
     m_ele_trackIso[i]=0;                      
     m_ele_ecalIso[i]=0;
@@ -404,6 +465,9 @@ void ElectronExtractor::reset()
     m_ele_deltaBetaCorrectedRelIsolation[i] = -1;
     m_ele_relIsolation[i] = -1;
     m_ele_passVetoID[i] = false;
+    m_ele_passLooseID[i] = false;
+    m_ele_passMediumID[i] = false;
+    m_ele_passTightID[i] = false;
   }
 
   m_ele_lorentzvector->Clear();

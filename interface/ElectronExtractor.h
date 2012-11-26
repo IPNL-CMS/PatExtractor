@@ -77,6 +77,8 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
 
     int getEleMCIndex(int eidx){return m_ele_MCIndex[eidx];}
     int getEleCharge(int eidx) {return m_ele_charge[eidx];}
+
+    /*
     int getEleHyperTight1MC(int eidx){return m_ele_eidHyperTight1MC[eidx];}
     int getEleLooseMC(int eidx)      {return m_ele_eidLooseMC[eidx];}
     int getEleMediumMC(int eidx)     {return m_ele_eidMediumMC[eidx];}
@@ -85,6 +87,31 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
     int getEleVeryLooseMC(int eidx)  {return m_ele_eidVeryLooseMC[eidx];}
     int getElepf_evspi(int eidx)     {return m_ele_eidpf_evspi[eidx];}
     int getElepf_evsmu(int eidx)     {return m_ele_eidpf_evsmu[eidx];}
+    */
+
+    bool passVetoId(int index) const {
+      return m_ele_passVetoID[index];
+    }
+
+    bool passLooseId(int index) const {
+      return m_ele_passLooseID[index];
+    }
+
+    bool passMediumId(int index) const {
+      return m_ele_passMediumID[index];
+    }
+
+    bool passTightId(int index) const {
+      return m_ele_passTightID[index];
+    }
+
+    float getRhoCorrectedRelativeIsolation(int index) const {
+      return m_ele_rhoCorrectedRelIsolation[index];
+    }
+
+    float getSuperClusterEta(int index) const {
+      return m_ele_SCEta[index];
+    }
 
   private:
 
@@ -124,6 +151,9 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
     /// 2012
     float m_ele_eidMVATrigV0[m_electrons_MAX];
     bool m_ele_passVetoID[m_electrons_MAX];
+    bool m_ele_passLooseID[m_electrons_MAX];
+    bool m_ele_passMediumID[m_electrons_MAX];
+    bool m_ele_passTightID[m_electrons_MAX];
     float m_ele_effectiveArea[m_electrons_MAX];
     float m_ele_rhoCorrectedRelIsolation[m_electrons_MAX]; // Isolation corrected with effective area
     float m_ele_deltaBetaCorrectedRelIsolation[m_electrons_MAX]; // Isolation corrected with delta beta corrections
