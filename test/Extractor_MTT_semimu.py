@@ -31,7 +31,7 @@ process.options = cms.untracked.PSet(
     )
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(2000) #
+    input = cms.untracked.int32(20000) #
     )
 
 #Global tag and data type choice
@@ -44,7 +44,8 @@ process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
       #'/store/user/sbrochet/MuHad/MuHad_Run2012A_DCSONLY_v1/02979db18d11879dfe0836140c8c76cf/patTuple_76_2_hm9.root'
       #'/store/user/sbrochet/SingleMu/SingleMu_Run2012B-TOPMuPlusJets-PromptSkim_08June/ff2bcae921e303fb6bcdd4793030d79d/patTuple_64_1_Nvx.root'
-      'file:patTuple.root'
+      '/store/user/sbrochet/SingleMu/SingleMu_Run2012B-TOPMuPlusJets-13Jul2012_22Nov12-v1/482cfd8beeb5bd50ce95db8c4b04846e/patTuple_88_1_jP1.root'
+      #'file:patTuple.root'
       ),                           
     duplicateCheckMode = cms.untracked.string( 'noDuplicateCheck' )
     )
@@ -73,12 +74,13 @@ process.PATextraction.doElectron = True
 process.PATextraction.doJet      = True
 process.PATextraction.doMET      = True
 process.PATextraction.doVertex   = True
+process.PATextraction.vtx_tag    = cms.InputTag( "goodOfflinePrimaryVertices" )
 process.PATextraction.doHLT      = True
 
 process.PATextraction.doMtt      = True
 
 # Jets correction : needs a valid global tags, or an external DB where JEC are stored
-process.PATextraction.correctJets       = True
+process.PATextraction.correctJets       = False
 process.PATextraction.jetCorrectorLabel = "ak5PFchsL1FastL2L3Residual"
 process.PATextraction.redoTypeIMET      = False
 

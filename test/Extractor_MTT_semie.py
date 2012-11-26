@@ -72,12 +72,13 @@ process.PATextraction.doElectron = True
 process.PATextraction.doJet      = True
 process.PATextraction.doMET      = True
 process.PATextraction.doVertex   = True
+process.PATextraction.vtx_tag    = cms.InputTag( "goodOfflinePrimaryVertices" )
 process.PATextraction.doHLT      = True
 
 process.PATextraction.doMtt      = True
 
 # Jets correction : needs a valid global tags, or an external DB where JEC are stored
-process.PATextraction.correctJets       = True
+process.PATextraction.correctJets       = False
 process.PATextraction.jetCorrectorLabel = "ak5PFchsL1FastL2L3Residual"
 process.PATextraction.redoTypeIMET      = False
 
