@@ -235,7 +235,7 @@ void PatExtractor::initialize()
     addExtractor("electrons", new ElectronExtractor("electron_PF", electron_tag_, do_Electron_));
 
   if (do_Muon_)
-    addExtractor("muons", new MuonExtractor("muon_PF", muon_tag_, do_Muon_));
+    addExtractor("muons", new MuonExtractor("muon_PF", muon_tag_, vtx_tag_, do_Muon_));
 
   if (do_Jet_ || do_MET_)
     addExtractor("JetMET", new JetMETExtractor("jet_PF", "MET_PF", jet_tag_, met_tag_, do_Jet_, do_MET_, correctJets_, jetCorrectorLabel_, redoTypeI_));
@@ -246,7 +246,7 @@ void PatExtractor::initialize()
   if (do_Mtt_) {
     // Add non isolated leptons for vetoes
     addExtractor("electrons_loose", new ElectronExtractor("electron_loose_PF", edm::InputTag("selectedPatElectronsLoosePFlow"), true));
-    addExtractor("muons_loose", new MuonExtractor("muon_loose_PF", edm::InputTag("selectedPatMuonsLoosePFlow"), true));
+    addExtractor("muons_loose", new MuonExtractor("muon_loose_PF", edm::InputTag("selectedPatMuonsLoosePFlow"), vtx_tag_, true));
   }
 
   for (auto& extractor: m_extractors)

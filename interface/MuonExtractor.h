@@ -32,7 +32,7 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
 
   public:
 
-    MuonExtractor(const std::string& name, const edm::InputTag& tag, bool doTree);
+    MuonExtractor(const std::string& name, const edm::InputTag& tag, const edm::InputTag& vertexTag, bool doTree);
     MuonExtractor(const std::string& name, TFile *a_file);
     virtual ~MuonExtractor();
 
@@ -85,7 +85,30 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
     int getMuMCIndex(int muidx){return m_muo_MCIndex[muidx];}
     int getMuCharge(int muidx){return m_muo_charge[muidx];}
 
+    float getTrackerLayersWithMeasurements(int index) {
+      return m_muo_trackerLayersWithMeasurement[index];
+    }
+
+    float getGlobalTrackNumberOfValidMuonHits(int index) {
+      return m_muo_globalTrackNumberOfValidHits[index];
+    }
+
+    int getNumberOfMatchedStations(int index) const {
+      return m_muo_nMatchedStations[index];
+    }
+
+    float getdZ(int index) const {
+      return m_muo_dZ[index];
+    }
+
+    float getDeltaBetaCorrectedRelativeIsolation(int index) const {
+      return m_muo_deltaBetaCorrectedRelIsolation[index];
+    }
+
+
   private:
+
+    edm::InputTag m_vertexTag;
 
     TTree* m_tree_muon;
 

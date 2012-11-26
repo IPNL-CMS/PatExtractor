@@ -1,9 +1,12 @@
 #include "../interface/MuonExtractor.h"
 
-MuonExtractor::MuonExtractor(const std::string& name, const edm::InputTag& tag, bool doTree)
+#include <DataFormats/VertexReco/interface/Vertex.h>
+
+MuonExtractor::MuonExtractor(const std::string& name, const edm::InputTag& tag, const edm::InputTag& vertexTag, bool doTree)
   : BaseExtractor(name)
 {
   m_OK = false;
+  m_vertexTag = vertexTag;
 
   // Set everything to 0
  
@@ -167,6 +170,9 @@ void MuonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iS
 {
   if (index>=m_muons_MAX) return;
 
+  edm::Handle<std::vector<reco::Vertex>> pvHandle;
+  event.getByLabel(m_vertexTag, pvHandle);
+
   new((*m_muo_lorentzvector)[index]) TLorentzVector(part.px(),part.py(),part.pz(),part.energy());
   m_muo_vx[index]                             = part.vx();
   m_muo_vy[index]                             = part.vy();
@@ -175,7 +181,7 @@ void MuonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iS
   m_muo_isTracker[index]                      = part.isTrackerMuon();
   m_muo_charge[index]                         = part.charge();
   m_muo_nMatchedStations[index]               = part.numberOfMatchedStations();
-  //m_muon_dZ[index]                            = fabs(recoMu.muonBestTrack()->dz(vertex->position()))
+  m_muo_dZ[index]                             = fabs(part.muonBestTrack()->dz(pvHandle->at(0).position()));
   m_muo_trackerLayersWithMeasurement[index]   = part.track()->hitPattern().trackerLayersWithMeasurement();
   
   if (part.outerTrack().isNonnull())
