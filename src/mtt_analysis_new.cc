@@ -367,42 +367,50 @@ int mtt_analysis_new::MuonSel()
 
   for (int i = 0; i < n_mu; i++)
   {
+
+    // Selection:
+    // - exactly 1 isolated muon
+    // - loose muon veto
+    // - loose electron veto
+
+
+    // Selection from https://twiki.cern.ch/twiki/bin/view/CMS/TWikiTopRefEventSel#Muons
     if (! m_muon->getMuisGlobal(i))
       continue;
 
     TLorentzVector *muP = m_muon->getMuLorentzVector(i);
 
-    if (fabs(muP->Pt()) < m_MU_Pt_min_loose)
-      continue;
-    if (fabs(muP->Eta()) > m_MU_Eta_max_loose)
+    if (fabs(muP->Pt()) <= 26)
       continue;
 
-
-    //add the vertex cut!
-    //get the 3-momentum
-    //    mu3P = muP->Vect();
-    //    Mupass2Dcut=Make2DCut(mu3P,m_jet,MuDRmin,MupTrelmin);
-    //    if(Mupass2Dcut==0) continue;
-    //for the moment (EPS 2011) isolation cut and not 2D
-    float muIso = (m_muon->getMupfChargedHadronIso(i) + m_muon->getMupfNeutralHadronIso(i) + m_muon->getMupfPhotonIso(i)) / fabs(muP->Pt());
-
-    if (muIso > m_MU_Iso_min)
+    if (fabs(muP->Eta()) >= 2.1)
       continue;
 
-    ++m_mtt_NLooseGoodMuons;
+    if (m_muon->getMunormChi2(i) >= 10.)
+      continue;
 
+    if (m_muon->getTrackerLayersWithMeasurements(i) <= 5)
+      continue;
 
-    if (m_muon->getMuisTracker(i) != 1)                            continue;
-    if (fabs(muP->Pt()) < m_MU_Pt_min)                             continue;
-    if (fabs(muP->Eta()) > m_MU_Eta_max)                           continue;
-    if (m_muon->getMunormChi2(i) >= m_MU_normChi2_max)             continue;
-    if (m_muon->getMunValTrackerHits(i) < m_MU_nValTrackHits_min)  continue;
-    if (m_muon->getMunMatches(i) < m_MU_nMatches_min)              continue;
-    if (m_muon->getMunValPixelHits(i) < m_MU_nValPixHits_min)      continue;
-    if (fabs(m_muon->getMudB(i)) > m_MU_dB_min)                    continue;
+    if (m_muon->getGlobalTrackNumberOfValidMuonHits(i) <= 0)
+      continue;
+
+    if (m_muon->getNumberOfMatchedStations(i) <= 1)
+      continue;
+
+    if (m_muon->getMudB(i) >= 0.2)
+      continue;
+
+    if (m_muon->getdZ(i) >= 0.5)
+      continue;
+
+    if (m_muon->getMunValPixelHits(i) <= 0)
+      continue;
+
+    /* Isolation cut is done in P2PAT. No need to check that */
 
     m_mtt_MuonPt[m_mtt_NGoodMuons]   = muP->Pt();
-    m_mtt_MuRelIso[m_mtt_NGoodMuons] = muIso;
+    m_mtt_MuRelIso[m_mtt_NGoodMuons] = m_muon->getDeltaBetaCorrectedRelativeIsolation(i);
 
     ++m_mtt_NGoodMuons;
     goodmuidx = i;
@@ -412,37 +420,51 @@ int mtt_analysis_new::MuonSel()
   if (m_mtt_NGoodMuons == 0)
     return 4;
 
+  /*
   if (m_mtt_NGoodMuons == 1 && m_mtt_NLooseGoodMuons > 1)
     return 6;
+  */
 
+  // We want only 1 isolated muon
   if (m_mtt_NGoodMuons > 1)
     return 5;
 
+  TLorentzVector* selected_p4 = m_muon->getMuLorentzVector(goodmuidx);
+
+  // Muon veto
+  int size = m_muon_loose->getSize();
+  for (int i = 0; i < size; i++) {
+
+    // Exclude the isolated muon
+    TLorentzVector* p4 = m_muon_loose->getMuLorentzVector(i);
+    if (*selected_p4 == *p4) {
+      continue;
+    }
+
+    if ((m_muon_loose->getMuisGlobal(i) || m_muon_loose->getMuisTracker(i)) &&
+        (p4->Pt() > 10) &&
+        (p4->Eta() < 2.5) &&
+        (m_muon_loose->getDeltaBetaCorrectedRelativeIsolation(i) < 0.20)) {
+
+      m_mtt_NLooseGoodMuons++;
+    }
+  }
+  m_mtt_NLooseGoodMuons++; // Our isolated muon is loose too
+
+  if (m_mtt_NLooseGoodMuons > 1)
+    return 6;
 
   //electron veto for semimu channel
-  int n_ele = m_electron->getSize();
+  int n_ele = m_electron_loose->getSize();
 
-  if (n_ele)
-  {
-    for (int i = 0; i < n_ele; ++i)
-    {
-      TLorentzVector *eP = m_electron->getEleLorentzVector(i);
+  for (int i = 0; i < n_ele; ++i) {
+    TLorentzVector *eP = m_electron_loose->getEleLorentzVector(i);
 
-      if (fabs(eP->Pt()) < m_MU_ePt_min)       continue;
-      if (fabs(eP->Eta()) > m_MU_eEta_max)     continue;
-      if (fabs(eP->Eta()) > m_MU_eEtaW_min
-          && fabs(eP->Eta()) < m_MU_eEtaW_max) continue;
-
-      float eleIso = (m_electron->getElepfChargedHadronIso(i) +
-          m_electron->getElepfNeutralHadronIso(i) +
-          m_electron->getElepfPhotonIso(i)) / eP->Pt();
-
-      if (eleIso > m_MU_eIso_min)
-        continue;
-
-      // One good muon, but one good electron too.
+    if ((eP->Pt() > 20) &&
+        (eP->Eta() < 2.5) &&
+        (m_electron_loose->passVetoId(i)) &&
+        (m_electron_loose->getRhoCorrectedRelativeIsolation(i) < 0.15))
       return 7;
-    }
   }
 
   m_refLept = m_muon->getMuLorentzVector(goodmuidx);
@@ -463,93 +485,63 @@ int mtt_analysis_new::ElectronSel()
   {
     TLorentzVector *eP = m_electron->getEleLorentzVector(i);
 
-    if (fabs(eP->Pt()) < m_ELE_Pt_min)                continue;
-    if (fabs(eP->Eta()) > m_ELE_Eta_max)              continue;
-    if (fabs(m_electron->getEledB(i)) > m_ELE_dB_min) continue;
+    if (fabs(eP->Pt()) <= 30)
+      continue;
 
-    float eleIso = (m_electron->getElepfChargedHadronIso(i) +
-        m_electron->getElepfNeutralHadronIso(i) +
-        m_electron->getElepfPhotonIso(i)) / eP->Pt();
+    if (fabs(eP->Eta()) >= 2.5)
+      continue;
 
-    if (eleIso > m_ELE_Iso_min)
+    if (fabs(m_electron->getSuperClusterEta(i)) >= 1.4442 && fabs(m_electron->getSuperClusterEta(i)) < 1.5660)
+      continue;
+
+    if (! m_electron->passTightId(i))
       continue;
 
     m_mtt_ElectronPt[m_mtt_NGoodElectrons] = eP->Pt();
-    m_mtt_ElRelIso[m_mtt_NGoodElectrons]   = eleIso;
-
-    ((m_electron->getEleHyperTight1MC(i) & 5) == 5)
-      ? m_mtt_HyperTight1MC[m_mtt_NGoodElectrons] = 1
-      : m_mtt_HyperTight1MC[m_mtt_NGoodElectrons] = 0;
+    m_mtt_ElRelIso[m_mtt_NGoodElectrons]   = m_electron->getRhoCorrectedRelativeIsolation(i);
 
     m_mtt_NGoodElectrons++;
 
-    // Only one good electron per event
-    if (m_mtt_NGoodElectrons > 1)
-      return 5;
-
     goodelidx = i;
   }
-
 
   // No electrons? bye bye
   if (m_mtt_NGoodElectrons == 0)
     return 4;
 
-  // Z veto
-  TLorentzVector *firsteP = m_electron->getEleLorentzVector(goodelidx);
+  // Only one good electron per event
+  if (m_mtt_NGoodElectrons > 1)
+    return 5;
 
-  for (int i = 0; i < n_ele; i++)
-  {
-    // Don't build invariant mass with ourselves
-    if (i == goodelidx)
+  TLorentzVector* selected_p4 = m_electron->getEleLorentzVector(goodelidx);
+
+  // Electron veto
+  int size = m_electron_loose->getSize();
+  for (int i = 0; i < size; i++) {
+    TLorentzVector *eP = m_electron_loose->getEleLorentzVector(i);
+
+    if (*selected_p4 == *eP)
       continue;
 
-    TLorentzVector *secondeP = m_electron->getEleLorentzVector(i);
-    if (fabs(secondeP->Pt()) < m_MU_ePt_min)       continue;
-    if (fabs(secondeP->Eta()) > m_MU_eEta_max)     continue;
-    if (fabs(secondeP->Eta()) > m_MU_eEtaW_min
-        && fabs(secondeP->Eta()) < m_MU_eEtaW_max) continue;
-
-    float eleIso = (m_electron->getElepfChargedHadronIso(i) +
-        m_electron->getElepfNeutralHadronIso(i) +
-        m_electron->getElepfPhotonIso(i)) / secondeP->Pt();
-
-    if (eleIso > m_ELE_Iso_min)
-      continue;
-
-    // Too close to Z mass?
-    if (fabs((*firsteP + *secondeP).M() - m_ELE_Zmass) < m_ELE_Zwin)
-      return 6;
+    if ((eP->Pt() > 20) &&
+        (eP->Eta() < 2.5) &&
+        (m_electron_loose->passVetoId(i)) &&
+        (m_electron_loose->getRhoCorrectedRelativeIsolation(i) < 0.15))
+      return 7;
   }
 
+  // Muon veto
+  size = m_muon_loose->getSize();
+  for (int i = 0; i < size; i++) {
+    TLorentzVector* p4 = m_muon_loose->getMuLorentzVector(i);
 
-  //muon veto for semie channel (loose selection)
-  int n_mu = m_muon->getSize();
-
-  if (n_mu)
-  {
-    for (int i = 0; i < n_mu; i++)
-    {
-      if (!m_muon->getMuisGlobal(i))
-        continue;
-
-      TLorentzVector *muP = m_muon->getMuLorentzVector(i);
-
-      if (fabs(muP->Pt()) < m_MU_Pt_min_loose)   continue;
-      if (fabs(muP->Eta()) > m_MU_Eta_max_loose) continue;
-
-      float muIso = (m_muon->getMupfChargedHadronIso(i) +
-          m_muon->getMupfNeutralHadronIso(i) +
-          m_muon->getMupfPhotonIso(i)) / fabs(muP->Pt());
-
-      if (muIso > m_MU_Iso_min)
-        continue;
-
-      // We don't want a good muon if we have a good electron
+    if ((m_muon_loose->getMuisGlobal(i) || m_muon_loose->getMuisTracker(i)) &&
+        (p4->Pt() > 10) &&
+        (p4->Eta() < 2.5) &&
+        (m_muon_loose->getDeltaBetaCorrectedRelativeIsolation(i) < 0.20)) {
       return 7;
     }
   }
-
 
   m_refLept = m_electron->getEleLorentzVector(goodelidx);
   m_selectedLeptonIndex = goodelidx;
@@ -672,9 +664,15 @@ int mtt_analysis_new::mtt_Sel(const edm::EventSetup& iSetup, bool do_MC_, PatExt
 
   m_vertex   = std::static_pointer_cast<VertexExtractor>(extractor->getExtractor("vertex"));
   //m_MET      = std::static_pointer_cast<METExtractor>(extractor->getExtractor("MET"));
+  
   m_muon     = std::static_pointer_cast<MuonExtractor>(extractor->getExtractor("muons"));
+  m_muon_loose = std::static_pointer_cast<MuonExtractor>(extractor->getExtractor("muons_loose"));
+
   m_electron = std::static_pointer_cast<ElectronExtractor>(extractor->getExtractor("electrons"));
+  m_electron_loose = std::static_pointer_cast<ElectronExtractor>(extractor->getExtractor("electrons_loose"));
+
   m_jetMet   = std::static_pointer_cast<JetMETExtractor>(extractor->getExtractor("JetMET"));
+
   m_event    = std::static_pointer_cast<EventExtractor>(extractor->getExtractor("event"));
 
   std::shared_ptr<HLTExtractor> HLT = std::static_pointer_cast<HLTExtractor>(extractor->getExtractor("HLT"));

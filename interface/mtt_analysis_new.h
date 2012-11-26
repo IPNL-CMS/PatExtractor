@@ -106,8 +106,6 @@ private:
   float          m_MET_Pt_Min;
 
   std::shared_ptr<MuonExtractor> m_muon;
-  float m_MU_Pt_min_loose;
-  float m_MU_Eta_max_loose;
   float m_MU_Iso_min;
   float m_MU_Pt_min;
   float m_MU_Eta_max;
@@ -122,6 +120,10 @@ private:
   float m_MU_eEtaW_max;
   float m_MU_eIso_min;
 
+  std::shared_ptr<MuonExtractor> m_muon_loose;
+  float m_MU_Pt_min_loose;
+  float m_MU_Eta_max_loose;
+
   std::shared_ptr<ElectronExtractor> m_electron;
   float m_ELE_Pt_min;
   float m_ELE_Eta_max;
@@ -129,6 +131,8 @@ private:
   float m_ELE_Zmass;
   float m_ELE_Zwin;
   float m_ELE_dB_min;
+
+  std::shared_ptr<ElectronExtractor> m_electron_loose;
 
   std::shared_ptr<JetMETExtractor> m_jetMet;
   float m_JET_Pt_min;
