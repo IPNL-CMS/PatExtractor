@@ -56,8 +56,8 @@ class PatExtractor : public edm::EDAnalyzer {
   
   void fillInfo(const edm::Event *event, const edm::EventSetup& iSetup);
   void getInfo(int ievent);
-  void initialize();
-  void retrieve();
+  void initialize(const edm::ParameterSet&);
+  void retrieve(const edm::ParameterSet&);
   void doAna(const edm::EventSetup&);
 
   std::shared_ptr<SuperBaseExtractor>& getExtractor(const std::string& name) {

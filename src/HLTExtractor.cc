@@ -1,8 +1,14 @@
 #include "../interface/HLTExtractor.h"
 
+#include "tinyxml2.h"
 
-HLTExtractor::HLTExtractor(const std::string& name, bool doTree)
+using namespace tinyxml2;
+
+HLTExtractor::HLTExtractor(const std::string& name, bool doTree, const edm::ParameterSet& config):
+  m_triggersXML(config.getUntrackedParameter<std::string>("triggersXML", ""))
 {
+  m_filterHLT = m_triggersXML.length() > 0;
+
   // Set everything to 0
 
   m_OK         = false;
@@ -17,8 +23,17 @@ HLTExtractor::HLTExtractor(const std::string& name, bool doTree)
     m_tree_HLT       = new TTree(name.c_str(), "HLT info");  
     m_tree_HLT->Branch("n_paths",  &m_n_HLTs,"n_paths/I");       
     m_tree_HLT->Branch("HLT_vector","vector<string>",&m_HLT_vector);
+
+    m_tree_HLT->Branch("HLT_filtered", &m_filterHLT, "HLT_filtered/O");
+    m_tree_HLT->Branch("HLT_mustPass", "string", &m_mustPass);
+    m_tree_HLT->Branch("HLT_passed", &m_passed, "HLT_passed/O");
   }
 
+  if (m_filterHLT) {
+    // Read XML document
+    m_triggersService.reset(new Triggers(m_triggersXML));
+    m_triggersService->print();
+  } 
 }
 
 HLTExtractor::HLTExtractor(const std::string& name, TFile *a_file)
@@ -46,6 +61,15 @@ HLTExtractor::HLTExtractor(const std::string& name, TFile *a_file)
 
   if (m_tree_HLT->FindBranch("HLT_vector"))
     m_tree_HLT->SetBranchAddress("HLT_vector",&m_HLT_vector);
+
+  if (m_tree_HLT->FindBranch("HLT_filtered"))
+    m_tree_HLT->SetBranchAddress("HLT_filtered", &m_filterHLT);
+
+  if (m_tree_HLT->FindBranch("HLT_mustPass"))
+    m_tree_HLT->SetBranchAddress("HLT_mustPass", &m_mustPass);
+
+  if (m_tree_HLT->FindBranch("HLT_passed"))
+    m_tree_HLT->SetBranchAddress("HLT_passed", &m_passed);
 }
 
 HLTExtractor::~HLTExtractor()
@@ -61,6 +85,13 @@ void HLTExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
 {
   reset();
 
+  const boost::regex* triggerRegex = nullptr;
+  if (m_filterHLT) {
+    const PathVector& triggers = m_triggersService->getTriggers(event.run());
+    m_mustPass = triggers[0].str();
+    triggerRegex = &triggers[0];
+  }
+
   edm::Handle<edm::TriggerResults> triggerResults ;
   edm::InputTag tag("TriggerResults", "", "HLT");
   event.getByLabel(tag,triggerResults);
@@ -73,11 +104,18 @@ void HLTExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
     {
       if (triggerResults->accept(i)!=0)
       {
-        if (triggerNames.triggerName(i) == "HLTriggerFinalPath") continue; // This one is pretty useless...
-        if ((triggerNames.triggerName(i).c_str())[0] == 'A') continue;     // Remove AlCa HLT paths
+        std::string triggerName = triggerNames.triggerName(i);
+        if (triggerName == "HLTriggerFinalPath") continue; // This one is pretty useless...
+        if (triggerName[0] == 'A') continue;     // Remove AlCa HLT paths
 
-        m_HLT_vector->push_back(triggerNames.triggerName(i));
+        m_HLT_vector->push_back(triggerName);
         m_n_HLTs++;
+
+        if (triggerRegex) {
+          if (boost::regex_match(triggerName, *triggerRegex)) {
+            m_passed = true;
+          }
+        }
       }
     }
   }
@@ -102,6 +140,8 @@ void HLTExtractor::reset()
 {
   m_n_HLTs = 0;
   m_HLT_vector->clear();
+  m_passed = false;
+  m_mustPass = "";
 }
 
 
@@ -112,4 +152,73 @@ void HLTExtractor::fillTree()
 
 int HLTExtractor::getSize() const {
   return m_n_HLTs;
+}
+
+
+
+bool Triggers::parse(const std::string& xmlContent) {
+  XMLDocument doc;
+  if (doc.Parse(xmlContent.c_str())) {
+    doc.PrintError();
+    return false;
+  }
+
+  const XMLElement* root = doc.FirstChildElement("triggers");
+  if (! root)
+    return false;
+
+  const XMLElement* runs = root->FirstChildElement("runs");
+  for (; runs; runs = runs->NextSiblingElement("runs")) {
+    parseRunsElement(runs);
+  }
+
+  return true;
+}
+
+bool Triggers::parseRunsElement(const XMLElement* runs) {
+  Range<unsigned> runRange(runs->UnsignedAttribute("from"), runs->UnsignedAttribute("to"));
+
+  PathVector runPaths;
+
+  const XMLElement* paths = runs->FirstChildElement("path");
+  for (; paths; paths = paths->NextSiblingElement("path")) {
+    const std::string name = paths->FirstChildElement("name")->GetText();
+    runPaths.push_back(boost::regex(name, boost::regex_constants::icase));
+  }
+
+  mTriggers[runRange] = runPaths;
+  return true;
+}
+
+const PathVector& Triggers::getTriggers(unsigned int run) {
+  if (mCachedRange && mCachedRange->in(run)) {
+    return *mCachedVector;
+  }
+
+  for (auto& trigger: mTriggers) {
+    const Range<unsigned int>& runRange = trigger.first;
+
+    if (runRange.in(run)) {
+
+      mCachedRange = &runRange;
+      mCachedVector = &trigger.second;
+
+      return *mCachedVector;
+    }
+  }
+
+  std::cout << "Error: run " << run << " not found for triggers selection" << std::endl;
+  assert(false);
+}
+
+void Triggers::print() {
+  for (auto& trigger: mTriggers) {
+    const Range<unsigned int>& runRange = trigger.first;
+    const auto& paths = trigger.second;
+
+    std::cout << "Runs: " << runRange << std::endl;
+    for (auto& path: paths) {
+      std::cout << path << std::endl;
+    }
+  }
 }

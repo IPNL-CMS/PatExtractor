@@ -9,6 +9,9 @@
 
 import FWCore.ParameterSet.Config as cms
 
+def readFile(file):
+  return cms.untracked.string(open(file).read())
+
 def createExtractorProcess(isMC, isSemiMu, globalTag):
   process = cms.Process("PATextractor2")
 
@@ -67,6 +70,12 @@ def createExtractorProcess(isMC, isSemiMu, globalTag):
   process.PATextraction.doVertex   = True
   process.PATextraction.vtx_tag    = cms.InputTag( "goodOfflinePrimaryVertices" )
   process.PATextraction.doHLT      = True
+
+  if not isMC:
+    if isSemiMu:
+      process.PATextraction.triggersXML = readFile("triggers_mu.xml")
+    else:
+      process.PATextraction.triggersXML = readFile("triggers_e.xml")
 
   process.PATextraction.doMtt      = True
 

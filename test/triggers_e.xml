@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<triggers>
+  <runs from="0" to="191690">
+    <path>
+      <name>HLT_Ele25_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_TriCentralPFJet30_v.*</name>
+    </path>
+  </runs>
+  <runs from="191691" to="194225">
+    <path>
+      <name>HLT_Ele25_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_TriCentralPFNoPUJet30_v.*</name>
+    </path>
+  </runs>
+  <runs from="194270" to="199608">
+    <path>
+      <name>HLT_Ele25_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_TriCentralPFNoPUJet30_30_20_v.*</name>
+    </path>
+  </runs>
+  <runs from="199698" to="500000">
+    <path>
+      <name>HLT_Ele25_CaloIdVT_CaloIsoVL_TrkIdVL_TrkIsoT_TriCentralPFNoPUJet45_35_25_v.*</name>
+    </path>
+  </runs>
+</triggers>

@@ -44,13 +44,7 @@ PatExtractor::PatExtractor(const edm::ParameterSet& config) :
   if (do_Mtt_ && config.exists("mtt")) {
     m_mttParameterSet = config.getParameter<edm::ParameterSet>("mtt");
   }
-}
 
-
-// Job initialization
-
-void PatExtractor::beginJob()
-{
   // Initializations
 
   nevent_tot = 0;
@@ -59,9 +53,8 @@ void PatExtractor::beginJob()
   // from a file already extracted (inFilename_)
 
   (do_fill_) 
-    ? PatExtractor::initialize()
-    : PatExtractor::retrieve();
-
+    ? PatExtractor::initialize(config)
+    : PatExtractor::retrieve(config);
 
   // Analysis is done on request, if the infos are there
 
@@ -79,8 +72,13 @@ void PatExtractor::beginJob()
 }
 
 
-// What to do at the start of a new run
+// Job initialization
+void PatExtractor::beginJob()
+{
+}
 
+
+// What to do at the start of a new run
 void PatExtractor::beginRun(Run const& run, EventSetup const& setup) 
 {
   nevent = 0;
@@ -201,7 +199,7 @@ void PatExtractor::getInfo(int ievent)
 
 // Here are the initializations when starting from scratch (need to create the extracted stuff)
 
-void PatExtractor::initialize() 
+void PatExtractor::initialize(const edm::ParameterSet& config) 
 {
   m_outfile  = TFile::Open(outFilename_.c_str(),"RECREATE");
   //m_event    = new EventExtractor();
@@ -223,7 +221,7 @@ void PatExtractor::initialize()
     addExtractor("MC", new MCExtractor("MC", do_MC_));
 
   if (do_HLT_)
-    addExtractor("HLT", new HLTExtractor("HLT", do_HLT_));
+    addExtractor("HLT", new HLTExtractor("HLT", do_HLT_, config));
 
   if (do_Trk_)
     addExtractor("track", new TrackExtractor("track", trk_tag_, do_Trk_));
@@ -258,10 +256,10 @@ void PatExtractor::initialize()
 
 // Here are the initializations when starting from already extracted stuff
 
-void PatExtractor::retrieve() 
+void PatExtractor::retrieve(const edm::ParameterSet& config) 
 {
-  m_infile     = TFile::Open(inFilename_.c_str(),"READ");
-  m_outfile    = TFile::Open(outFilename_.c_str(),"RECREATE");
+  m_infile     = TFile::Open(inFilename_.c_str(), "READ");
+  m_outfile    = TFile::Open(outFilename_.c_str(), "RECREATE");
 
   // AOD content
   //m_event      = new EventExtractor(m_infile);
@@ -280,7 +278,7 @@ void PatExtractor::retrieve()
   // Register extractors
   addExtractor("event", new EventExtractor("event", m_infile));
   addExtractor("MC", new MCExtractor("MC", m_infile));
-  addExtractor("HLT", new HLTExtractor("HLT", m_infile));
+  addExtractor("HLT", new HLTExtractor("HLT", m_infile, config));
   addExtractor("track", new TrackExtractor("track", m_infile));
 
   addExtractor("vertex", new VertexExtractor("Vertices", m_infile));
