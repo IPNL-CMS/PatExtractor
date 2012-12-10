@@ -128,6 +128,10 @@ class HLTExtractor: public SuperBaseExtractor
     return m_HLT_vector;
   }
 
+  bool isTriggerFired() const {
+    return m_passed;
+  }
+
  private:
   
   TTree* m_tree_HLT;

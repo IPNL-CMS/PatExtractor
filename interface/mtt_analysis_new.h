@@ -152,8 +152,6 @@ private:
   TLorentzVector* m_refLept;
 
   // Triggers
-  std::string m_trigger;
-  boost::regex m_trigger_regex;
   bool m_trigger_passed;
 
   //MC stuff

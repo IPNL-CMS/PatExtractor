@@ -270,14 +270,6 @@ mtt_analysis_new::mtt_analysis_new(const edm::ParameterSet& cmsswSettings, Analy
   //  ? m_JET_btag_SSVHPT_min = settings->getSetting("JET_btag_SSVHPT_min")
   //  : m_JET_btag_SSVHPT_min = 0;
 
-  // Triggers
-  m_trigger = "";
-  settings->getSetting<std::string>("trigger", m_trigger);
-
-  if (m_trigger.length() > 0) {
-    m_trigger_regex = boost::regex(m_trigger, boost::regex_constants::optimize);
-  }
-
   std::string fname = "kfparams_semilept.dat";
 
   // Kinfit()
@@ -676,21 +668,7 @@ int mtt_analysis_new::mtt_Sel(const edm::EventSetup& iSetup, bool do_MC_, PatExt
   m_event    = std::static_pointer_cast<EventExtractor>(extractor->getExtractor("event"));
 
   std::shared_ptr<HLTExtractor> HLT = std::static_pointer_cast<HLTExtractor>(extractor->getExtractor("HLT"));
-
-  if (!m_trigger_regex.empty()) {
-    std::vector<std::string>& paths = *HLT->getPaths();
-
-    m_trigger_passed = false;
-    for (std::string& path: paths) {
-      if (regex_match(path, m_trigger_regex)) {
-        //std::cout << "Matched trigger: " << path << std::endl;
-        m_trigger_passed = true;
-        break;
-      }
-    }
-  } else {
-    m_trigger_passed = true;
-  }
+  m_trigger_passed = HLT->isTriggerFired();
 
   if (do_MC_)
   {

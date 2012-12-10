@@ -29,11 +29,16 @@ HLTExtractor::HLTExtractor(const std::string& name, bool doTree, const edm::Para
     m_tree_HLT->Branch("HLT_passed", &m_passed, "HLT_passed/O");
   }
 
+  std::cout << std::endl;
+  std::cout << "Triggers for this analysis:" << std::endl;
   if (m_filterHLT) {
     // Read XML document
     m_triggersService.reset(new Triggers(m_triggersXML));
     m_triggersService->print();
-  } 
+    std::cout << std::endl;
+  } else {
+    std::cout << "\tNo triggers" << std::endl;
+  }
 }
 
 HLTExtractor::HLTExtractor(const std::string& name, TFile *a_file)
