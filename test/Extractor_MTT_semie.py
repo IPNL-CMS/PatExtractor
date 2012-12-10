@@ -16,5 +16,5 @@ from Extractor_MTT_common import *
 process = createExtractorProcess(False, False, options.globalTag)
 
 process.source.fileNames = cms.untracked.vstring(
-    '/store/user/sbrochet/SingleElectron/SingleElectron_Run2012B-TOPElePlusJets-PromptSkim_part2_16June/ff2bcae921e303fb6bcdd4793030d79d/patTuple_44_1_U75.root'
+    '/store/user/sbrochet/SingleElectron/SingleElectron_Run2012B-TOPElePlusJets-13Jul2012_22Nov12-v1/482cfd8beeb5bd50ce95db8c4b04846e/patTuple_82_1_gBL.root'
     )

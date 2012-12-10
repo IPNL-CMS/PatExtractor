@@ -9,19 +9,20 @@ parser.add_option("", "--run", action="store_true", dest="run", default=False, h
 
 datasets = {
     # Single anti-top
-    "/Tbar_t-channel_TuneZ2star_8TeV-powheg-tauola/sbrochet-Tbar_t-channel_2012_PF2PAT_v1-265c9c69c37a8e555f9b98fa1aae946f/USER": "Tbar_t-channel",
-    "/Tbar_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/sbrochet-Tbar_tW-channel_2012_PF2PAT_v1-265c9c69c37a8e555f9b98fa1aae946f/USER": "Tbar_tW-channel",
-    "/Tbar_s-channel_TuneZ2star_8TeV-powheg-tauola/sbrochet-Tbar_s-channel_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER": "Tbar_s-channel",
+    "/Tbar_t-channel_TuneZ2star_8TeV-powheg-tauola/chassera-Tbar_t-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Tbar_t-channel",
+    "/Tbar_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/chassera-Tbar_tW-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Tbar_tW-channel",
+    "/Tbar_s-channel_TuneZ2star_8TeV-powheg-tauola/chassera-Tbar_s-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Tbar_s-channel",
     
     # Single top
-    "/T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/sbrochet-T_tW-channel_2012_PF2PAT_v1-265c9c69c37a8e555f9b98fa1aae946f/USER": "T_tW-channel",
-    "/T_s-channel_TuneZ2star_8TeV-powheg-tauola/sbrochet-T_s-channel_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER": "T_s-channel",
+    "/T_t-channel_TuneZ2star_8TeV-powheg-tauola/chassera-T_t-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "T_t-channel",
+    "/T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/chassera-T_tW-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "T_tW-channel",
+    "/T_s-channel_TuneZ2star_8TeV-powheg-tauola/chassera-T_s-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "T_s-channel",
 
     ## TT + jets
-    "/TTJets_TuneZ2star_8TeV-madgraph-tauola/sbrochet-TTJets_2012_v1-265c9c69c37a8e555f9b98fa1aae946f/USER": "TTJets_MassiveBinDECAY",
+    "/TTJets_MassiveBinDECAY_TuneZ2star_8TeV-madgraph-tauola/chassera-TTJets_MassiveBinDECAY_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "TTJets_MassiveBinDECAY",
     
-    "/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/sbrochet-DYJetsToLL_M-50_2012_PF2PAT_v1-265c9c69c37a8e555f9b98fa1aae946f/USER": "DYJetsToLL_M-50",
-    "/WJetsToLNu_TuneZ2Star_8TeV-madgraph-tarball/sbrochet-WJetsToLNu_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER": "WJetsToLNu"
+    #"/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/sbrochet-DYJetsToLL_M-50_2012_PF2PAT_v1-265c9c69c37a8e555f9b98fa1aae946f/USER": "DYJetsToLL_M-50",
+    "/WJetsToLNu_TuneZ2Star_8TeV-madgraph-tarball/chassera-WJetsToLNu_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "WJetsToLNu"
 
     #"/QCD_Pt_20_30_EMEnriched_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt_20_30_EMEnriched_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER": "QCD_Pt_20_30_EMEnriched",
     #"/QCD_Pt_30_80_EMEnriched_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt_30_80_EMEnriched_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER": "QCD_Pt_30_80_EMEnriched",
