@@ -47,7 +47,10 @@ def createExtractorProcess(isMC, isSemiMu, globalTag):
       )
 
   #Output extracted file name
-  process.PATextraction.extractedRootFile = cms.string('extracted.root')
+  if isMC:
+    process.PATextraction.extractedRootFile = cms.string('extracted_mc.root')
+  else:
+    process.PATextraction.extractedRootFile = cms.string('extracted.root')
 
   #########################################
   #
