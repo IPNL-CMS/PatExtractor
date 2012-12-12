@@ -21,7 +21,7 @@ datasets = {
     ## TT + jets
     "/TTJets_MassiveBinDECAY_TuneZ2star_8TeV-madgraph-tauola/chassera-TTJets_MassiveBinDECAY_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "TTJets_MassiveBinDECAY",
     
-    #"/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/sbrochet-DYJetsToLL_M-50_2012_PF2PAT_v1-265c9c69c37a8e555f9b98fa1aae946f/USER": "DYJetsToLL_M-50",
+    "/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/chassera-DYJetsToLL_M-50_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "DYJetsToLL_M-50",
     "/WJetsToLNu_TuneZ2Star_8TeV-madgraph-tarball/chassera-WJetsToLNu_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "WJetsToLNu"
 
     #"/QCD_Pt_20_30_EMEnriched_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt_20_30_EMEnriched_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER": "QCD_Pt_20_30_EMEnriched",
