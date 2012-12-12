@@ -14,14 +14,13 @@ parser.add_option("-p", "--path", dest="path", type="string", help="where to sto
 if options.path is None or not os.path.isdir(options.path):
   parser.error("you must specify a valid path")
 
-#crabFolders = [ options.path ]
 crabFolders = [name for name in os.listdir(options.path) if os.path.isdir(os.path.join(options.path, name)) and name.startswith("crab_data_")]
 
 for crabFolder in crabFolders:
   dataset = crabFolder.rstrip("/").replace("crab_data_", "")
   print("Processing %s" % dataset)
-  outputName = "MTT_%s.root" % (dataset)
-  fullPath = "%s" % (crabFolder)
+  outputName = "MTT_%s.list" % (dataset)
+  fullPath = "%s/%s" % (options.path, crabFolder)
   if os.path.exists(outputName):
     print("'%s' already exists. Skipping." % outputName)
     continue
@@ -34,9 +33,14 @@ for crabFolder in crabFolders:
     print("Error: can't merge for %s because crabOutputList was not successfull" % dataset)
     continue
 
-  singleLineFiles = ""
+  file = open(outputName, "w")
   for f in dpmFiles:
-    singleLineFiles = "%s%s " % (singleLineFiles, f)
+    file.write(f + "\n")
+  file.close()
 
-  os.system("hadd %s %s" % (outputName, singleLineFiles))
+  #singleLineFiles = ""
+  #for f in dpmFiles:
+  #  singleLineFiles = "%s%s " % (singleLineFiles, f)
+
+  #os.system("hadd %s %s" % (outputName, singleLineFiles))
   #print("hadd %s %s" % (outputName, singleLineFiles))
