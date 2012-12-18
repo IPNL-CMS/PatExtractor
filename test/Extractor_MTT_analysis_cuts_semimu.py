@@ -43,8 +43,6 @@ analysisSettings = cms.untracked.vstring(
     "b_mass                   4.67",
 
     "doSemiMu                 1",
-    "doSyst                   0",
-    "systvalue                1",
     "doUseBTaginChi2          0",
     "doChoiceWKF              0",
 
@@ -66,5 +64,9 @@ analysisSettings = cms.untracked.vstring(
     "chi2_use_pt_syst                 1",
     "chi2_use_ht_frac                 0",
 
-    "trigger                  ^HLT_IsoMu17_eta2p1_TriCentralPF(NoPU)?Jet[0-9]{0,3}(_[0-9]{0,3}){0,2}_v[0-9]{0,2}$"
+    "trigger                  ^HLT_IsoMu17_eta2p1_TriCentralPF(NoPU)?Jet[0-9]{0,3}(_[0-9]{0,3}){0,2}_v[0-9]{0,2}$", #Unused
+
+    # JEC Systematics
+    "doSyst                   0",
+    "systSign                 up"
     )

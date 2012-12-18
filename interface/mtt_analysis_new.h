@@ -38,6 +38,11 @@ namespace edm {
   class EventSetup;
 }
 
+enum class SystematicsSign {
+  UP,
+  DOWN
+};
+
 class mtt_analysis_new {
 public:
   mtt_analysis_new(const edm::ParameterSet& cmsswSettings, AnalysisSettings* settings);
@@ -71,7 +76,7 @@ public:
   void reset();
   void fillTree();
 
-  void SystModifJetsAndMET(int SystType, JetCorrectionUncertainty* jecUnc);
+  void SystModifJetsAndMET();
 
   JetCorrectionUncertainty* jecUnc;
 
@@ -85,7 +90,7 @@ private:
   bool   m_MAIN_doUseBTag;
   bool   m_MAIN_doKF;
   bool   m_MAIN_doSyst;
-  double m_MAIN_systvalue;
+  SystematicsSign m_MAIN_systSign;
   bool   m_MAIN_doSemiMu;
 
   TTree*  m_tree_Mtt;

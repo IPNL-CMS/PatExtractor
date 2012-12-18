@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <limits>
+#include <algorithm>
 
 #include "TH2.h"
 #include "TString.h"
@@ -149,9 +150,18 @@ mtt_analysis_new::mtt_analysis_new(const edm::ParameterSet& cmsswSettings, Analy
   settings->getSetting("doSyst", m_MAIN_doSyst);
 //    ? m_MAIN_doSyst = (static_cast<bool>(settings->getSetting("doSyst")))
 //    : m_MAIN_doSyst = false;
-  settings->getSetting("systvalue", m_MAIN_systvalue);
-//    ? m_MAIN_systvalue = settings->getSetting("systvalue")
-//    : m_MAIN_systvalue = 0;
+
+  std::string sign = "up";
+  settings->getSetting("systSign", sign); // "up" or "down"
+
+  std::transform(sign.begin(), sign.end(), sign.begin(), ::tolower);
+
+  if (sign == "down") {
+    m_MAIN_systSign = SystematicsSign::DOWN;
+  } else {
+    m_MAIN_systSign = SystematicsSign::UP;
+  }
+
   settings->getSetting("doSemiMu", m_MAIN_doSemiMu);
 //    ? m_MAIN_doSemiMu = settings->getSetting("doSemiMu")
 //    : m_MAIN_doSemiMu = false;
@@ -290,17 +300,6 @@ mtt_analysis_new::mtt_analysis_new(const edm::ParameterSet& cmsswSettings, Analy
 //    : m_b = 0;
 
   m_KinFit = new KinFit(fname, settings);
-
-  //put the complete path to the JEScorr.root file if you run on lyon tier3
-  //otherwise remember to put it as an "additional_input_files" in your crab.cfg
-  if (m_MAIN_doSyst)
-  {
-    //TFile* JES_unc_file = new TFile("/gridgroup/cms/Mtt/JEScorr.root");
-    //histo_uncertainty= (TH2D*)JES_unc_file->Get("JESfactorJ");
-    //jecUnc = new JetCorrectionUncertainty("/gridgroup/cms/Mtt/Jec11_V1_AK5PF_Uncertainty.txt");
-
-  }
-
 }
 
 mtt_analysis_new::~mtt_analysis_new()
@@ -687,7 +686,7 @@ int mtt_analysis_new::mtt_Sel(const edm::EventSetup& iSetup, bool do_MC_, PatExt
       jecUnc = new JetCorrectionUncertainty(JetCorPar);
     }
 
-    SystModifJetsAndMET(1, jecUnc);
+    SystModifJetsAndMET();
   }
 
   m_nPU = m_event->nPU();
@@ -1220,36 +1219,34 @@ void mtt_analysis_new::fillTree()
   m_tree_Mtt->Fill();
 }
 
-void mtt_analysis_new::SystModifJetsAndMET(int SystType, JetCorrectionUncertainty *jecUnc)
+void mtt_analysis_new::SystModifJetsAndMET()
 {
-  double unc = 0.;
-  double corr = 0.;
+  double numericSign = (m_MAIN_systSign == SystematicsSign::UP) ? 1. : -1.;
+
   double met_corr_x = 0.;
   double met_corr_y = 0.;
   unsigned int nJets = m_jetMet->getSize();
   TLorentzVector *myMET = m_jetMet->getMETLorentzVector(0);
 
-  if (SystType == 1)   // JES
+  for (unsigned int iJet = 0; iJet < nJets; iJet++)
   {
-    for (unsigned int iJet = 0; iJet < nJets; iJet++)
-    {
-      TLorentzVector *myJet = m_jetMet->getJetLorentzVector(iJet);
+    TLorentzVector *myJet = m_jetMet->getJetLorentzVector(iJet);
 
-      jecUnc->setJetEta(myJet->Eta());
-      jecUnc->setJetPt(myJet->Pt()); // here you must use the CORRECTED jet pt
+    jecUnc->setJetEta(myJet->Eta());
+    jecUnc->setJetPt(myJet->Pt()); // here you must use the CORRECTED jet pt
 
-      unc = (SystType == 1) ? jecUnc->getUncertainty(true) : jecUnc->getUncertainty(false);
-      corr = fabs(unc);
+    double unc = (m_MAIN_systSign == SystematicsSign::UP) ? jecUnc->getUncertainty(true) : jecUnc->getUncertainty(false);
+    double corr = fabs(unc);
+    double signedCorrection = numericSign * corr;
 
-      //use corrected jet pt for met correction
-      met_corr_x += myJet->Px() * (m_MAIN_systvalue * corr);
-      met_corr_y += myJet->Py() * (m_MAIN_systvalue * corr);
+    // use corrected jet pt for met correction
+    met_corr_x += myJet->Px() * signedCorrection;
+    met_corr_y += myJet->Py() * signedCorrection;
 
-      m_jetMet->setJetLorentzVector(iJet, myJet->E() * (1. + m_MAIN_systvalue * corr), myJet->Px() * (1. + m_MAIN_systvalue * corr), myJet->Py() * (1. + m_MAIN_systvalue * corr), myJet->Pz() * (1. + m_MAIN_systvalue * corr));
-    }
-
-    m_jetMet->setMETLorentzVector(0, myMET->E(), myMET->Px() - met_corr_x, myMET->Py() - met_corr_y, myMET->Pz());
+    m_jetMet->setJetLorentzVector(iJet, myJet->E() * (1. + signedCorrection), myJet->Px() * (1. + signedCorrection), myJet->Py() * (1. + signedCorrection), myJet->Pz() * (1. + signedCorrection));
   }
+
+  m_jetMet->setMETLorentzVector(0, myMET->E(), myMET->Px() - met_corr_x, myMET->Py() - met_corr_y, myMET->Pz());
 }
 
 
@@ -1258,6 +1255,8 @@ void mtt_analysis_new::SystModifJetsAndMET(int SystType, JetCorrectionUncertaint
 void mtt_analysis_new::reset()
 {
   jecUnc = NULL;
+
+  m_MAIN_systSign = SystematicsSign::UP;
 
   m_mtt_isSel = 0;
   m_mtt_IsBestSolMatched = -1;
