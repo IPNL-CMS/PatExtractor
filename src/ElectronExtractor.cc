@@ -306,7 +306,12 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
     event.getByLabel("goodOfflinePrimaryVertices", hVtx);
 
     edm::Handle<double> hRhoIso;
-    event.getByLabel(edm::InputTag("kt6PFJets", "rho", "RECO"), hRhoIso);
+
+    if (! m_isMC)
+      event.getByLabel(edm::InputTag("kt6PFJets", "rho", "RECO"), hRhoIso);
+    else
+      event.getByLabel(edm::InputTag("kt6PFJetsForIsolation", "rho", "PAT"), hRhoIso);
+
     double rhoIso = *hRhoIso;
 
     // Compute isolation in a cone of 0.3. One can use PAT functions chargedHadronIso(), neutralHadronIso() and photonIso(). They are supposed to do the same thing that what follow.
