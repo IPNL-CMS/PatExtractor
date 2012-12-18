@@ -14,14 +14,17 @@ parser.add_option("-p", "--path", dest="path", type="string", help="where to sto
 if options.path is None or not os.path.isdir(options.path):
   parser.error("you must specify a valid path")
 
-crabFolders = [name for name in os.listdir(options.path) if os.path.isdir(os.path.join(options.path, name)) and name.startswith("crab_")]
+crabFolders = [name for name in os.listdir(options.path) if os.path.isdir(os.path.join(options.path, name)) and name.startswith("multicrab_MC_")]
 
 for crabFolder in crabFolders:
-  dataset = crabFolder.rstrip("/").replace("crab_", "")
+  dataset = crabFolder.rstrip("/").replace("multicrab_MC_", "")
+  # Remove date
+  dataset_name = dataset.rsplit("_", 1)
+  dataset_name = dataset_name[0]
   print("Processing %s" % dataset)
   for a in ["semie", "semimu"]:
     outputName = "MTT_%s_%s.list" % (dataset, a)
-    fullPath = "%s/%s/%s_%s" % (options.path, crabFolder, dataset, a)
+    fullPath = "%s/%s/%s_%s" % (options.path, crabFolder, dataset_name, a)
     if os.path.exists(outputName):
       print("'%s' already exists. Skipping." % outputName)
       continue
