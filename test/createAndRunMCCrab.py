@@ -8,22 +8,29 @@ parser.add_option("", "--run", action="store_true", dest="run", default=False, h
 (options, args) = parser.parse_args()
 
 datasets = {
-    # Single anti-top
-    "/Tbar_t-channel_TuneZ2star_8TeV-powheg-tauola/chassera-Tbar_t-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Tbar_t-channel",
-    "/Tbar_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/chassera-Tbar_tW-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Tbar_tW-channel",
-    "/Tbar_s-channel_TuneZ2star_8TeV-powheg-tauola/chassera-Tbar_s-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Tbar_s-channel",
+    "/ZPrimeToTTJets_M500GeV_W5GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_500_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_500_Narrow",
+    "/ZPrimeToTTJets_M750GeV_W7p5GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_750_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_750_Narrow",
+    "/ZPrimeToTTJets_M1000GeV_W10GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_1000_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_1000_Narrow",
+    "/ZPrimeToTTJets_M1250GeV_W12p5GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_1250_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_1250_Narrow",
+    "/ZPrimeToTTJets_M1500GeV_W15GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_1500_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_1500_Narrow",
+    "/ZPrimeToTTJets_M2000GeV_W20GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_2000_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_2000_Narrow",
+
+    ## Single anti-top
+    #"/Tbar_t-channel_TuneZ2star_8TeV-powheg-tauola/chassera-Tbar_t-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Tbar_t-channel",
+    #"/Tbar_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/chassera-Tbar_tW-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Tbar_tW-channel",
+    #"/Tbar_s-channel_TuneZ2star_8TeV-powheg-tauola/chassera-Tbar_s-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Tbar_s-channel",
     
-    # Single top
-    "/T_t-channel_TuneZ2star_8TeV-powheg-tauola/chassera-T_t-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "T_t-channel",
-    "/T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/chassera-T_tW-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "T_tW-channel",
-    "/T_s-channel_TuneZ2star_8TeV-powheg-tauola/chassera-T_s-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "T_s-channel",
+    ## Single top
+    #"/T_t-channel_TuneZ2star_8TeV-powheg-tauola/chassera-T_t-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "T_t-channel",
+    #"/T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/chassera-T_tW-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "T_tW-channel",
+    #"/T_s-channel_TuneZ2star_8TeV-powheg-tauola/chassera-T_s-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "T_s-channel",
 
     ## TT + jets
-    "/TTJets_MassiveBinDECAY_TuneZ2star_8TeV-madgraph-tauola/chassera-TTJets_MassiveBinDECAY_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "TTJets_MassiveBinDECAY",
+    #"/TTJets_MassiveBinDECAY_TuneZ2star_8TeV-madgraph-tauola/chassera-TTJets_MassiveBinDECAY_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "TTJets_MassiveBinDECAY",
     
-    "/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/chassera-DYJetsToLL_M-50_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "DYJetsToLL_M-50",
-    "/WJetsToLNu_TuneZ2Star_8TeV-madgraph-tarball/chassera-WJetsToLNu_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "WJetsToLNu"
-
+    #"/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/chassera-DYJetsToLL_M-50_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "DYJetsToLL_M-50",
+    #"/WJetsToLNu_TuneZ2Star_8TeV-madgraph-tarball/chassera-WJetsToLNu_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "WJetsToLNu"
+   
     #"/QCD_Pt_20_30_EMEnriched_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt_20_30_EMEnriched_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER": "QCD_Pt_20_30_EMEnriched",
     #"/QCD_Pt_30_80_EMEnriched_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt_30_80_EMEnriched_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER": "QCD_Pt_30_80_EMEnriched",
     #"/QCD_Pt_80_170_EMEnriched_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt_80_170_EMEnriched_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER": "QCD_Pt_80_170_EMEnriched",
