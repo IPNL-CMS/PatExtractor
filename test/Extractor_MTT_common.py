@@ -83,8 +83,13 @@ def createExtractorProcess(isMC, isSemiMu, globalTag):
   process.PATextraction.doMtt      = True
 
   # Jets correction : needs a valid global tags, or an external DB where JEC are stored
-  process.PATextraction.correctJets       = False
-  process.PATextraction.jetCorrectorLabel = "ak5PFchsL1FastL2L3Residual"
+  process.PATextraction.correctJets       = True
+
+  if isMC:
+    process.PATextraction.jetCorrectorLabel = "ak5PFchsL1FastL2L3"
+  else:
+    process.PATextraction.jetCorrectorLabel = "ak5PFchsL1FastL2L3Residual"
+
   process.PATextraction.redoTypeIMET      = False
 
   # Analysis cuts
