@@ -43,6 +43,7 @@ mtt_analysis_new::mtt_analysis_new(const edm::ParameterSet& cmsswSettings, Analy
   jetEnergyResolutionEtaBinning_    (cmsswSettings.getParameter<std::vector<double> >("jetEnergyResolutionEtaBinning"))
 {
   reset();
+  jecUnc = NULL;
 
   /// Tree definition
   m_tree_Mtt = new TTree("Mtt", "Analysis info");
@@ -1254,8 +1255,6 @@ void mtt_analysis_new::SystModifJetsAndMET()
 
 void mtt_analysis_new::reset()
 {
-  jecUnc = NULL;
-
   m_MAIN_systSign = SystematicsSign::UP;
 
   m_mtt_isSel = 0;
