@@ -8,12 +8,19 @@ parser.add_option("", "--run", action="store_true", dest="run", default=False, h
 (options, args) = parser.parse_args()
 
 datasets = {
-    "/ZPrimeToTTJets_M500GeV_W5GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_500_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_500_Narrow",
-    "/ZPrimeToTTJets_M750GeV_W7p5GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_750_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_750_Narrow",
-    "/ZPrimeToTTJets_M1000GeV_W10GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_1000_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_1000_Narrow",
-    "/ZPrimeToTTJets_M1250GeV_W12p5GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_1250_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_1250_Narrow",
-    "/ZPrimeToTTJets_M1500GeV_W15GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_1500_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_1500_Narrow",
-    "/ZPrimeToTTJets_M2000GeV_W20GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_2000_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_2000_Narrow",
+    #"/ZPrimeToTTJets_M500GeV_W5GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_500_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_500_Narrow",
+    #"/ZPrimeToTTJets_M750GeV_W7p5GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_750_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_750_Narrow",
+    #"/ZPrimeToTTJets_M1000GeV_W10GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_1000_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_1000_Narrow",
+    #"/ZPrimeToTTJets_M1250GeV_W12p5GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_1250_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_1250_Narrow",
+    #"/ZPrimeToTTJets_M1500GeV_W15GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_1500_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_1500_Narrow",
+    #"/ZPrimeToTTJets_M2000GeV_W20GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_2000_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_2000_Narrow",
+
+    "/ZPrimeToTTJets_M750GeV_W7p5GeV_TuneZ2star_8TeV_ext-madgraph-tauola/sbrochet-Zprime_750_Narrow_ext_START53_V7C_03Jan13-v1-bdd0c9c28c68bfd05bfd28ee5e93863c/USER": "Zprime_750_Narrow_ext",
+    "/ZPrimeToTTJets_M1000GeV_W10GeV_TuneZ2star_8TeV_ext-madgraph-tauola/sbrochet-Zprime_1000_Narrow_ext_START53_V7C_03Jan13-v1-bdd0c9c28c68bfd05bfd28ee5e93863c/USER": "Zprime_1000_Narrow_ext",
+    "/ZPrimeToTTJets_M1250GeV_W12p5GeV_TuneZ2star_8TeV_ext-madgraph-tauola/sbrochet-Zprime_1250_Narrow_ext_START53_V7C_03Jan13-v1-bdd0c9c28c68bfd05bfd28ee5e93863c/USER": "Zprime_1250_Narrow_ext",
+    "/ZPrimeToTTJets_M1500GeV_W15GeV_TuneZ2star_8TeV_ext-madgraph-tauola/sbrochet-Zprime_1500_Narrow_ext_START53_V7C_03Jan13-v1-bdd0c9c28c68bfd05bfd28ee5e93863c/USER": "Zprime_1500_Narrow_ext",
+    "/ZPrimeToTTJets_M2000GeV_W20GeV_TuneZ2star_8TeV_ext-madgraph-tauola/sbrochet-Zprime_2000_Narrow_ext_START53_V7C_03Jan13-v1-bdd0c9c28c68bfd05bfd28ee5e93863c/USER": "Zprime_2000_Narrow_ext",
+
 
     ## Single anti-top
     #"/Tbar_t-channel_TuneZ2star_8TeV-powheg-tauola/chassera-Tbar_t-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Tbar_t-channel",
