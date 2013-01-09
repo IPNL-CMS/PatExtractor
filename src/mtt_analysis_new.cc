@@ -1255,8 +1255,6 @@ void mtt_analysis_new::SystModifJetsAndMET()
 
 void mtt_analysis_new::reset()
 {
-  m_MAIN_systSign = SystematicsSign::UP;
-
   m_mtt_isSel = 0;
   m_mtt_IsBestSolMatched = -1;
   m_mtt_OneMatchedCombi = 0;
