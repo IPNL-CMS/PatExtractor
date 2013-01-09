@@ -13,7 +13,7 @@ if len(options.globalTag) == 0:
 
 from Extractor_MTT_common import *
 
-process = createExtractorProcess(False, False, options.globalTag)
+process = createExtractorProcess(False, False, useShiftCorrectedMET = False, globalTag = options.globalTag)
 
 process.source.fileNames = cms.untracked.vstring(
     '/store/user/sbrochet/SingleElectron/SingleElectron_Run2012B-TOPElePlusJets-13Jul2012_22Nov12-v1/482cfd8beeb5bd50ce95db8c4b04846e/patTuple_82_1_gBL.root'

@@ -12,7 +12,7 @@ import FWCore.ParameterSet.Config as cms
 def readFile(file):
   return cms.untracked.string(open(file).read())
 
-def createExtractorProcess(isMC, isSemiMu, globalTag):
+def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
   process = cms.Process("PATextractor2")
 
 
@@ -69,7 +69,13 @@ def createExtractorProcess(isMC, isSemiMu, globalTag):
   process.PATextraction.doMuon     = True
   process.PATextraction.doElectron = True
   process.PATextraction.doJet      = True
+
   process.PATextraction.doMET      = True
+  if useShiftCorrectedMET:
+    process.PATextraction.met_tag  = cms.InputTag("patMETsShiftCorrPFlow")
+  else:
+    process.PATextraction.met_tag  = cms.InputTag("patMETsPFlow")
+
   process.PATextraction.doVertex   = True
   process.PATextraction.vtx_tag    = cms.InputTag( "goodOfflinePrimaryVertices" )
   process.PATextraction.doHLT      = True
