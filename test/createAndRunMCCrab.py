@@ -42,6 +42,12 @@ datasets = {
     #"/QCD_Pt_30_80_EMEnriched_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt_30_80_EMEnriched_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER": "QCD_Pt_30_80_EMEnriched",
     #"/QCD_Pt_80_170_EMEnriched_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt_80_170_EMEnriched_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER": "QCD_Pt_80_170_EMEnriched",
     #"/QCD_Pt_20_MuEnrichedPt_15_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt_20_MuEnriched_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER": "QCD_Pt_20_MuEnriched"
+
+    ## Dibosons
+    #"/WW_TuneZ2star_8TeV_pythia6_tauola/chassera-WWincl_START53_V7A_08Jan13-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "WW_incl",
+    #"/WZ_TuneZ2star_8TeV_pythia6_tauola/chassera-WZincl_START53_V7A_08Jan13-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER ": "WZ_incl",
+    #"/ZZ_TuneZ2star_8TeV_pythia6_tauola/chassera-ZZincl_START53_V7A_08Jan13-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER ": "ZZ_incl",
+    
     }
 
 # Get email address
