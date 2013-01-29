@@ -7,48 +7,49 @@ parser = OptionParser()
 parser.add_option("", "--run", action="store_true", dest="run", default=False, help="run crab")
 (options, args) = parser.parse_args()
 
-datasets = {
-    #"/ZPrimeToTTJets_M500GeV_W5GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_500_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_500_Narrow",
-    #"/ZPrimeToTTJets_M750GeV_W7p5GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_750_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_750_Narrow",
-    #"/ZPrimeToTTJets_M1000GeV_W10GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_1000_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_1000_Narrow",
-    #"/ZPrimeToTTJets_M1250GeV_W12p5GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_1250_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_1250_Narrow",
-    #"/ZPrimeToTTJets_M1500GeV_W15GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_1500_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_1500_Narrow",
-    #"/ZPrimeToTTJets_M2000GeV_W20GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_2000_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Zprime_2000_Narrow",
+datasets = [
+    #["/ZPrimeToTTJets_M500GeV_W5GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_500_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER", "Zprime_500_Narrow"],
+    #["/ZPrimeToTTJets_M750GeV_W7p5GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_750_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER", "Zprime_750_Narrow"],
+    #["/ZPrimeToTTJets_M1000GeV_W10GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_1000_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER", "Zprime_1000_Narrow"],
+    #["/ZPrimeToTTJets_M1250GeV_W12p5GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_1250_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER", "Zprime_1250_Narrow"],
+    #["/ZPrimeToTTJets_M1500GeV_W15GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_1500_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER", "Zprime_1500_Narrow"],
+    #["/ZPrimeToTTJets_M2000GeV_W20GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_2000_Narrow_START53_V7A_04Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER", "Zprime_2000_Narrow"],
 
-    "/ZPrimeToTTJets_M750GeV_W7p5GeV_TuneZ2star_8TeV_ext-madgraph-tauola/sbrochet-Zprime_750_Narrow_ext_START53_V7C_03Jan13-v1-bdd0c9c28c68bfd05bfd28ee5e93863c/USER": "Zprime_750_Narrow_ext",
-    "/ZPrimeToTTJets_M1000GeV_W10GeV_TuneZ2star_8TeV_ext-madgraph-tauola/sbrochet-Zprime_1000_Narrow_ext_START53_V7C_03Jan13-v1-bdd0c9c28c68bfd05bfd28ee5e93863c/USER": "Zprime_1000_Narrow_ext",
-    "/ZPrimeToTTJets_M1250GeV_W12p5GeV_TuneZ2star_8TeV_ext-madgraph-tauola/sbrochet-Zprime_1250_Narrow_ext_START53_V7C_03Jan13-v1-bdd0c9c28c68bfd05bfd28ee5e93863c/USER": "Zprime_1250_Narrow_ext",
-    "/ZPrimeToTTJets_M1500GeV_W15GeV_TuneZ2star_8TeV_ext-madgraph-tauola/sbrochet-Zprime_1500_Narrow_ext_START53_V7C_03Jan13-v1-bdd0c9c28c68bfd05bfd28ee5e93863c/USER": "Zprime_1500_Narrow_ext",
-    "/ZPrimeToTTJets_M2000GeV_W20GeV_TuneZ2star_8TeV_ext-madgraph-tauola/sbrochet-Zprime_2000_Narrow_ext_START53_V7C_03Jan13-v1-bdd0c9c28c68bfd05bfd28ee5e93863c/USER": "Zprime_2000_Narrow_ext",
+    ["/ZPrimeToTTJets_M500GeV_W5GeV_TuneZ2star_8TeV_ext-madgraph-tauola/sbrochet-Zprime_500_Narrow_ext_START53_V7C_28Jan13-v1-bdd0c9c28c68bfd05bfd28ee5e93863c/USER", "Zprime_500_Narrow_ext"],
+    ["/ZPrimeToTTJets_M750GeV_W7p5GeV_TuneZ2star_8TeV_ext-madgraph-tauola/sbrochet-Zprime_750_Narrow_ext_START53_V7C_03Jan13-v1-bdd0c9c28c68bfd05bfd28ee5e93863c/USER", "Zprime_750_Narrow_ext"],
+    ["/ZPrimeToTTJets_M1000GeV_W10GeV_TuneZ2star_8TeV_ext-madgraph-tauola/sbrochet-Zprime_1000_Narrow_ext_START53_V7C_03Jan13-v1-bdd0c9c28c68bfd05bfd28ee5e93863c/USER", "Zprime_1000_Narrow_ext"],
+    ["/ZPrimeToTTJets_M1250GeV_W12p5GeV_TuneZ2star_8TeV_ext-madgraph-tauola/sbrochet-Zprime_1250_Narrow_ext_START53_V7C_03Jan13-v1-bdd0c9c28c68bfd05bfd28ee5e93863c/USER", "Zprime_1250_Narrow_ext"],
+    ["/ZPrimeToTTJets_M1500GeV_W15GeV_TuneZ2star_8TeV_ext-madgraph-tauola/sbrochet-Zprime_1500_Narrow_ext_START53_V7C_03Jan13-v1-bdd0c9c28c68bfd05bfd28ee5e93863c/USER", "Zprime_1500_Narrow_ext", 100000],
+    ["/ZPrimeToTTJets_M2000GeV_W20GeV_TuneZ2star_8TeV_ext-madgraph-tauola/sbrochet-Zprime_2000_Narrow_ext_START53_V7C_03Jan13-v1-bdd0c9c28c68bfd05bfd28ee5e93863c/USER", "Zprime_2000_Narrow_ext"],
 
 
     ## Single anti-top
-    #"/Tbar_t-channel_TuneZ2star_8TeV-powheg-tauola/chassera-Tbar_t-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Tbar_t-channel",
-    #"/Tbar_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/chassera-Tbar_tW-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Tbar_tW-channel",
-    #"/Tbar_s-channel_TuneZ2star_8TeV-powheg-tauola/chassera-Tbar_s-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "Tbar_s-channel",
+    #["/Tbar_t-channel_TuneZ2star_8TeV-powheg-tauola/chassera-Tbar_t-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER", "Tbar_t-channel"],
+    #["/Tbar_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/chassera-Tbar_tW-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER", "Tbar_tW-channel"],
+    #["/Tbar_s-channel_TuneZ2star_8TeV-powheg-tauola/chassera-Tbar_s-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER", "Tbar_s-channel"],
     
     ## Single top
-    #"/T_t-channel_TuneZ2star_8TeV-powheg-tauola/chassera-T_t-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "T_t-channel",
-    #"/T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/chassera-T_tW-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "T_tW-channel",
-    #"/T_s-channel_TuneZ2star_8TeV-powheg-tauola/chassera-T_s-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "T_s-channel",
+    #["/T_t-channel_TuneZ2star_8TeV-powheg-tauola/chassera-T_t-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER", "T_t-channel"],
+    #["/T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/chassera-T_tW-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER", "T_tW-channel"],
+    #["/T_s-channel_TuneZ2star_8TeV-powheg-tauola/chassera-T_s-channel_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER", "T_s-channel"],
 
     ## TT + jets
-    #"/TTJets_MassiveBinDECAY_TuneZ2star_8TeV-madgraph-tauola/chassera-TTJets_MassiveBinDECAY_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "TTJets_MassiveBinDECAY",
+    #["/TTJets_MassiveBinDECAY_TuneZ2star_8TeV-madgraph-tauola/chassera-TTJets_MassiveBinDECAY_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER", "TTJets_MassiveBinDECAY"],
     
-    #"/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/chassera-DYJetsToLL_M-50_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "DYJetsToLL_M-50",
-    #"/WJetsToLNu_TuneZ2Star_8TeV-madgraph-tarball/chassera-WJetsToLNu_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "WJetsToLNu"
+    #["/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/chassera-DYJetsToLL_M-50_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER", "DYJetsToLL_M-50"],
+    #["/WJetsToLNu_TuneZ2Star_8TeV-madgraph-tarball/chassera-WJetsToLNu_START53_V7A_22Nov12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER", "WJetsToLNu"]
    
-    #"/QCD_Pt_20_30_EMEnriched_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt_20_30_EMEnriched_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER": "QCD_Pt_20_30_EMEnriched",
-    #"/QCD_Pt_30_80_EMEnriched_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt_30_80_EMEnriched_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER": "QCD_Pt_30_80_EMEnriched",
-    #"/QCD_Pt_80_170_EMEnriched_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt_80_170_EMEnriched_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER": "QCD_Pt_80_170_EMEnriched",
-    #"/QCD_Pt_20_MuEnrichedPt_15_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt_20_MuEnriched_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER": "QCD_Pt_20_MuEnriched"
+    #["/QCD_Pt_20_30_EMEnriched_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt_20_30_EMEnriched_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER", "QCD_Pt_20_30_EMEnriched"],
+    #["/QCD_Pt_30_80_EMEnriched_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt_30_80_EMEnriched_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER", "QCD_Pt_30_80_EMEnriched"],
+    #["/QCD_Pt_80_170_EMEnriched_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt_80_170_EMEnriched_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER", "QCD_Pt_80_170_EMEnriched"],
+    #["/QCD_Pt_20_MuEnrichedPt_15_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt_20_MuEnriched_2012_PF2PAT_v1-3a57158a5a24f1281931c60ed2517d66/USER", "QCD_Pt_20_MuEnriched"]
 
     ## Dibosons
     #"/WW_TuneZ2star_8TeV_pythia6_tauola/chassera-WWincl_START53_V7A_08Jan13-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER": "WW_incl",
     #"/WZ_TuneZ2star_8TeV_pythia6_tauola/chassera-WZincl_START53_V7A_08Jan13-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER ": "WZ_incl",
     #"/ZZ_TuneZ2star_8TeV_pythia6_tauola/chassera-ZZincl_START53_V7A_08Jan13-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER ": "ZZ_incl",
     
-    }
+    ]
 
 # Get email address
 email = "%s@ipnl.in2p3.fr" % (pwd.getpwuid(os.getuid()).pw_name)
@@ -68,6 +69,7 @@ cfg=crab_MC.cfg.template.ipnl
 USER.ui_working_dir = ${ui_working_dir}
 USER.eMail = ${email}
 CMSSW.datasetpath = ${dataset}
+CMSSW.total_number_of_events = ${events}
 """
 )
 
@@ -83,8 +85,13 @@ CMSSW.pset = Extractor_MTT_MC_semimu.py
 USER.user_remote_dir = ${remote_dir_semimu}
 """
 
-for dataset_path, dataset_name in datasets.items():
+for dataset in datasets:
 
+  dataset_name = dataset[1]
+  dataset_path = dataset[0]
+  dataset_size = -1
+  if len(dataset) > 2:
+    dataset_size = dataset[2]
   #dataset_globaltag = re.search('START\d{0,2}_V\d[A-Z]?', dataset_path).group(0)
 
   #publish_name = "%s_%s_%s-v%d" % (dataset_name, dataset_globaltag, d, version)
@@ -110,7 +117,7 @@ for dataset_path, dataset_name in datasets.items():
   print("")
 
   f = open(output_file, "w")
-  f.write(full_template.substitute(ui_working_dir=ui_working_dir, dataset=dataset_path, remote_dir_semie=output_dir_semie, remote_dir_semimu=output_dir_semimu, name=dataset_name, email=email))
+  f.write(full_template.substitute(ui_working_dir=ui_working_dir, dataset=dataset_path, remote_dir_semie=output_dir_semie, remote_dir_semimu=output_dir_semimu, name=dataset_name, email=email, events=dataset_size))
   f.close()
 
   if options.run:
