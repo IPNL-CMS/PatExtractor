@@ -14,6 +14,7 @@ datasets = [
     ["/SingleElectron/sbrochet-SingleElectron_Run2012B-TOPElePlusJets-13Jul2012_22Nov12-v1-482cfd8beeb5bd50ce95db8c4b04846e/USER", "SingleElectron_Run2012B-TOPElePlusJets-13Jul2012", "FT_53_V6_AN3"],
     ["/SingleElectron/sbrochet-SingleElectron_Run2012C-TOPElePlusJets-24Aug2012_22Nov12-v1-2648d2ac41c8a47bf1ce16deec221c74/USER", "SingleElectron_Run2012C-TOPElePlusJets-24Aug2012", "FT_53_V10_AN3"],
     ["/SingleElectron/sbrochet-SingleElectron_Run2012C-TOPElePlusJets-PromptSkim_22Nov12-v1-a5e8ad198ec0ef3c5777633fcf11cc8c/USER", "SingleElectron_Run2012C-TOPElePlusJets-PromptSkim", "GR_P_V41_AN3"],
+    ["/SingleElectron/sbrochet-SingleElectron_Run2012C-EcalRecover_11Dec2012_08Jan13-v1-6731ea81b41c97e5dbdd3f3a8362a0ec/USER", "SingleElectron_Run2012C-EcalRecover-11Dec2012", "FT_P_V42C_AN3"],
     ["/SingleElectron/sbrochet-SingleElectron_Run2012D-TOPElePlusJets-PromptSkim_22Nov12-v1-ba18d001f77ddfaed5a189360146b128/USER", "SingleElectron_Run2012D-TOPElePlusJets-PromptSkim", "GR_P_V42_AN3"],
     ["/SingleElectron/sbrochet-SingleElectron_Run2012D-TOPElePlusJets-PromptSkim_03Jan13-v1-f93de0db34ee1c59360dcf3ada80214e/USER", "SingleElectron_Run2012D-TOPElePlusJets-PromptSkim_part2", "GR_P_V42_AN3"],
 
