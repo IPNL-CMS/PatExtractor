@@ -2,7 +2,7 @@
 
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 
-#define DEBUG false
+#define DEBUG true
 
 JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met_name, const edm::InputTag& tag, const edm::InputTag& metTag,
     bool doJetTree, bool doMETTree, bool correctJets, const std::string& jetCorrectorLabel, bool redoTypeI)
@@ -176,6 +176,26 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
     extractRawJets(p_jets);
   }
 
+  edm::Handle<pat::METCollection> metHandle;
+  event.getByLabel(m_metTag, metHandle);
+  pat::MET MET = (*metHandle).at(0);
+
+  // If we are redoing jet correction, or if the user forces it, recompute TypeI MEt corrections
+  if (mCorrectJets || mRedoTypeI) {
+    // Raw MET
+    edm::Handle<pat::METCollection> rawMetHandle;
+    event.getByLabel("patPFMetPFlow", rawMetHandle);
+
+    if (rawMetHandle.isValid()) {
+      const pat::MET& rawMet = rawMetHandle->back();
+      correctMETWithTypeI(rawMet, MET, p_jets);
+    }
+  }
+
+  //do Jets MET resolution corrections
+  if (m_MC)
+    correctJetsMETresolution(p_jets, MET);
+
   for (unsigned int i = 0; i < p_jets.size(); ++i)
   {
     const pat::Jet& rawJet = *(p_jets.at(i).userData<pat::Jet>("rawJet"));
@@ -199,21 +219,7 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
     m_size++;
   }
 
-  edm::Handle<pat::METCollection> metHandle;
-  event.getByLabel(m_metTag, metHandle);
-  pat::MET MET = (*metHandle).at(0);
-
-  // If we are redoing jet correction, or if the user forces it, recompute TypeI MEt corrections
-  if (mCorrectJets || mRedoTypeI) {
-    // Raw MET
-    edm::Handle<pat::METCollection> rawMetHandle;
-    event.getByLabel("patPFMetPFlow", rawMetHandle);
-
-    if (rawMetHandle.isValid()) {
-      const pat::MET& rawMet = rawMetHandle->back();
-      correctMETWithTypeI(rawMet, MET, p_jets);
-    }
-  }
+  
 
   writeInfo(event, iSetup, MET, 0);
 
@@ -356,6 +362,81 @@ void JetMETExtractor::correctJets(pat::JetCollection& jets, const edm::Event& iE
   // Sort collection by pt
   std::sort(jets.begin(), jets.end(), mSorter);
 }
+
+
+//from https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution
+
+double JetMETExtractor::GetResCorrFactor(const pat::Jet& jet){
+
+  if       ( jet.eta() > 0.  || jet.eta() <= 0.5 ) return 1.052;
+  else if  ( jet.eta() > 0.5 || jet.eta() <= 1.1 ) return 1.057;
+  else if  ( jet.eta() > 1.1 || jet.eta() <= 1.7 ) return 1.096;
+  else if  ( jet.eta() > 1.7 || jet.eta() <= 2.3 ) return 1.134;
+  else if  ( jet.eta() > 2.3 || jet.eta() <= 5.0 ) return 1.288;
+  else return 1;
+
+}
+
+
+void JetMETExtractor::correctJetsMETresolution(pat::JetCollection& jets, pat::MET& met) {
+  
+  double correctedMetPx = met.px(); 
+  double correctedMetPy = met.py(); 
+  // Correct jets
+  for (pat::JetCollection::iterator it = jets.begin(); it != jets.end(); ++it)  {
+    pat::Jet& jet = *it;
+
+    if (jet.pt() > 10) {
+
+      const pat::Jet* rawJet = jet.userData<pat::Jet>("rawJet");
+
+#if DEBUG
+      std::cout << "---" << std::endl;
+      std::cout << "Pt: " << jet.pt() << std::endl;
+#endif
+
+      // resolution corection as in https://twiki.cern.ch/twiki/bin/view/CMS/TWikiTopRefSyst#Jet_energy_resolution
+      
+      if (jet.genJet() == NULL)
+        continue;
+
+      double genjet_pt = jet.genJet()->pt();
+      double jet_pt = jet.pt();
+      double rescorr = GetResCorrFactor(jet);
+      double deltapt = (jet_pt - genjet_pt) * rescorr; 
+      double scalefac = (jet_pt + deltapt)/jet_pt;
+      if ( scalefac <=0 ) continue;
+      
+      correctedMetPx += (rawJet->px());
+      correctedMetPy += (rawJet->py());
+
+      jet.scaleEnergy(scalefac);
+      //rawJet->scaleEnergy(ptscale); 
+
+#if DEBUG
+      std::cout << "Corrected pt: " << jet.pt() << std::endl;
+#endif
+    
+      correctedMetPx -= (rawJet->px()*scalefac);
+      correctedMetPy -= (rawJet->py()*scalefac);
+    }
+  }
+
+  
+  double correctedMetPt = sqrt(correctedMetPx * correctedMetPx + correctedMetPy * correctedMetPy);
+    
+  met.setP4(reco::Candidate::LorentzVector(correctedMetPx, correctedMetPy, 0., correctedMetPt));
+    
+
+  // Sort collection by pt
+  std::sort(jets.begin(), jets.end(), mSorter);
+}
+    
+    
+
+
+
+  
 
 void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets) {
   double deltaPx = 0., deltaPy = 0.;

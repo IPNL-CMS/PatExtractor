@@ -114,6 +114,10 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
 
     void correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets);
     void correctJets(pat::JetCollection& jets, const edm::Event& iEvent, const edm::EventSetup& iSetup);
+
+    void correctJetsMETresolution(pat::JetCollection& jets, pat::MET& met);
+    double GetResCorrFactor(const pat::Jet& jet);
+
     void extractRawJets(pat::JetCollection& jets);
 
   private:
