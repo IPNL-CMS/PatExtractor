@@ -121,16 +121,16 @@ for dataset in datasets:
   output_file = "multicrab_MC_%s_%s.cfg" % (dataset_name, d)
 
   output_dir_semie = ("MTT/Extracted/MC/Summer12/%s/semie/%s" % (d, dataset_name))
-  output_dir_semimu = ("Extracted_step2/MC/Summer12/%s/semimu/%s" % (d, dataset_name)) # private prod do not commit that change
+  output_dir_semimu = ("MTT/Extracted/MC/Summer12/%s/semimu/%s" % (d, dataset_name))
 
-  full_template = copy.copy(multicrab) #private prod without semie do not commit that change
- ##  if "EMEnriched" in dataset_path:
-##     full_template.template += multicrab_semie
-##   elif "MuEnriched" in dataset_path:
-##     full_template.template += multicrab_semimu
-##   else:
-##     full_template.template += multicrab_semie
-  full_template.template += multicrab_semimu
+  full_template = copy.copy(multicrab)
+  if "EMEnriched" in dataset_path:
+    full_template.template += multicrab_semie
+  elif "MuEnriched" in dataset_path:
+    full_template.template += multicrab_semimu
+  else:
+    full_template.template += multicrab_semie
+    full_template.template += multicrab_semimu
 
   print("Creating config file for '%s'" % (dataset_path))
   print("\tName: %s" % dataset_name)
