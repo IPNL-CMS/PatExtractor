@@ -2,7 +2,7 @@
 
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 
-#define DEBUG true
+#define DEBUG false
 
 JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met_name, const edm::InputTag& tag, const edm::InputTag& metTag,
     bool doJetTree, bool doMETTree, bool correctJets, const std::string& jetCorrectorLabel, bool redoTypeI)
@@ -432,11 +432,6 @@ void JetMETExtractor::correctJetsMETresolution(pat::JetCollection& jets, pat::ME
   std::sort(jets.begin(), jets.end(), mSorter);
 }
     
-    
-
-
-
-  
 
 void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets) {
   double deltaPx = 0., deltaPy = 0.;
