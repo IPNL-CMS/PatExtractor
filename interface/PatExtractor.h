@@ -82,6 +82,7 @@ class PatExtractor : public edm::EDAnalyzer {
 
   bool do_Jet_;
   bool correctJets_;
+  bool correctSysShiftMet_;
   std::string jetCorrectorLabel_;
   bool redoTypeI_;
 

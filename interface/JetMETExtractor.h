@@ -36,8 +36,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
 
   public:
 
-    JetMETExtractor(const std::string& name, const std::string& met_name, const edm::InputTag& tag, const edm::InputTag& metTag,
-        bool doJetTree, bool doMETTree, bool correctJets, const std::string& jetCorrectorLabel, bool redoTypeI);
+    JetMETExtractor(const std::string& name, const std::string& met_name, const edm::InputTag& tag, const edm::InputTag& metTag, bool doJetTree, bool doMETTree, bool correctJets, bool correctSysShiftMet, const std::string& jetCorrectorLabel, bool redoTypeI);
     JetMETExtractor(const std::string& name, const std::string& met_name, TFile *a_file);
     virtual ~JetMETExtractor();
 
@@ -115,8 +114,13 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     void correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets);
     void correctJets(pat::JetCollection& jets, const edm::Event& iEvent, const edm::EventSetup& iSetup);
 
+    double getResCorrFactor(const pat::Jet& jet);
     void correctJetsMETresolution(pat::JetCollection& jets, pat::MET& met);
-    double GetResCorrFactor(const pat::Jet& jet);
+
+    double getSysShifCorrFactorX(const int Nvtx);
+    double getSysShifCorrFactorY(const int Nvtx);
+    void correctMETWithSysShift(const edm::Event& event, pat::MET& met);
+
 
     void extractRawJets(pat::JetCollection& jets);
 
@@ -125,6 +129,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     TTree* m_tree_jet;
 
     bool mCorrectJets;
+    bool mCorrectSysShiftMet;
     std::string mJetCorrectorLabel;
     GreaterByPt<pat::Jet> mSorter;
     bool mRedoTypeI;

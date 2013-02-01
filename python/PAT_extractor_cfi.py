@@ -77,6 +77,7 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
 
    # Jets correction : needs a valid global tags, or an external DB where JEC are stored
    correctJets        = cms.untracked.bool(False),
+   correctSysShiftMet = cms.untracked.bool(False),
    jetCorrectorLabel  = cms.untracked.string("ak5PFchsL1FastL2L3"), # Use "ak5PFchsL1FastL2L3" for MC and "ak5PFchsL1FastL2L3Residual" for Data
    redoTypeIMET       = cms.untracked.bool(False),
 

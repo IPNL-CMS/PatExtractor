@@ -31,7 +31,7 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
   process.load("Extractors.PatExtractor.PAT_extractor_cff")
 
   process.maxEvents = cms.untracked.PSet(
-      input = cms.untracked.int32(20000) #
+      input = cms.untracked.int32(10) #
       )
 
   #Global tag and data type choice
@@ -90,6 +90,8 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
 
   # Jets correction : needs a valid global tags, or an external DB where JEC are stored
   process.PATextraction.correctJets       = True
+
+  process.PATextraction.correctSysShiftMet       = True
 
   if isMC:
     process.PATextraction.jetCorrectorLabel = "ak5PFchsL1FastL2L3"

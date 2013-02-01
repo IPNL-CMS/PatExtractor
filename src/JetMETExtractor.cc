@@ -2,16 +2,18 @@
 
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 
+#include <DataFormats/VertexReco/interface/Vertex.h>
+
 #define DEBUG false
 
-JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met_name, const edm::InputTag& tag, const edm::InputTag& metTag,
-    bool doJetTree, bool doMETTree, bool correctJets, const std::string& jetCorrectorLabel, bool redoTypeI)
+JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met_name, const edm::InputTag& tag, const edm::InputTag& metTag, bool doJetTree, bool doMETTree, bool correctJets, bool correctSysShiftMet, const std::string& jetCorrectorLabel, bool redoTypeI)
 : BaseExtractor(name)
 {
   m_tag = tag;
   m_metTag = metTag;
 
   mCorrectJets = correctJets;
+  mCorrectSysShiftMet = correctSysShiftMet;
   mJetCorrectorLabel = jetCorrectorLabel;
   mRedoTypeI = redoTypeI;
 
@@ -196,6 +198,12 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
   if (m_MC)
     correctJetsMETresolution(p_jets, MET);
 
+
+  //do MET SysShift corrections
+  if (mCorrectSysShiftMet)
+    correctMETWithSysShift(event, MET);
+
+
   for (unsigned int i = 0; i < p_jets.size(); ++i)
   {
     const pat::Jet& rawJet = *(p_jets.at(i).userData<pat::Jet>("rawJet"));
@@ -366,7 +374,7 @@ void JetMETExtractor::correctJets(pat::JetCollection& jets, const edm::Event& iE
 
 //from https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution
 
-double JetMETExtractor::GetResCorrFactor(const pat::Jet& jet){
+double JetMETExtractor::getResCorrFactor(const pat::Jet& jet){
 
   if       ( jet.eta() > 0.  || jet.eta() <= 0.5 ) return 1.052;
   else if  ( jet.eta() > 0.5 || jet.eta() <= 1.1 ) return 1.057;
@@ -402,7 +410,7 @@ void JetMETExtractor::correctJetsMETresolution(pat::JetCollection& jets, pat::ME
 
       double genjet_pt = jet.genJet()->pt();
       double jet_pt = jet.pt();
-      double rescorr = GetResCorrFactor(jet);
+      double rescorr = getResCorrFactor(jet);
       double deltapt = (jet_pt - genjet_pt) * rescorr; 
       double scalefac = (jet_pt + deltapt)/jet_pt;
       if ( scalefac <=0 ) continue;
@@ -483,6 +491,57 @@ void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met,
     std::cout << "Handmade corrected MET et: " << met.et() << std::endl;
 #endif
 }
+
+
+//from JetMETCorrections/Type1MET/python/pfMETsysShiftCorrections_cfi, check updates
+double JetMETExtractor::getSysShifCorrFactorX(const int Nvtx){
+  if (m_isMC) return -(+0.1166 + 0.0200*Nvtx);
+  else        return -(+0.2661 + 0.3217*Nvtx);
+}
+
+double JetMETExtractor::getSysShifCorrFactorY(const int Nvtx){
+  if (m_isMC) return -(+0.2764 - 0.1280*Nvtx);
+  else        return -(-0.2251 - 0.1747*Nvtx);
+}
+
+void JetMETExtractor::correctMETWithSysShift(const edm::Event& event, pat::MET& met) {
+
+  edm::Handle<reco::VertexCollection>  vertexHandle;
+  event.getByLabel("goodOfflinePrimaryVertices", vertexHandle);
+  reco::VertexCollection vertices = *vertexHandle;
+
+  int Nvtx=0;
+  for (reco::VertexCollection::iterator it = vertices.begin(); it != vertices.end(); ++it)  {
+    reco::Vertex& vertex= *it;
+    //cut = cms.string("isValid & ndof >= 4 & chi2 > 0 & tracksSize > 0 & abs(z) < 24 & abs(position.Rho) < 2."),
+    if ( ! vertex.isValid() )  continue;
+    if ( vertex.ndof() <  4 ) continue;
+    if ( vertex.chi2() <= 0 ) continue;
+    if ( vertex.tracksSize() <= 0 ) continue;
+    if ( fabs(vertex.z())   >= 24 ) continue;
+    if ( fabs(vertex.position().Rho()) >= 2 ) continue;
+
+    Nvtx++;
+  }
+
+
+#if DEBUG
+    std::cout << "MET et without SysShift corrections: " << met.et() << std::endl;
+#endif
+
+  double correctedMetPx = met.px() + getSysShifCorrFactorX(Nvtx);
+  double correctedMetPy = met.py() + getSysShifCorrFactorY(Nvtx);
+  double correctedMetPt = sqrt(correctedMetPx * correctedMetPx + correctedMetPy * correctedMetPy);
+
+  met.setP4(reco::Candidate::LorentzVector(correctedMetPx, correctedMetPy, 0., correctedMetPt));
+
+#if DEBUG
+    std::cout << "MET et with SysShift corrections: " << met.et() << std::endl;
+#endif
+
+}
+
+
 
 void JetMETExtractor::extractRawJets(pat::JetCollection& jets) {
 
