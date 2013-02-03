@@ -72,9 +72,9 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
 
   process.PATextraction.doMET      = True
   if useShiftCorrectedMET:
-    process.PATextraction.met_tag  = cms.InputTag("patMETsShiftCorrPFlow")
+    process.PATextraction.MET_PF.input = cms.InputTag("patMETsShiftCorrPFlow")
   else:
-    process.PATextraction.met_tag  = cms.InputTag("patMETsPFlow")
+    process.PATextraction.MET_PF.input  = cms.InputTag("patMETsPFlow")
 
   process.PATextraction.doVertex   = True
   process.PATextraction.vtx_tag    = cms.InputTag( "goodOfflinePrimaryVertices" )
@@ -89,16 +89,15 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
   process.PATextraction.doMtt      = True
 
   # Jets correction : needs a valid global tags, or an external DB where JEC are stored
-  process.PATextraction.correctJets       = True
-
-  process.PATextraction.correctSysShiftMet       = True
+  process.PATextraction.jet_PF.redoJetCorrection = True
 
   if isMC:
-    process.PATextraction.jetCorrectorLabel = "ak5PFchsL1FastL2L3"
+    process.PATextraction.jet_PF.jetCorrectorLabel = "ak5PFchsL1FastL2L3"
   else:
-    process.PATextraction.jetCorrectorLabel = "ak5PFchsL1FastL2L3Residual"
+    process.PATextraction.jet_PF.jetCorrectorLabel = "ak5PFchsL1FastL2L3Residual"
 
-  process.PATextraction.redoTypeIMET      = False
+  process.PATextraction.MET_PF.redoMetPhiCorrection   = True
+  process.PATextraction.MET_PF.redoMetTypeICorrection = False
 
   # Analysis cuts
   import sys

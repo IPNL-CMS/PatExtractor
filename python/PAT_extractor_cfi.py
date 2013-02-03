@@ -73,17 +73,22 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
 
    # Add Jet information
    doJet         = cms.untracked.bool(False),
-   jet_tag       = cms.InputTag( "selectedPatJetsPFlow" ),
+   jet_PF        = cms.PSet(
+       input              = cms.InputTag("selectedPatJetsPFlow"),
 
-   # Jets correction : needs a valid global tags, or an external DB where JEC are stored
-   correctJets        = cms.untracked.bool(False),
-   correctSysShiftMet = cms.untracked.bool(False),
-   jetCorrectorLabel  = cms.untracked.string("ak5PFchsL1FastL2L3"), # Use "ak5PFchsL1FastL2L3" for MC and "ak5PFchsL1FastL2L3Residual" for Data
-   redoTypeIMET       = cms.untracked.bool(False),
+       # Jets correction : needs a valid global tags, or an external DB where JEC are stored
+       redoJetCorrection  = cms.untracked.bool(False),
+       jetCorrectorLabel  = cms.string("ak5PFchsL1FastL2L3"), # Use "ak5PFchsL1FastL2L3" for MC and "ak5PFchsL1FastL2L3Residual" for Data
+   ),
 
    # Add MET information
    doMET         = cms.untracked.bool(False),
-   met_tag       = cms.InputTag( "patMETsPFlow" ),
+   MET_PF        = cms.PSet(
+       input                  = cms.InputTag("patMETsPFlow"),
+
+       redoMetPhiCorrection   = cms.untracked.bool(False),
+       redoMetTypeICorrection = cms.untracked.bool(False),
+   ),
 
    # Add PV information
    doVertex      = cms.untracked.bool(False),

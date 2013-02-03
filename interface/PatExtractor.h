@@ -81,11 +81,6 @@ class PatExtractor : public edm::EDAnalyzer {
   bool do_Electron_;
 
   bool do_Jet_;
-  bool correctJets_;
-  bool correctSysShiftMet_;
-  std::string jetCorrectorLabel_;
-  bool redoTypeI_;
-
   bool do_Muon_;
   bool do_MET_;
   bool do_Vertex_;
@@ -98,9 +93,7 @@ class PatExtractor : public edm::EDAnalyzer {
 
   edm::InputTag photon_tag_;   // 
   edm::InputTag electron_tag_; // 
-  edm::InputTag jet_tag_;      // 
   edm::InputTag muon_tag_;     // 
-  edm::InputTag met_tag_;      // 
   edm::InputTag MC_tag_;       // 
   edm::InputTag vtx_tag_;      // 
   edm::InputTag trk_tag_;      // 

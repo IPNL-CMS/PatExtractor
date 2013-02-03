@@ -36,7 +36,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
 
   public:
 
-    JetMETExtractor(const std::string& name, const std::string& met_name, const edm::InputTag& tag, const edm::InputTag& metTag, bool doJetTree, bool doMETTree, bool correctJets, bool correctSysShiftMet, const std::string& jetCorrectorLabel, bool redoTypeI);
+    JetMETExtractor(const std::string& name, const std::string& met_name, const edm::ParameterSet& config);
     JetMETExtractor(const std::string& name, const std::string& met_name, TFile *a_file);
     virtual ~JetMETExtractor();
 
@@ -133,6 +133,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     std::string mJetCorrectorLabel;
     GreaterByPt<pat::Jet> mSorter;
     bool mRedoTypeI;
+    bool mDoJER;
 
     static const int 	m_jets_MAX       = 200;
 

@@ -2,20 +2,33 @@
 
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 
+#include <FWCore/ParameterSet/interface/ParameterSet.h>
 #include <DataFormats/VertexReco/interface/Vertex.h>
 
 #define DEBUG false
 
-JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met_name, const edm::InputTag& tag, const edm::InputTag& metTag, bool doJetTree, bool doMETTree, bool correctJets, bool correctSysShiftMet, const std::string& jetCorrectorLabel, bool redoTypeI)
+JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met_name, const edm::ParameterSet& config)
 : BaseExtractor(name)
 {
-  m_tag = tag;
-  m_metTag = metTag;
+  if (! config.exists(name))
+    throw edm::Exception(edm::errors::ConfigFileReadError) << "No edm::ParameterSet named " << name << " found";
 
-  mCorrectJets = correctJets;
-  mCorrectSysShiftMet = correctSysShiftMet;
-  mJetCorrectorLabel = jetCorrectorLabel;
-  mRedoTypeI = redoTypeI;
+  if (! config.exists(met_name))
+    throw edm::Exception(edm::errors::ConfigFileReadError) << "No edm::ParameterSet named " << met_name << " found";
+
+  const edm::ParameterSet& jetConfig = config.getParameter<edm::ParameterSet>(name);
+  const edm::ParameterSet& metConfig = config.getParameter<edm::ParameterSet>(met_name);
+
+  m_tag = jetConfig.getParameter<edm::InputTag>("input");
+  m_metTag = metConfig.getParameter<edm::InputTag>("input"); 
+
+  mCorrectJets = jetConfig.getUntrackedParameter<bool>("redoJetCorrection", false);
+  if (mCorrectJets)
+    mJetCorrectorLabel = jetConfig.getParameter<std::string>("jetCorrectorLabel");
+  mDoJER = jetConfig.getUntrackedParameter<bool>("doJER", true);
+
+  mCorrectSysShiftMet = metConfig.getUntrackedParameter<bool>("redoMetPhiCorrection", false);
+  mRedoTypeI  = metConfig.getUntrackedParameter<bool>("redoMetTypeICorrection", false);
 
   // Set everything to 0
   m_jet_lorentzvector = new TClonesArray("TLorentzVector");
@@ -26,42 +39,37 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   // Tree definition
 
   m_tree_jet = NULL;
-  if (doJetTree)
-  {
-    m_tree_jet     = new TTree(name.c_str(), "PAT PF jet info");  
-    m_tree_jet->Branch("n_jets",  &m_size,   "n_jets/I");  
-    m_tree_jet->Branch("jet_4vector","TClonesArray",&m_jet_lorentzvector, 5000, 0);
-    m_tree_jet->Branch("jet_vx",  &m_jet_vx,   "jet_vx[n_jets]/F");  
-    m_tree_jet->Branch("jet_vy",  &m_jet_vy,   "jet_vy[n_jets]/F");  
-    m_tree_jet->Branch("jet_vz",  &m_jet_vz,   "jet_vz[n_jets]/F"); 
-    m_tree_jet->Branch("jet_chmult",        &m_jet_chmult,       "jet_chmult[n_jets]/I");
-    m_tree_jet->Branch("jet_chmuEfrac",     &m_jet_chmuEfrac,    "jet_chmuEfrac[n_jets]/F");
-    m_tree_jet->Branch("jet_chemEfrac",     &m_jet_chemEfrac,    "jet_chemEfrac[n_jets]/F");
-    m_tree_jet->Branch("jet_chhadEfrac",    &m_jet_chhadEfrac,   "jet_chhadEfrac[n_jets]/F");
-    m_tree_jet->Branch("jet_nemEfrac",      &m_jet_nemEfrac,     "jet_nemEfrac[n_jets]/F");
-    m_tree_jet->Branch("jet_nhadEfrac",     &m_jet_nhadEfrac,    "jet_nhadEfrac[n_jets]/F");
+  m_tree_jet     = new TTree(name.c_str(), "PAT PF jet info");  
+  m_tree_jet->Branch("n_jets",  &m_size,   "n_jets/I");  
+  m_tree_jet->Branch("jet_4vector","TClonesArray",&m_jet_lorentzvector, 5000, 0);
+  m_tree_jet->Branch("jet_vx",  &m_jet_vx,   "jet_vx[n_jets]/F");  
+  m_tree_jet->Branch("jet_vy",  &m_jet_vy,   "jet_vy[n_jets]/F");  
+  m_tree_jet->Branch("jet_vz",  &m_jet_vz,   "jet_vz[n_jets]/F"); 
+  m_tree_jet->Branch("jet_chmult",        &m_jet_chmult,       "jet_chmult[n_jets]/I");
+  m_tree_jet->Branch("jet_chmuEfrac",     &m_jet_chmuEfrac,    "jet_chmuEfrac[n_jets]/F");
+  m_tree_jet->Branch("jet_chemEfrac",     &m_jet_chemEfrac,    "jet_chemEfrac[n_jets]/F");
+  m_tree_jet->Branch("jet_chhadEfrac",    &m_jet_chhadEfrac,   "jet_chhadEfrac[n_jets]/F");
+  m_tree_jet->Branch("jet_nemEfrac",      &m_jet_nemEfrac,     "jet_nemEfrac[n_jets]/F");
+  m_tree_jet->Branch("jet_nhadEfrac",     &m_jet_nhadEfrac,    "jet_nhadEfrac[n_jets]/F");
 
-    // 2012 b-tag algo
-    m_tree_jet->Branch("jet_btag_jetProb",  &m_jet_btag_jetProb, "jet_btag_jetProb[n_jets]/F");
-    m_tree_jet->Branch("jet_btag_TCHP",    &m_jet_btag_TCHP,   "jet_btag_TCHP[n_jets]/F");
-    m_tree_jet->Branch("jet_btag_CSV",    &m_jet_btag_CSV,   "jet_btag_CSV[n_jets]/F");
+  // 2012 b-tag algo
+  m_tree_jet->Branch("jet_btag_jetProb",  &m_jet_btag_jetProb, "jet_btag_jetProb[n_jets]/F");
+  m_tree_jet->Branch("jet_btag_TCHP",    &m_jet_btag_TCHP,   "jet_btag_TCHP[n_jets]/F");
+  m_tree_jet->Branch("jet_btag_CSV",    &m_jet_btag_CSV,   "jet_btag_CSV[n_jets]/F");
 
-    //m_tree_jet->Branch("jet_btag_BjetProb", &m_jet_btag_BjetProb,"jet_btag_BjetProb[n_jets]/F");
-    //m_tree_jet->Branch("jet_btag_SSVHE",    &m_jet_btag_SSVHE,   "jet_btag_SSVHE[n_jets]/F");
-    //m_tree_jet->Branch("jet_btag_SSVHP",    &m_jet_btag_SSVHP,   "jet_btag_SSVHP[n_jets]/F");
-    //m_tree_jet->Branch("jet_btag_TCHE",    &m_jet_btag_TCHE,   "jet_btag_TCHE[n_jets]/F");
-    m_tree_jet->Branch("jet_mcParticleIndex",&m_jet_MCIndex,"jet_mcParticleIndex[n_jets]/I");
-  }
+  //m_tree_jet->Branch("jet_btag_BjetProb", &m_jet_btag_BjetProb,"jet_btag_BjetProb[n_jets]/F");
+  //m_tree_jet->Branch("jet_btag_SSVHE",    &m_jet_btag_SSVHE,   "jet_btag_SSVHE[n_jets]/F");
+  //m_tree_jet->Branch("jet_btag_SSVHP",    &m_jet_btag_SSVHP,   "jet_btag_SSVHP[n_jets]/F");
+  //m_tree_jet->Branch("jet_btag_TCHE",    &m_jet_btag_TCHE,   "jet_btag_TCHE[n_jets]/F");
+  m_tree_jet->Branch("jet_mcParticleIndex",&m_jet_MCIndex,"jet_mcParticleIndex[n_jets]/I");
 
   m_tree_met = NULL;
-  if (doMETTree) {
-    m_tree_met      = new TTree(met_name.c_str(), "PAT PF MET info");  
-    m_tree_met->Branch("met_4vector","TClonesArray",&m_met_lorentzvector, 1000, 0);
-  }
+  m_tree_met      = new TTree(met_name.c_str(), "PAT PF MET info");  
+  m_tree_met->Branch("met_4vector","TClonesArray",&m_met_lorentzvector, 1000, 0);
 }
 
 
-  JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met_name, TFile *a_file)
+JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met_name, TFile *a_file)
 : BaseExtractor(name)
 {
   std::cout << "JetMETExtractor objet is retrieved" << std::endl;
@@ -195,9 +203,8 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
   }
 
   //do Jets MET resolution corrections
-  if (m_MC)
+  if (m_MC && mDoJER)
     correctJetsMETresolution(p_jets, MET);
-
 
   //do MET SysShift corrections
   if (mCorrectSysShiftMet)

@@ -12,11 +12,6 @@ PatExtractor::PatExtractor(const edm::ParameterSet& config) :
   do_Electron_   (config.getUntrackedParameter<bool>("doElectron", false)),
 
   do_Jet_        (config.getUntrackedParameter<bool>("doJet", false)),
-  correctJets_  (config.getUntrackedParameter<bool>("correctJets", false)),
-  correctSysShiftMet_  (config.getUntrackedParameter<bool>("correctSysShiftMet", false)),
-  jetCorrectorLabel_(config.getUntrackedParameter<std::string>("jetCorrectorLabel", "ak5PFchsL1FastL2L3")),
-  redoTypeI_     (config.getUntrackedParameter<bool>("redoTypeIMET", false)),
-
   do_Muon_       (config.getUntrackedParameter<bool>("doMuon", false)),
   do_MET_        (config.getUntrackedParameter<bool>("doMET", false)),
   do_Vertex_     (config.getUntrackedParameter<bool>("doVertex", false)),
@@ -28,9 +23,7 @@ PatExtractor::PatExtractor(const edm::ParameterSet& config) :
 
   photon_tag_    (config.getParameter<edm::InputTag>("photon_tag")),
   electron_tag_  (config.getParameter<edm::InputTag>("electron_tag")),
-  jet_tag_       (config.getParameter<edm::InputTag>("jet_tag")),
   muon_tag_      (config.getParameter<edm::InputTag>("muon_tag")),
-  met_tag_       (config.getParameter<edm::InputTag>("met_tag")),
   MC_tag_        (config.getParameter<edm::InputTag>("MC_tag")),
   vtx_tag_       (config.getParameter<edm::InputTag>("vtx_tag")),
   trk_tag_       (config.getParameter<edm::InputTag>("trk_tag")),
@@ -237,7 +230,7 @@ void PatExtractor::initialize(const edm::ParameterSet& config)
     addExtractor("muons", new MuonExtractor("muon_PF", muon_tag_, vtx_tag_, do_Muon_));
 
   if (do_Jet_ || do_MET_)
-    addExtractor("JetMET", new JetMETExtractor("jet_PF", "MET_PF", jet_tag_, met_tag_, do_Jet_, do_MET_, correctJets_, correctSysShiftMet_, jetCorrectorLabel_, redoTypeI_));
+    addExtractor("JetMET", new JetMETExtractor("jet_PF", "MET_PF", config));
 
   if (do_Photon_)
     addExtractor("photons", new PhotonExtractor("photon", photon_tag_, do_Photon_));
