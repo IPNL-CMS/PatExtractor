@@ -134,6 +134,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     GreaterByPt<pat::Jet> mSorter;
     bool mRedoTypeI;
     bool mDoJER;
+    int  mJERSign;
 
     static const int 	m_jets_MAX       = 200;
 

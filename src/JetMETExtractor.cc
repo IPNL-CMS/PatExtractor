@@ -26,9 +26,24 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   if (mCorrectJets)
     mJetCorrectorLabel = jetConfig.getParameter<std::string>("jetCorrectorLabel");
   mDoJER = jetConfig.getUntrackedParameter<bool>("doJER", true);
+  mJERSign = 0;
+  if (mDoJER) {
+    mJERSign = jetConfig.getUntrackedParameter<int>("jerSign", 0);
+  }
+
+  if (mJERSign != 0 && mJERSign != -1 && mJERSign != 1)
+    throw edm::Exception(edm::errors::LogicError) << "jerSign must be 0 for nominal correction, -1 for 1-sigma down correction, or 1 for 1-sigma up correction";
 
   mCorrectSysShiftMet = metConfig.getUntrackedParameter<bool>("redoMetPhiCorrection", false);
   mRedoTypeI  = metConfig.getUntrackedParameter<bool>("redoMetTypeICorrection", false);
+
+#if DEBUG
+  std::cout << "##########" << std::endl;
+  std::cout << "JetMET extractor summary" << std::endl;
+  std::cout << "Jet name: " << name << "; MET name: " << met_name << std::endl;
+  std::cout << "Redo JEC: " << mCorrectJets << ((mCorrectJets) ? ("; " + mJetCorrectorLabel) : "") << std::endl;
+  std::cout << "Do JER: " << mDoJER << "; JER sign: " << mJERSign << std::endl;
+#endif
 
   // Set everything to 0
   m_jet_lorentzvector = new TClonesArray("TLorentzVector");
@@ -378,20 +393,32 @@ void JetMETExtractor::correctJets(pat::JetCollection& jets, const edm::Event& iE
   std::sort(jets.begin(), jets.end(), mSorter);
 }
 
-
 //from https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution
 
-double JetMETExtractor::getResCorrFactor(const pat::Jet& jet){
+double JetMETExtractor::getResCorrFactor(const pat::Jet& jet) {
 
-  if       ( jet.eta() > 0.  || jet.eta() <= 0.5 ) return 1.052;
-  else if  ( jet.eta() > 0.5 || jet.eta() <= 1.1 ) return 1.057;
-  else if  ( jet.eta() > 1.1 || jet.eta() <= 1.7 ) return 1.096;
-  else if  ( jet.eta() > 1.7 || jet.eta() <= 2.3 ) return 1.134;
-  else if  ( jet.eta() > 2.3 || jet.eta() <= 5.0 ) return 1.288;
-  else return 1;
+  double factor = 0.;
+  double error  = 0.;
 
+  if (jet.eta() > 0. || jet.eta() <= 0.5) {
+    factor = 1.052;
+    error = (mJERSign == 1) ? 0.062 : 0.061;
+  } else if (jet.eta() > 0.5 || jet.eta() <= 1.1) {
+    factor = 1.057;
+    error = (mJERSign == 1) ? 0.056 : 0.055;
+  } else if (jet.eta() > 1.1 || jet.eta() <= 1.7) {
+    factor = 1.096;
+    error = (mJERSign == 1) ? 0.063 : 0.062;
+  } else if (jet.eta() > 1.7 || jet.eta() <= 2.3) {
+    factor = 1.134;
+    error = (mJERSign == 1) ? 0.087 : 0.085;
+  } else if (jet.eta() > 2.3 || jet.eta() <= 5.0) {
+    factor = 1.288;
+    error = (mJERSign == 1) ? 0.155 : 0.153;
+  }
+
+  return factor + mJERSign * error;
 }
-
 
 void JetMETExtractor::correctJetsMETresolution(pat::JetCollection& jets, pat::MET& met) {
   
