@@ -13,6 +13,8 @@
 #include <fstream>
 #include <string>
 
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+
 #include <memory> // for std::shared_ptr
 #include <cstdint>
 
@@ -36,7 +38,7 @@ class KinFit
 public:
   
 
-  KinFit(const std::string& ParamsFile, AnalysisSettings* settings);
+  KinFit(const std::string& ParamsFile, const edm::ParameterSet& settings);
   virtual ~KinFit();
   
   double Chi2();

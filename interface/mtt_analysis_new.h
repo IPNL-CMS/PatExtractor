@@ -40,7 +40,8 @@ namespace edm {
 
 enum class SystematicsSign {
   UP,
-  DOWN
+  DOWN,
+  NOMINAL
 };
 
 class mtt_analysis_new {
@@ -82,62 +83,46 @@ public:
 
   bool isBJet(unsigned int index) {
     // Use recommanded WP from https://indico.cern.ch/getFile.py/access?contribId=4&resId=2&materialId=slides&confId=195042
-    return m_jetMet->getJetBTagProb_CSV(index) > m_JET_btag_CSVM_min;
+    return m_jetMet->getJetBTagProb_CSV(index) > m_JET_btag_CSVM;
   }
 
 private:
 
   bool   m_MAIN_doUseBTag;
-  bool   m_MAIN_doKF;
-  bool   m_MAIN_doSyst;
+  //bool   m_MAIN_doKF;
   SystematicsSign m_MAIN_systSign;
   bool   m_MAIN_doSemiMu;
 
   TTree*  m_tree_Mtt;
   KinFit* m_KinFit;
-  float  m_w;
-  float  m_b;
-  float  m_t;
-  float  m_we;
-  float  m_te;
 
   std::shared_ptr<EventExtractor> m_event;
   std::shared_ptr<MCExtractor>    m_MC;
 
   std::shared_ptr<VertexExtractor> m_vertex;
-  float m_VTX_NDof_Min;
 
   //std::shared_ptr<METExtractor>   m_MET;
   float          m_MET_Pt_Min;
 
   std::shared_ptr<MuonExtractor> m_muon;
-  float m_MU_Iso_min;
+  float m_MU_Iso_max;
   float m_MU_Pt_min;
   float m_MU_Eta_max;
-  float m_MU_normChi2_max;
-  float m_MU_nValTrackHits_min;
-  float m_MU_nMatches_min;
-  float m_MU_nValPixHits_min;
-  float m_MU_dB_min;
-  float m_MU_ePt_min;
-  float m_MU_eEta_max;
-  float m_MU_eEtaW_min;
-  float m_MU_eEtaW_max;
-  float m_MU_eIso_min;
 
   std::shared_ptr<MuonExtractor> m_muon_loose;
   float m_MU_Pt_min_loose;
   float m_MU_Eta_max_loose;
+  float m_MU_Iso_max_loose;
 
   std::shared_ptr<ElectronExtractor> m_electron;
   float m_ELE_Pt_min;
   float m_ELE_Eta_max;
-  float m_ELE_Iso_min;
-  float m_ELE_Zmass;
-  float m_ELE_Zwin;
-  float m_ELE_dB_min;
+  float m_ELE_Iso_max;
 
   std::shared_ptr<ElectronExtractor> m_electron_loose;
+  float m_ELE_Pt_min_loose;
+  float m_ELE_Eta_max_loose;
+  float m_ELE_Iso_max_loose;
 
   std::shared_ptr<JetMETExtractor> m_jetMet;
   float m_JET_Pt_min;
@@ -147,12 +132,12 @@ private:
   //float m_jet_btag_tchet_min;
   //float m_JET_btag_TCHPL_min;
   //float m_JET_btag_TCHPM_min;
-  float m_JET_btag_TCHPT_min;
+  float m_JET_btag_TCHPT;
   //float m_JET_btag_SSVHEM_min;
   //float m_JET_btag_SSVHPT_min;
-  float m_JET_btag_CSVL_min;
-  float m_JET_btag_CSVM_min;
-  float m_JET_btag_CSVT_min;
+  float m_JET_btag_CSVL;
+  float m_JET_btag_CSVM;
+  float m_JET_btag_CSVT;
 
   TLorentzVector* m_refLept;
 
@@ -209,11 +194,11 @@ private:
   int m_mtt_NumComb;
   float m_mtt_SolChi2[1000];
   float m_mtt_BestSolChi2;
-  float m_mtt_KFChi2;
+  //float m_mtt_KFChi2;
 
-  float m_mtt_AfterChi2andKF;
+  /*float m_mtt_AfterChi2andKF;
   float m_mLepTop_AfterChi2andKF;
-  float m_mHadTop_AfterChi2andKF;
+  float m_mHadTop_AfterChi2andKF;*/
 
   float m_mtt_AfterChi2;
   float m_mLepTop_AfterChi2;

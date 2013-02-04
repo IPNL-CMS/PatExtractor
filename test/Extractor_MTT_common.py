@@ -105,19 +105,77 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
   process.PATextraction.MET_PF.redoMetPhiCorrection   = True
   process.PATextraction.MET_PF.redoMetTypeICorrection = False # Automatically true if redoJetCorrection is True
 
-  # Analysis cuts
-  import sys
-  sys.path.append('.')
-  
-  if isSemiMu:
-    import Extractor_MTT_analysis_cuts_semimu as anaSettings
-  else:
-    import Extractor_MTT_analysis_cuts_semie as anaSettings
-    
-  process.PATextraction.analysisSettings = anaSettings.analysisSettings
-
   # MTT analysis configuration
   process.PATextraction.mtt = cms.PSet(
+      do_semimu = cms.bool(isSemiMu),
+      met = cms.PSet(
+        pt_min = cms.double(20)
+        ),
+
+      muons_tight = cms.PSet(
+        pt_min = cms.double(27),
+        eta_max = cms.double(2.1),
+        isolation_max = cms.double(0.12)
+        ),
+
+      muons_loose = cms.PSet(
+        pt_min = cms.double(10),
+        eta_max = cms.double(2.5),
+        isolation_max = cms.double(0.20)
+        ),
+
+      electrons_tight = cms.PSet(
+        pt_min = cms.double(30),
+        eta_max = cms.double(2.5),
+        isolation_max = cms.double(0.10)
+        ),
+
+      electrons_loose = cms.PSet(
+        pt_min = cms.double(20),
+        eta_max = cms.double(2.5),
+        isolation_max = cms.double(0.15)
+        ),
+
+      jets = cms.PSet(
+        pt_min = cms.double(30),
+        eta_max = cms.double(2.4),
+        btag_CSVL = cms.double(0.244),
+        btag_CSVM = cms.double(0.679),
+        btag_CSVT = cms.double(0.898),
+        btag_TCHPT = cms.double(3.41)
+        ),
+
+      chi2_sorting = cms.PSet(
+        w_mass = cms.double(80.399),
+        w_mass_error = cms.double(10),
+        top_mass = cms.double(172),
+        top_mass_error = cms.double(10),
+        b_mass = cms.double(4.67),
+
+        use_btagging = cms.bool(False),
+
+        hadronic_top_mass = cms.double(175.164),
+        leptonic_top_mass_semimu = cms.double(170.937),
+        leptonic_top_mass_semie = cms.double(170.875),
+        hadronic_w_mass = cms.double(84.0569),
+        pt_ttbar_system = cms.double(0),
+        ht_frac = cms.double(1),
+
+        sigma_hadronic_top_mass = cms.double(17.3484),
+        sigma_leptonic_top_mass_semimu = cms.double(17.3594),
+        sigma_leptonic_top_mass_semie = cms.double(17.2875),
+        sigma_hadronic_w_mass = cms.double(10.1166),
+        sigma_pt_ttbar_system = cms.double(56.93),
+        sigma_ht_frac = cms.double(0.151),
+
+        use_pt_syst = cms.bool(False),
+        use_ht_frac = cms.bool(False)
+        ),
+
+      systematics = cms.PSet(
+        jec = cms.string("nominal") # can be "down", "nominal" or "up"
+        ),
+
       # ------------------------------------------------
       # settings for the KinFitter
       # ------------------------------------------------    

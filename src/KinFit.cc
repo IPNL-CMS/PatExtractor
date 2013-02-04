@@ -28,37 +28,38 @@ static void MinuitFunc(int &npar, double *ddummy, double &cf, double *par, int i
 }
 
 
-KinFit::KinFit(const std::string& ParamsFile, AnalysisSettings* settings)
+KinFit::KinFit(const std::string& ParamsFile, const edm::ParameterSet& cmsswSettings)
 { 
   /// argument = parametrisation file
   /// initialisations : KFChi2 kin fit chi2 set to 10^10
   /// debug level 1 by default
+
+  m_w = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<double>("w_mass");
+  m_top = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<double>("top_mass");
+  m_b = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<double>("b_mass");
+
+  SigmMW = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<double>("w_mass_error");
+  SigmMT = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<double>("top_mass_error");
   
-  settings->getSetting("W_mass", m_w);
-  settings->getSetting("b_mass", m_b);
-  settings->getSetting("Top_mass", m_top);
-
-  settings->getSetting("W_mass_err", SigmMW);
-  settings->getSetting("Top_mass_err", SigmMT);
-
-
   // Chi2 optimal values and errors
-  settings->getSetting("chi2_hadronic_top_mass", chi2_hadronic_top_mass);
-  settings->getSetting("chi2_leptonic_top_mass_semimu", chi2_leptonic_top_mass_semimu);
-  settings->getSetting("chi2_leptonic_top_mass_semie", chi2_leptonic_top_mass_semie);
-  settings->getSetting("chi2_hadronic_w_mass", chi2_hadronic_w_mass);
-  settings->getSetting("chi2_pt_ttbar_system", chi2_pt_ttbar_system);
-  settings->getSetting("chi2_ht_frac", chi2_ht_frac);
+  chi2_hadronic_top_mass = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<double>("hadronic_top_mass");
 
-  settings->getSetting("chi2_sigma_hadronic_top_mass", chi2_sigma_hadronic_top_mass);
-  settings->getSetting("chi2_sigma_leptonic_top_mass_semimu", chi2_sigma_leptonic_top_mass_semimu);
-  settings->getSetting("chi2_sigma_leptonic_top_mass_semie", chi2_sigma_leptonic_top_mass_semie);
-  settings->getSetting("chi2_sigma_hadronic_w_mass", chi2_sigma_hadronic_w_mass);
-  settings->getSetting("chi2_sigma_pt_ttbar_system", chi2_sigma_pt_ttbar_system);
-  settings->getSetting("chi2_sigma_ht_frac", chi2_sigma_ht_frac);
+  chi2_hadronic_top_mass = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<double>("hadronic_top_mass");
+  chi2_leptonic_top_mass_semimu = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<double>("leptonic_top_mass_semimu");
+  chi2_leptonic_top_mass_semie = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<double>("leptonic_top_mass_semie");
+  chi2_hadronic_w_mass = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<double>("hadronic_w_mass");
+  chi2_pt_ttbar_system = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<double>("pt_ttbar_system");
+  chi2_ht_frac = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<double>("ht_frac");
 
-  settings->getSetting("chi2_use_pt_syst", m_usePtSystInChi2);
-  settings->getSetting("chi2_use_ht_frac", m_useHtFracInChi2);
+  chi2_sigma_hadronic_top_mass = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<double>("sigma_hadronic_top_mass");
+  chi2_sigma_leptonic_top_mass_semimu = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<double>("sigma_leptonic_top_mass_semimu");
+  chi2_sigma_leptonic_top_mass_semie = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<double>("sigma_leptonic_top_mass_semie");
+  chi2_sigma_hadronic_w_mass = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<double>("sigma_hadronic_w_mass");
+  chi2_sigma_pt_ttbar_system = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<double>("sigma_pt_ttbar_system");
+  chi2_sigma_ht_frac = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<double>("sigma_ht_frac");
+
+  m_usePtSystInChi2 = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<bool>("use_pt_syst");
+  m_useHtFracInChi2 = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<bool>("use_ht_frac");
 
   chi2_sigma_hadronic_top_mass_square = chi2_sigma_hadronic_top_mass * chi2_sigma_hadronic_top_mass;
   chi2_sigma_leptonic_top_mass_semimu_square = chi2_sigma_leptonic_top_mass_semimu * chi2_sigma_leptonic_top_mass_semimu;

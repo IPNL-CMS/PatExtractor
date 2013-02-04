@@ -108,7 +108,7 @@ mtt_analysis_new::mtt_analysis_new(const edm::ParameterSet& cmsswSettings, Analy
   m_tree_Mtt->Branch("oneMatchedCombi"    , &m_mtt_OneMatchedCombi       , "oneMatchedCombi/I");
   m_tree_Mtt->Branch("bestSolChi2"        , &m_mtt_BestSolChi2           , "bestSolChi2/F");
   m_tree_Mtt->Branch("isBestSolMatched"   , &m_mtt_IsBestSolMatched      , "isBestSolMatched/I");
-  m_tree_Mtt->Branch("KFChi2"             , &m_mtt_KFChi2                , "KFChi2/F");
+  //m_tree_Mtt->Branch("KFChi2"             , &m_mtt_KFChi2                , "KFChi2/F");
 
   m_tree_Mtt->Branch("numComb"            , &m_mtt_NumComb                , "numComb/I");
   m_tree_Mtt->Branch("solChi2"            , &m_mtt_SolChi2                , "solChi2[numComb]/F");
@@ -120,9 +120,9 @@ mtt_analysis_new::mtt_analysis_new(const edm::ParameterSet& cmsswSettings, Analy
   m_tree_Mtt->Branch("mHadTop_AfterChi2"      , &m_mHadTop_AfterChi2     , "mHadTop_AfterChi2/F");
   m_tree_Mtt->Branch("mtt_AfterChi2"          , &m_mtt_AfterChi2         , "mtt_AfterChi2/F");
 
-  m_tree_Mtt->Branch("mLepTop_AfterChi2andKF" , &m_mLepTop_AfterChi2andKF, "mLepTop_AfterChi2andKF/F");
-  m_tree_Mtt->Branch("mHadTop_AfterChi2andKF" , &m_mHadTop_AfterChi2andKF, "mHadTop_AfterChi2andKF/F");
-  m_tree_Mtt->Branch("mtt_AfterChi2andKF"     , &m_mtt_AfterChi2andKF    , "mtt_AfterChi2andKF/F");
+  //m_tree_Mtt->Branch("mLepTop_AfterChi2andKF" , &m_mLepTop_AfterChi2andKF, "mLepTop_AfterChi2andKF/F");
+  //m_tree_Mtt->Branch("mHadTop_AfterChi2andKF" , &m_mHadTop_AfterChi2andKF, "mHadTop_AfterChi2andKF/F");
+  //m_tree_Mtt->Branch("mtt_AfterChi2andKF"     , &m_mtt_AfterChi2andKF    , "mtt_AfterChi2andKF/F");
 
   // Index of selected particles inside respective collection for mtt computation
   m_tree_Mtt->Branch("selectedLeptonIndex"        , &m_selectedLeptonIndex       , "selectedLeptonIndex/I");
@@ -134,173 +134,52 @@ mtt_analysis_new::mtt_analysis_new(const edm::ParameterSet& cmsswSettings, Analy
 
   m_tree_Mtt->Branch("trigger_passed", &m_trigger_passed, "trigger_passed/O");
 
-  /// Analysis settings (you define them in your python script)
-
-  // If the setting is not defined the method returns -1. In this
-  // case we set a default value for the cut, in order to avoid
-  // unwanted crash
-
-  // Main options
-
-  settings->getSetting("doUseBTaginChi2", m_MAIN_doUseBTag);
-//    ? m_MAIN_doUseBTag = (static_cast<bool>(settings->getSetting("doUseBTaginChi2")))
-//    : m_MAIN_doUseBTag = false;
-  settings->getSetting("doChoiceWKF", m_MAIN_doKF);
-//    ? m_MAIN_doKF = (static_cast<bool>(settings->getSetting("doChoiceWKF")))
-//    : m_MAIN_doKF = false;
-  settings->getSetting("doSyst", m_MAIN_doSyst);
-//    ? m_MAIN_doSyst = (static_cast<bool>(settings->getSetting("doSyst")))
-//    : m_MAIN_doSyst = false;
-
-  std::string sign = "up";
-  settings->getSetting("systSign", sign); // "up" or "down"
-
+  std::string sign = cmsswSettings.getParameter<edm::ParameterSet>("systematics").getParameter<std::string>("jec");
   std::transform(sign.begin(), sign.end(), sign.begin(), ::tolower);
 
   if (sign == "down") {
     m_MAIN_systSign = SystematicsSign::DOWN;
-  } else {
+  } else if (sign == "up") {
     m_MAIN_systSign = SystematicsSign::UP;
+  } else {
+    m_MAIN_systSign = SystematicsSign::NOMINAL;
   }
 
-  settings->getSetting("doSemiMu", m_MAIN_doSemiMu);
-//    ? m_MAIN_doSemiMu = settings->getSetting("doSemiMu")
-//    : m_MAIN_doSemiMu = false;
-
-  // VertexSel()
-  settings->getSetting("VTX_Ndof_Min", m_VTX_NDof_Min);
-//    ? m_VTX_NDof_Min = settings->getSetting("VTX_Ndof_Min") // Value from the joboption
-//    : m_VTX_NDof_Min = 0;                                   // Default val
-
+  m_MAIN_doSemiMu = cmsswSettings.getParameter<bool>("do_semimu");
 
   // METSel()
-  settings->getSetting("MET_Pt_Min", m_MET_Pt_Min);
-//    ? m_MET_Pt_Min = settings->getSetting("MET_Pt_Min")
-//    : m_MET_Pt_Min = 0;
-
+  m_MET_Pt_Min = cmsswSettings.getParameter<edm::ParameterSet>("met").getParameter<double>("pt_min");
 
   // MuonSel()
-  settings->getSetting("MU_Pt_min_loose", m_MU_Pt_min_loose);
-//    ? m_MU_Pt_min_loose = settings->getSetting("MU_Pt_min_loose")
-//    : m_MU_Pt_min_loose = 0;
-  settings->getSetting("MU_Eta_max_loose", m_MU_Eta_max_loose);
-//    ? m_MU_Eta_max_loose = settings->getSetting("MU_Eta_max_loose")
-//    : m_MU_Eta_max_loose = 0;
-  settings->getSetting("MU_Iso_min", m_MU_Iso_min);
-//    ? m_MU_Iso_min = settings->getSetting("MU_Iso_min")
-//    : m_MU_Iso_min = 0;
-  settings->getSetting("MU_Pt_min", m_MU_Pt_min);
-//    ? m_MU_Pt_min = settings->getSetting("MU_Pt_min")
-//    : m_MU_Pt_min = 0;
-  settings->getSetting("MU_Eta_max", m_MU_Eta_max);
-//    ? m_MU_Eta_max = settings->getSetting("MU_Eta_max")
-//    : m_MU_Eta_max = 0;
-  settings->getSetting("MU_normChi2_max", m_MU_normChi2_max);
-//    ? m_MU_normChi2_max = settings->getSetting("MU_normChi2_max")
-//    : m_MU_normChi2_max = 0;
-  settings->getSetting("MU_nValTrackHits_min", m_MU_nValTrackHits_min);
-//    ? m_MU_nValTrackHits_min = settings->getSetting("MU_nValTrackHits_min")
-//    : m_MU_nValTrackHits_min = 0;
-  settings->getSetting("MU_nMatches_min", m_MU_nMatches_min);
-//    ? m_MU_nMatches_min = settings->getSetting("MU_nMatches_min")
-//    : m_MU_nMatches_min = 0;
-  settings->getSetting("MU_nValPixHits_min", m_MU_nValPixHits_min);
-//    ? m_MU_nValPixHits_min = settings->getSetting("MU_nValPixHits_min")
-//    : m_MU_nValPixHits_min = 0;
-  settings->getSetting("MU_dB_min", m_MU_dB_min);
-//    ? m_MU_dB_min = settings->getSetting("MU_dB_min")
-//    : m_MU_dB_min = 0;
-  settings->getSetting("MU_ePt_min", m_MU_ePt_min);
-//    ? m_MU_ePt_min = settings->getSetting("MU_ePt_min")
-//    : m_MU_ePt_min = 0;
-  settings->getSetting("MU_eEta_max", m_MU_eEta_max);
-//    ? m_MU_eEta_max = settings->getSetting("MU_eEta_max")
-//    : m_MU_eEta_max = 0;
-  settings->getSetting("MU_eEtaW_min", m_MU_eEtaW_min);
-//    ? m_MU_eEtaW_min = settings->getSetting("MU_eEtaW_min")
-//    : m_MU_eEtaW_min = 0;
-  settings->getSetting("MU_eEtaW_max", m_MU_eEtaW_max);
-//    ? m_MU_eEtaW_max = settings->getSetting("MU_eEtaW_max")
-//    : m_MU_eEtaW_max = 0;
-  settings->getSetting("MU_eIso_min", m_MU_eIso_min);
-//    ? m_MU_eIso_min = settings->getSetting("MU_eIso_min")
-//    : m_MU_eIso_min = 0;
+  m_MU_Pt_min_loose = cmsswSettings.getParameter<edm::ParameterSet>("muons_loose").getParameter<double>("pt_min");
+  m_MU_Eta_max_loose = cmsswSettings.getParameter<edm::ParameterSet>("muons_loose").getParameter<double>("eta_max");
+  m_MU_Iso_max_loose = cmsswSettings.getParameter<edm::ParameterSet>("muons_loose").getParameter<double>("isolation_max");
 
+  m_MU_Pt_min = cmsswSettings.getParameter<edm::ParameterSet>("muons_tight").getParameter<double>("pt_min");
+  m_MU_Eta_max = cmsswSettings.getParameter<edm::ParameterSet>("muons_tight").getParameter<double>("eta_max");
+  m_MU_Iso_max = cmsswSettings.getParameter<edm::ParameterSet>("muons_tight").getParameter<double>("isolation_max");
 
   // ElectronSel()
-  settings->getSetting("ELE_Iso_min", m_ELE_Iso_min);
-//    ? m_ELE_Iso_min = settings->getSetting("ELE_Iso_min")
-//    : m_ELE_Iso_min = 0;
-  settings->getSetting("ELE_Pt_min", m_ELE_Pt_min);
-//    ? m_ELE_Pt_min = settings->getSetting("ELE_Pt_min")
-//    : m_ELE_Pt_min = 0;
-  settings->getSetting("ELE_Eta_max", m_ELE_Eta_max);
-//    ? m_ELE_Eta_max = settings->getSetting("ELE_Eta_max")
-//    : m_ELE_Eta_max = 0;
-  settings->getSetting("ELE_Zmass", m_ELE_Zmass);
-//    ? m_ELE_Zmass = settings->getSetting("ELE_Zmass")
-//    : m_ELE_Zmass = 0;
-  settings->getSetting("ELE_Zwin", m_ELE_Zwin);
-//    ? m_ELE_Zwin = settings->getSetting("ELE_Zwin")
-//    : m_ELE_Zwin = 0;
-  settings->getSetting("ELE_dB_min", m_ELE_dB_min);
-//    ? m_ELE_dB_min = settings->getSetting("ELE_dB_min")
-//    : m_ELE_dB_min = 0;
+  m_ELE_Pt_min_loose = cmsswSettings.getParameter<edm::ParameterSet>("electrons_loose").getParameter<double>("pt_min");
+  m_ELE_Eta_max_loose = cmsswSettings.getParameter<edm::ParameterSet>("electrons_loose").getParameter<double>("eta_max");
+  m_ELE_Iso_max_loose = cmsswSettings.getParameter<edm::ParameterSet>("electrons_loose").getParameter<double>("isolation_max");
 
+  m_ELE_Pt_min = cmsswSettings.getParameter<edm::ParameterSet>("electrons_tight").getParameter<double>("pt_min");
+  m_ELE_Eta_max = cmsswSettings.getParameter<edm::ParameterSet>("electrons_tight").getParameter<double>("eta_max");
+  m_ELE_Iso_max = cmsswSettings.getParameter<edm::ParameterSet>("electrons_tight").getParameter<double>("isolation_max");
 
   // JetSel()
-  settings->getSetting("JET_Pt_min", m_JET_Pt_min);
-//    ? m_JET_Pt_min = settings->getSetting("JET_Pt_min")
-//    : m_JET_Pt_min = 0;
-  settings->getSetting("JET_Eta_max", m_JET_Eta_max);
-//    ? m_JET_Eta_max = settings->getSetting("JET_Eta_max")
-//    : m_JET_Eta_max = 0;
+  m_JET_Pt_min  = cmsswSettings.getParameter<edm::ParameterSet>("jets").getParameter<double>("pt_min");
+  m_JET_Eta_max = cmsswSettings.getParameter<edm::ParameterSet>("jets").getParameter<double>("eta_max");
+  m_JET_btag_CSVL = cmsswSettings.getParameter<edm::ParameterSet>("jets").getParameter<double>("btag_CSVL");
+  m_JET_btag_CSVM = cmsswSettings.getParameter<edm::ParameterSet>("jets").getParameter<double>("btag_CSVM");
+  m_JET_btag_CSVT = cmsswSettings.getParameter<edm::ParameterSet>("jets").getParameter<double>("btag_CSVT");
+  m_JET_btag_TCHPT = cmsswSettings.getParameter<edm::ParameterSet>("jets").getParameter<double>("btag_TCHPT");
 
-  settings->getSetting("JET_btag_CSVL_min", m_JET_btag_CSVL_min);
-//    ? m_JET_btag_CSVL_min = settings->getSetting("JET_btag_CSVL_min")
-//    : m_JET_btag_CSVL_min = 0;
-  settings->getSetting("JET_btag_CSVM_min", m_JET_btag_CSVM_min);
-//    ? m_JET_btag_CSVM_min = settings->getSetting("JET_btag_CSVM_min")
-//    : m_JET_btag_CSVM_min = 0;
-  settings->getSetting("JET_btag_CSVT_min", m_JET_btag_CSVT_min);
-//    ? m_JET_btag_CSVT_min = settings->getSetting("JET_btag_CSVT_min")
-//    : m_JET_btag_CSVT_min = 0;
-  //(settings->getSetting("JET_btag_TCHPL_min") != -1)
-  //  ? m_JET_btag_TCHPL_min = settings->getSetting("JET_btag_TCHPL_min")
-  //  : m_JET_btag_TCHPL_min = 0;
-  //(settings->getSetting("JET_btag_TCHPM_min") != -1)
-  //  ? m_JET_btag_TCHPM_min = settings->getSetting("JET_btag_TCHPM_min")
-  //  : m_JET_btag_TCHPM_min = 0;
-  settings->getSetting("JET_btag_TCHPT_min", m_JET_btag_TCHPT_min);
-//    ? m_JET_btag_TCHPT_min = settings->getSetting("JET_btag_TCHPT_min")
-//    : m_JET_btag_TCHPT_min = 0;
-  //(settings->getSetting("JET_btag_SSVHEM_min") != -1)
-  //  ? m_JET_btag_SSVHEM_min = settings->getSetting("JET_btag_SSVHEM_min")
-  //  : m_JET_btag_SSVHEM_min = 0;
-  //(settings->getSetting("JET_btag_SSVHPT_min") != -1)
-  //  ? m_JET_btag_SSVHPT_min = settings->getSetting("JET_btag_SSVHPT_min")
-  //  : m_JET_btag_SSVHPT_min = 0;
+  m_MAIN_doUseBTag = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<bool>("use_btagging");
 
   std::string fname = "kfparams_semilept.dat";
-
-  // Kinfit()
-  settings->getSetting("W_mass", m_w);
-//    ? m_w = settings->getSetting("W_mass")
-//    : m_w = 0;
-  settings->getSetting("Top_mass", m_t);
-//    ? m_t = settings->getSetting("Top_mass")
-//    : m_t = 0;
-  settings->getSetting("W_mass_err", m_we);
-//    ? m_we = settings->getSetting("W_mass_err")
-//    : m_we = 0;
-  settings->getSetting("Top_mass_err", m_te);
-//    ? m_te = settings->getSetting("Top_mass_err")
-//    : m_te = 0;
-  settings->getSetting("b_mass", m_b);
-//    ? m_b = settings->getSetting("b_mass")
-//    : m_b = 0;
-
-  m_KinFit = new KinFit(fname, settings);
+  m_KinFit = new KinFit(fname, cmsswSettings);
 }
 
 mtt_analysis_new::~mtt_analysis_new()
@@ -327,7 +206,7 @@ int mtt_analysis_new::VertexSel()
   for (int i = 0; i < n_vtx; ++i)
   {
     if (m_vertex->getVtxIsFake(i)) continue;
-    if (m_vertex->getVtxNdof(i) < m_VTX_NDof_Min) continue;
+    if (m_vertex->getVtxNdof(i) < 4) continue;
 
     return 1;
   }
@@ -568,17 +447,17 @@ int mtt_analysis_new::JetSel()
     if (m_mtt_NJets < 9) // Count the number of btagged jets in the selected jets
     {
       m_selJetsIds.push_back(i);
-      if ((m_jetMet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVL_min)
+      if ((m_jetMet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVL)
         ++m_mtt_NBtaggedJets_CSVL;
-      if ((m_jetMet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVM_min)
+      if ((m_jetMet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVM)
         ++m_mtt_NBtaggedJets_CSVM;
-      if ((m_jetMet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVT_min)
+      if ((m_jetMet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVT)
         ++m_mtt_NBtaggedJets_CSVT;
 //      if ((m_jetMet->getJetBTagProb_TCHP(i)) > m_JET_btag_TCHPL_min)
 //        ++m_mtt_NBtaggedJets_TCHPL;
 //      if ((m_jetMet->getJetBTagProb_TCHP(i)) > m_JET_btag_TCHPM_min)
 //        ++m_mtt_NBtaggedJets_TCHPM;
-      if ((m_jetMet->getJetBTagProb_TCHP(i)) > m_JET_btag_TCHPT_min)
+      if ((m_jetMet->getJetBTagProb_TCHP(i)) > m_JET_btag_TCHPT)
         ++m_mtt_NBtaggedJets_TCHPT;
 //      if ((m_jetMet->getJetBTagProb_SSVHE(i)) > m_JET_btag_SSVHEM_min)
 //        ++m_mtt_NBtaggedJets_SSVHEM;
@@ -676,7 +555,7 @@ int mtt_analysis_new::mtt_Sel(const edm::EventSetup& iSetup, bool do_MC_, PatExt
     MCidentification();
   }
 
-  if (m_MAIN_doSyst)
+  if (m_MAIN_systSign != SystematicsSign::NOMINAL)
   {
 
     if (! jecUnc) {
@@ -798,6 +677,7 @@ void mtt_analysis_new::loopOverCombinations(bool do_MC_)
           if (do_MC_)
             m_mtt_OneMatchedCombi = match_MC(c_j1, c_j2, c_j3, c_j4, 0);
 
+          // This call corrects MET pz
           int res = m_KinFit->ReadObjects(*m_jetMet->getJetLorentzVector(c_j3),
               *m_jetMet->getJetLorentzVector(c_j4),
               *m_jetMet->getJetLorentzVector(c_j1),
@@ -810,13 +690,14 @@ void mtt_analysis_new::loopOverCombinations(bool do_MC_)
           if (!res)
             return; // We will never get anything with this event
 
+          /*
           if (m_MAIN_doKF) //use the kinfit to choose the best jet pairing
           {
             (m_KinFit->Fit()) // Do the kinfit converged
               ? fitchi2 = m_KinFit->GetKFChi2()
               : fitchi2 = std::numeric_limits<double>::infinity();
           }
-          else  //else use the chi2 to chose the best combination and apply the kinfit only to this latter
+          else*/  //else use the chi2 to chose the best combination and apply the kinfit only to this latter
           {
             fitchi2 = m_KinFit->GlobalSimpleChi2(AllJetsPt);
             //std::cout << "Chi2: " << fitchi2 << std::endl;
@@ -880,6 +761,7 @@ void mtt_analysis_new::loopOverCombinations(bool do_MC_)
        std::cout << "Mt hadronic: " << m_mHadTop_AfterChi2 << std::endl;
        std::cout << "Mtt: " << m_mtt_AfterChi2 << std::endl;
        */
+    /*
 
     m_KinFit->ReadObjects(*m_jetMet->getJetLorentzVector(bestj3),
         *m_jetMet->getJetLorentzVector(bestj4),
@@ -893,17 +775,19 @@ void mtt_analysis_new::loopOverCombinations(bool do_MC_)
     (m_KinFit->Fit()) // Do the kinfit converged
       ? fitchi2 = m_KinFit->GetKFChi2()
       : fitchi2 = std::numeric_limits<double>::infinity();
+
+    */
   }
 
   if (do_MC_)
     m_mtt_IsBestSolMatched = match_MC(bestj1, bestj2, bestj3, bestj4, 0);
 
-  m_mtt_KFChi2 = fitchi2;
+  //m_mtt_KFChi2 = fitchi2;
 
-  if (!m_MAIN_doKF)
-    m_mtt_BestSolChi2 = minfitchi2;
+  //if (!m_MAIN_doKF)
+  m_mtt_BestSolChi2 = minfitchi2;
 
-
+  /*
   if (fitchi2 <= 1.E6)
   {
     m_mLepTop_AfterChi2andKF = (*m_KinFit->GetFittedLeptonicBJet() + *m_KinFit->GetFittedLepton() + *m_KinFit->GetFittedNeutrino()).M();
@@ -916,6 +800,7 @@ void mtt_analysis_new::loopOverCombinations(bool do_MC_)
     m_mHadTop_AfterChi2andKF = std::numeric_limits<double>::infinity();
     m_mtt_AfterChi2andKF     = std::numeric_limits<double>::infinity();
   }
+  */
 }
 
 
@@ -1222,7 +1107,9 @@ void mtt_analysis_new::fillTree()
 
 void mtt_analysis_new::SystModifJetsAndMET()
 {
-  double numericSign = (m_MAIN_systSign == SystematicsSign::UP) ? 1. : -1.;
+  double numericSign = (m_MAIN_systSign == SystematicsSign::UP) ? 1. : (m_MAIN_systSign == SystematicsSign::DOWN ? -1. : 0);
+  if (numericSign == 0)
+    return;
 
   double met_corr_x = 0.;
   double met_corr_y = 0.;
@@ -1259,11 +1146,11 @@ void mtt_analysis_new::reset()
   m_mtt_IsBestSolMatched = -1;
   m_mtt_OneMatchedCombi = 0;
   m_mtt_BestSolChi2 = -1.;
-  m_mtt_KFChi2 = -1.;
-  m_mtt_AfterChi2andKF = -1.;
+  //m_mtt_KFChi2 = -1.;
+  //m_mtt_AfterChi2andKF = -1.;
   m_mtt_NumComb = 0;
-  m_mLepTop_AfterChi2andKF = -1.;
-  m_mHadTop_AfterChi2andKF = -1.;
+  //m_mLepTop_AfterChi2andKF = -1.;
+  //m_mHadTop_AfterChi2andKF = -1.;
 
   m_mtt_AfterChi2     = -1.;
   m_mLepTop_AfterChi2 = -1.;
