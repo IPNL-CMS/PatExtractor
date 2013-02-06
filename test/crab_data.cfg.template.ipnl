@@ -1,6 +1,6 @@
 [CRAB]
 jobtype = cmssw
-scheduler = remoteGlideIn
+scheduler = glite
 use_server = 0
 
 [CMSSW]
@@ -38,4 +38,4 @@ check_user_remote_dir = 0
 [GRID]
 rb = CERN
 virtual_organization = cms
-se_white_list=T3_FR_IPNL
+ce_white_list=T3_FR_IPNL

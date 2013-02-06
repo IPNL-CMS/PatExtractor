@@ -1,6 +1,6 @@
 [CRAB]
 jobtype = cmssw
-scheduler = remoteGlideIn
+scheduler = glite
 use_server = 0
 
 [CMSSW]
