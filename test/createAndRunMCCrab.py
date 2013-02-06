@@ -24,6 +24,7 @@ datasets = [
     ["/ZPrimeToTTJets_M2000GeV_W20GeV_TuneZ2star_8TeV_ext-madgraph-tauola/sbrochet-Zprime_2000_Narrow_ext_START53_V7C_03Jan13-v1-bdd0c9c28c68bfd05bfd28ee5e93863c/USER", "Zprime_2000_Narrow_ext"],
 
     # Z' large
+    ["/ZPrimeToTTJets_M500GeV_W50GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_500_Large_START53_V7A_11Dec12-v1-bdd0c9c28c68bfd05bfd28ee5e93863c/USER", "Zprime_500_Large"],
     ["/ZPrimeToTTJets_M750GeV_W75GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_750_Large_START53_V7A_11Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER", "Zprime_750_Large"], 
     ["/ZPrimeToTTJets_M1000GeV_W100GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_1000_Large_START53_V7A_11Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER", "Zprime_1000_Large"], 
     ["/ZPrimeToTTJets_M1250GeV_W125GeV_TuneZ2star_8TeV-madgraph-tauola/sperries-Zprime_1250_Large_START53_V7A_11Dec12-v1-bd09b58f34b981e2c3ef3678b9b096ed/USER", "Zprime_1250_Large"], 
@@ -120,8 +121,8 @@ for dataset in datasets:
   ui_working_dir = ("multicrab_MC_%s_%s") % (dataset_name, d)
   output_file = "multicrab_MC_%s_%s.cfg" % (dataset_name, d)
 
-  output_dir_semie = ("MTT/Extracted/MC/Summer12/%s/semie/%s" % (d, dataset_name))
-  output_dir_semimu = ("MTT/Extracted/MC/Summer12/%s/semimu/%s" % (d, dataset_name))
+  output_dir_semie = ("Extracted_step2/MC/Summer12/%s/semie/%s" % (d, dataset_name))
+  output_dir_semimu = ("Extracted_step2/MC/Summer12/%s/semimu/%s" % (d, dataset_name))
 
   full_template = copy.copy(multicrab)
   if "EMEnriched" in dataset_path:

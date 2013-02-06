@@ -52,7 +52,7 @@ for dataset in datasets:
 
   ui_working_dir = ("crab_data_%s_%s") % (dataset_name, d)
   output_file = "crab_data_%s_%s.cfg" % (dataset_name, d)
-  output_dir = ("Extracted_step2/data/%s/%s" % (d, dataset_name)) #only for private prod, do not commit that change
+  output_dir = ("Extracted_step2/data/%s/%s" % (d, dataset_name))
 
   python_config = "";
   if "Electron" in dataset_path:
