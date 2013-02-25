@@ -105,6 +105,9 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
   process.PATextraction.MET_PF.redoMetPhiCorrection   = True
   process.PATextraction.MET_PF.redoMetTypeICorrection = False # Automatically true if redoJetCorrection is True
 
+  if isMC:
+    from Extractor_MTT_ScaleFactors import loadMuonScaleFactor
+
   # MTT analysis configuration
   process.PATextraction.mtt = cms.PSet(
       do_semimu = cms.bool(isSemiMu),
@@ -175,6 +178,9 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
       systematics = cms.PSet(
         jec = cms.string("nominal") # can be "down", "nominal" or "up"
         ),
+
+      # Scale factors
+      muon_scale_factors = loadMuonScaleFactor("Muon_ID_iso_Efficiencies_Run_2012ABCD_53X.pkl"),
 
       # ------------------------------------------------
       # settings for the KinFitter

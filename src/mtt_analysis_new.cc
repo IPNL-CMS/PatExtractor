@@ -18,6 +18,7 @@
 #include "Extractors/PatExtractor/interface/KinFit.h"
 #include "Extractors/PatExtractor/interface/EventExtractor.h"
 #include "Extractors/PatExtractor/interface/PatExtractor.h"
+#include "Extractors/PatExtractor/interface/ScaleFactors.h"
 
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
@@ -29,7 +30,8 @@
 
 using namespace std;
 
-mtt_analysis_new::mtt_analysis_new(const edm::ParameterSet& cmsswSettings, AnalysisSettings *settings):
+mtt_analysis_new::mtt_analysis_new(const edm::ParameterSet& cmsswSettings, AnalysisSettings *settings, bool isMC):
+  m_isMC(isMC),
   maxNrIter_                        (cmsswSettings.getParameter<unsigned>     ("maxNrIter"           )),
   maxDeltaS_                        (cmsswSettings.getParameter<double>       ("maxDeltaS"           )),
   maxF_                             (cmsswSettings.getParameter<double>       ("maxF"                )),
@@ -134,6 +136,9 @@ mtt_analysis_new::mtt_analysis_new(const edm::ParameterSet& cmsswSettings, Analy
 
   m_tree_Mtt->Branch("trigger_passed", &m_trigger_passed, "trigger_passed/O");
 
+  // Weights and errors from differents scale factors
+  m_tree_Mtt->Branch("weight", &m_weight, "weight/F");
+
   std::string sign = cmsswSettings.getParameter<edm::ParameterSet>("systematics").getParameter<std::string>("jec");
   std::transform(sign.begin(), sign.end(), sign.begin(), ::tolower);
 
@@ -180,6 +185,9 @@ mtt_analysis_new::mtt_analysis_new(const edm::ParameterSet& cmsswSettings, Analy
 
   std::string fname = "kfparams_semilept.dat";
   m_KinFit = new KinFit(fname, cmsswSettings);
+
+  m_weight = 1.;
+  mScaleFactors.reset(new ScaleFactors(cmsswSettings));
 }
 
 mtt_analysis_new::~mtt_analysis_new()
@@ -340,6 +348,11 @@ int mtt_analysis_new::MuonSel()
 
   m_refLept = m_muon->getMuLorentzVector(goodmuidx);
   m_selectedLeptonIndex = goodmuidx;
+
+  if (m_isMC) {
+    // Get scale factor
+    m_weight *= mScaleFactors->getMuonScaleFactor(m_refLept->Pt(), m_refLept->Eta()).value;
+  }
 
   return 1;
 }
@@ -527,7 +540,7 @@ int mtt_analysis_new::Make2DCut(TVector3 lept3P, float cutDR, float cutPtrel)
 
 #define   MTT_TRIGGER_NOT_FOUND   1000
 
-int mtt_analysis_new::mtt_Sel(const edm::EventSetup& iSetup, bool do_MC_, PatExtractor* extractor)
+int mtt_analysis_new::mtt_Sel(const edm::EventSetup& iSetup, PatExtractor* extractor)
 {
   reset();
 
@@ -549,7 +562,7 @@ int mtt_analysis_new::mtt_Sel(const edm::EventSetup& iSetup, bool do_MC_, PatExt
   std::shared_ptr<HLTExtractor> HLT = std::static_pointer_cast<HLTExtractor>(extractor->getExtractor("HLT"));
   m_trigger_passed = HLT->isTriggerFired();
 
-  if (do_MC_)
+  if (m_isMC)
   {
     m_MC = std::static_pointer_cast<MCExtractor>(extractor->getExtractor("MC"));
     MCidentification();
@@ -590,14 +603,14 @@ int mtt_analysis_new::mtt_Sel(const edm::EventSetup& iSetup, bool do_MC_, PatExt
   m_mtt_isSel = 1;
 
   // We selected a candidate (and m_refLept)
-  loopOverCombinations(do_MC_);
+  loopOverCombinations();
 
   return 1;
 }
 
 
 
-void mtt_analysis_new::loopOverCombinations(bool do_MC_)
+void mtt_analysis_new::loopOverCombinations()
 {
   //jets indices
   int c_j1 = -1;
@@ -674,7 +687,7 @@ void mtt_analysis_new::loopOverCombinations(bool do_MC_)
 
           /// Try to find a matching solution (no lept for the moment)
 
-          if (do_MC_)
+          if (m_isMC)
             m_mtt_OneMatchedCombi = match_MC(c_j1, c_j2, c_j3, c_j4, 0);
 
           // This call corrects MET pz
@@ -779,7 +792,7 @@ void mtt_analysis_new::loopOverCombinations(bool do_MC_)
     */
   }
 
-  if (do_MC_)
+  if (m_isMC)
     m_mtt_IsBestSolMatched = match_MC(bestj1, bestj2, bestj3, bestj4, 0);
 
   //m_mtt_KFChi2 = fitchi2;
@@ -1222,4 +1235,6 @@ void mtt_analysis_new::reset()
   m_MC_leptonicWMass = -1;
   m_MC_hadronicTopMass = -1;
   m_MC_leptonicTopMass = -1;
+
+  m_weight = 1.;
 }

@@ -53,7 +53,7 @@ PatExtractor::PatExtractor(const edm::ParameterSet& config) :
   // Analysis is done on request, if the infos are there
 
   if (do_Mtt_ && do_Muon_ && do_Electron_ && do_Jet_ && do_MET_ && do_Vertex_)      
-    m_Mtt_analysis_new = new mtt_analysis_new(m_mttParameterSet, m_ana_settings);
+    m_Mtt_analysis_new = new mtt_analysis_new(m_mttParameterSet, m_ana_settings, is_MC_);
 
   // Here is the small example analysis (dimuon mass spectra)
 
@@ -308,7 +308,7 @@ void PatExtractor::doAna(const edm::EventSetup& setup)
 
   if (do_Mtt_ && do_Muon_ && do_Electron_ && do_Jet_ && do_MET_ && do_Vertex_ && do_HLT_) 
   {   
-    m_Mtt_analysis_new->mtt_Sel(setup, do_MC_, this);
+    m_Mtt_analysis_new->mtt_Sel(setup, this);
     m_Mtt_analysis_new->fillTree();
   }
 

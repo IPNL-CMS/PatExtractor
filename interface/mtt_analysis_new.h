@@ -31,6 +31,7 @@ class VertexExtractor;
 class KinFit;
 class HLTExtractor;
 class PatExtractor;
+class ScaleFactors;
 
 class JetCorrectionUncertainty;
 
@@ -46,7 +47,7 @@ enum class SystematicsSign {
 
 class mtt_analysis_new {
 public:
-  mtt_analysis_new(const edm::ParameterSet& cmsswSettings, AnalysisSettings* settings);
+  mtt_analysis_new(const edm::ParameterSet& cmsswSettings, AnalysisSettings* settings, bool isMC);
   ~mtt_analysis_new();
 
   //Selections
@@ -57,9 +58,9 @@ public:
   int METSel();
 
   // TTbar selection
-  int mtt_Sel(const edm::EventSetup& iSetup, bool do_MC_, PatExtractor* extractor);
+  int mtt_Sel(const edm::EventSetup& iSetup, PatExtractor* extractor);
 
-  void   loopOverCombinations(bool do_MC_);
+  void   loopOverCombinations();
 
   //makes the 2D cut for a given lepton
   int   Make2DCut(TVector3 lept3P, float cutDR, float cutPtrel);
@@ -145,8 +146,7 @@ private:
   bool m_trigger_passed;
 
   //MC stuff
-
-
+  bool m_isMC;
   int m_MC_channel;
   float m_MC_mtt;
   int m_nPU; // number of interactions
@@ -296,6 +296,9 @@ private:
   std::vector<edm::ParameterSet> bResolutions_;
   std::vector<edm::ParameterSet> lepResolutions_;
   std::vector<edm::ParameterSet> metResolutions_;
+
+  float m_weight;
+  std::shared_ptr<ScaleFactors> mScaleFactors;
 };
 
 #endif
