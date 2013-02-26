@@ -1,2 +1,54 @@
-cvs co -d ./Extractors/PatExtractor_2 UserCode/sviret/Extractors/PatExtractor_2
+# This is PatExtractor, a CMSSW package to extractor PAT tuples to plain ROOT format
+# You might want to also check 'PatTopProduction' package, a set of python configuration to produce
+# PAT tuples which can be used by this package: http://ipnl.madalynn.eu/PatTopProduction.git
 
+# PAT V08-09-43, CMSSW 5.3.5
+
+# Get the release
+export SCRAM_ARCH=slc5_amd64_gcc462
+
+cmsrel CMSSW_5_3_5
+cd CMSSW_5_3_5/src/
+cmsenv
+
+# First, start by cloning the repository
+mkdir Extractors
+cd Extractors
+
+# If you have write access, do
+git clone ssh://git@ipnl.madalynn.eu:2222/PatExtractor.git
+
+# Otherwise, for read-only access
+git clone git://ipnl.madalynn.eu/PatExtractor.git
+
+cd ..
+
+addpkg DataFormats/PatCandidates    V06-05-06-03
+addpkg PhysicsTools/PatAlgos        V08-09-43
+addpkg RecoParticleFlow/PFProducer  V15-02-06
+
+#addpkg RecoMET/METFilters V00-00-08
+addpkg RecoMET/METAnalyzers V00-00-08
+
+# B-tagging scale factors
+addpkg RecoBTag/PerformanceDB V01-03-19
+
+cvs co TopQuarkAnalysis/TopKinFitter
+cvs co TopQuarkAnalysis/TopObjectResolutions
+
+cvs co -r V00-00-31 -d EGamma/EGammaAnalysisTools UserCode/EGamma/EGammaAnalysisTools
+cd EGamma/EGammaAnalysisTools/data
+cat download.url | xargs wget
+cd -
+
+addpkg JetMETCorrections/Type1MET
+cvs update -A JetMETCorrections/Type1MET/python/pfMETsysShiftCorrections_cfi.py
+cvs update -A JetMETCorrections/Type1MET/plugins/SysShiftMETcorrInputProducer.cc
+cvs update -A JetMETCorrections/Type1MET/plugins/SysShiftMETcorrInputProducer.h
+cvs update -A JetMETCorrections/Type1MET/src/SysShiftMETcorrExtractor.cc
+cvs update -A JetMETCorrections/Type1MET/interface/SysShiftMETcorrExtractor.h
+
+# Patch PAT to add support for Effective Area corrections
+addpkg CommonTools/ParticleFlow
+patch -p0 < PatTopProduction/EGamma.patch
+patch -p0 < PatTopProduction/ParticleFlow.patch
