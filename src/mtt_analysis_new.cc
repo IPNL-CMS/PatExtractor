@@ -349,7 +349,7 @@ int mtt_analysis_new::MuonSel()
   m_refLept = m_muon->getMuLorentzVector(goodmuidx);
   m_selectedLeptonIndex = goodmuidx;
 
-  if (m_isMC) {
+  if (!m_isMC) {
     // Get scale factor
     m_weight *= mScaleFactors->getMuonScaleFactor(m_refLept->Pt(), m_refLept->Eta()).value;
   }
