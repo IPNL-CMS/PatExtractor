@@ -298,6 +298,8 @@ private:
   std::vector<edm::ParameterSet> metResolutions_;
 
   float m_weight;
+  float m_weight_error_low;
+  float m_weight_error_high;
   std::shared_ptr<ScaleFactors> mScaleFactors;
 };
 

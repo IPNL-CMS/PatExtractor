@@ -18,3 +18,5 @@ process = createExtractorProcess(False, False, useShiftCorrectedMET = True, glob
 process.source.fileNames = cms.untracked.vstring(
     '/store/user/sbrochet/SingleElectron/SingleElectron_Run2012B-TOPElePlusJets-13Jul2012_22Nov12-v1/482cfd8beeb5bd50ce95db8c4b04846e/patTuple_82_1_gBL.root'
     )
+
+process.maxEvents.input = 5000

@@ -138,6 +138,8 @@ mtt_analysis_new::mtt_analysis_new(const edm::ParameterSet& cmsswSettings, Analy
 
   // Weights and errors from differents scale factors
   m_tree_Mtt->Branch("weight", &m_weight, "weight/F");
+  m_tree_Mtt->Branch("weight_error_low", &m_weight_error_low, "weight_error_low/F");
+  m_tree_Mtt->Branch("weight_error_high", &m_weight_error_high, "weight_error_high/F");
 
   std::string sign = cmsswSettings.getParameter<edm::ParameterSet>("systematics").getParameter<std::string>("jec");
   std::transform(sign.begin(), sign.end(), sign.begin(), ::tolower);
@@ -351,7 +353,10 @@ int mtt_analysis_new::MuonSel()
 
   if (!m_isMC) {
     // Get scale factor
-    m_weight *= mScaleFactors->getMuonScaleFactor(m_refLept->Pt(), m_refLept->Eta()).value;
+    ScaleFactor sf = mScaleFactors->getMuonScaleFactor(m_refLept->Pt(), m_refLept->Eta());
+    m_weight *= sf.value;
+    m_weight_error_low += sf.error_low * sf.error_low;
+    m_weight_error_high += sf.error_high * sf.error_high;
   }
 
   return 1;
@@ -430,6 +435,14 @@ int mtt_analysis_new::ElectronSel()
   m_refLept = m_electron->getEleLorentzVector(goodelidx);
   m_selectedLeptonIndex = goodelidx;
 
+  if (!m_isMC) {
+    // Get scale factor
+    ScaleFactor sf = mScaleFactors->getElectronScaleFactor(m_refLept->Pt(), m_refLept->Eta());
+    m_weight *= sf.value;
+    m_weight_error_low += sf.error_low * sf.error_low;
+    m_weight_error_high += sf.error_high * sf.error_high;
+  }
+
   return 1;
 }
 
@@ -444,6 +457,9 @@ int mtt_analysis_new::JetSel()
   if (! n_jet)
     return 8;
 
+  ScaleFactor jetSF[n_jet];
+  bool jetIsBTagged[n_jet];
+
   for (int i = 0; i < n_jet; i++)
   {
     TLorentzVector *jetP = m_jetMet->getJetLorentzVector(i);
@@ -453,6 +469,7 @@ int mtt_analysis_new::JetSel()
 
     m_mtt_JetEta[m_mtt_NJets] = jetP->Eta();
     m_mtt_JetPt[m_mtt_NJets]  = jetP->Pt();
+    jetSF[m_mtt_NJets] = mScaleFactors->getBTaggingScaleFactor(jetP->Et(), jetP->Eta());
     ++m_mtt_NJets;
 
     AllJetsPt += jetP->Pt();
@@ -462,8 +479,14 @@ int mtt_analysis_new::JetSel()
       m_selJetsIds.push_back(i);
       if ((m_jetMet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVL)
         ++m_mtt_NBtaggedJets_CSVL;
-      if ((m_jetMet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVM)
+
+      if ((m_jetMet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVM) {
         ++m_mtt_NBtaggedJets_CSVM;
+        jetIsBTagged[i] = true;
+      } else {
+        jetIsBTagged[i] = false;
+      }
+
       if ((m_jetMet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVT)
         ++m_mtt_NBtaggedJets_CSVT;
 //      if ((m_jetMet->getJetBTagProb_TCHP(i)) > m_JET_btag_TCHPL_min)
@@ -487,6 +510,61 @@ int mtt_analysis_new::JetSel()
   // We need at least 4 good jets
   if (m_mtt_NJets < 4)
     return 8;
+
+  if (! m_isMC) {
+    // Get scale factors
+    double sf = 1;
+    double sf_error = 0;
+
+    if (m_mtt_NBtaggedJets_CSVM == 1) {
+
+      ScaleFactor sf_jet = {1, 0, 0};
+
+      for (int i = 0; i < m_mtt_NJets; i++)
+      {
+        if (jetIsBTagged[i]) {
+          sf_jet = jetSF[i];
+          break;
+        }
+      }
+
+      // We have one 1 b-tagged jet and not the other one
+      // e = e_btag * (1 - e_btag) * 2
+      double b_tagging_efficiency = mScaleFactors->getBTaggingEfficiency();
+      sf = sf_jet.value * ((1. - b_tagging_efficiency * sf_jet.value) / (1. - b_tagging_efficiency));
+      sf_error = ((1 - 2 * b_tagging_efficiency * sf_jet.value) / (1 - b_tagging_efficiency)) * sf_jet.error_high;
+      sf_error *= sf_error; // square
+
+    } else if (m_mtt_NBtaggedJets_CSVM >= 2) {
+
+      ScaleFactor sf_jet1 = {1, 0, 0};
+      ScaleFactor sf_jet2 = {1, 0, 0};
+      bool gotJet1 = false;
+
+      for (int i = 0; i < m_mtt_NJets; i++)
+      {
+        if (jetIsBTagged[i]) {
+          if (! gotJet1) {
+            gotJet1 = true;
+            sf_jet1 = jetSF[i];
+          } else {
+            sf_jet2 = jetSF[i];
+            break;
+          }
+        }
+      }
+
+      sf = sf_jet1.value * sf_jet2.value;
+      sf_error = sf_jet2.value * sf_jet2.value * sf_jet1.error_high * sf_jet1.error_high +
+        sf_jet1.value * sf_jet1.value * sf_jet2.error_high * sf_jet2.error_high;
+    }
+
+    m_weight *= sf;
+
+    double squared_sf_error = sf_error * sf_error;
+    m_weight_error_low += squared_sf_error;
+    m_weight_error_high += squared_sf_error;
+  }
 
   return 1;
 }
@@ -566,6 +644,9 @@ int mtt_analysis_new::mtt_Sel(const edm::EventSetup& iSetup, PatExtractor* extra
   {
     m_MC = std::static_pointer_cast<MCExtractor>(extractor->getExtractor("MC"));
     MCidentification();
+  } else {
+    // Init BTag scale factors
+    mScaleFactors->prepareBTaggingScaleFactors(iSetup);
   }
 
   if (m_MAIN_systSign != SystematicsSign::NOMINAL)
@@ -1115,6 +1196,8 @@ int mtt_analysis_new::match_MC(int idxJetbH, int idxJetbL, int idxJet1,	int idxJ
 
 void mtt_analysis_new::fillTree()
 {
+  m_weight_error_low = sqrt(m_weight_error_low);
+  m_weight_error_high = sqrt(m_weight_error_high);
   m_tree_Mtt->Fill();
 }
 
@@ -1237,4 +1320,6 @@ void mtt_analysis_new::reset()
   m_MC_leptonicTopMass = -1;
 
   m_weight = 1.;
+  m_weight_error_low = 0.;
+  m_weight_error_high = 0.;
 }

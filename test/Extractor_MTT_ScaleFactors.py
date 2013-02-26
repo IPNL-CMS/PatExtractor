@@ -39,3 +39,40 @@ def loadMuonScaleFactor(filename):
       )
 
   return mainSet
+
+def loadElectronScaleFactor(filename):
+  import json
+  with open(filename) as f:
+    data = json.load(f)
+
+    etaBins = data["eta"]
+    ptBins = data["pt"]
+
+    mainSet = cms.VPSet()
+
+    for i in range(0, len(etaBins) - 1):
+      etaSet = cms.VPSet()
+
+      for j in range(0, len(ptBins) - 1):
+
+        pset = cms.PSet(
+            pt = cms.vdouble(float(ptBins[j]), float(ptBins[j + 1])),
+            value = cms.double(float(data["sf"][i][j][0])),
+            error_high = cms.double(float(data["sf"][i][j][1])),
+            error_low = cms.double(float(data["sf"][i][j][2])),
+            )
+
+        etaSet.append(pset)
+
+      mainSet.append(
+          cms.PSet(
+            eta = cms.vdouble(float(etaBins[i]), float(etaBins[i + 1])),
+            SF = etaSet
+            )
+          )
+
+    return mainSet
+
+def loadBTagScaleFactors(process):
+  #process.load ("RecoBTag.PerformanceDB.PoolBTagPerformanceDB2013")
+  process.load ("RecoBTag.PerformanceDB.BTagPerformanceDB2013")
