@@ -444,10 +444,11 @@ void JetMETExtractor::correctJetsMETresolution(pat::JetCollection& jets, pat::ME
 
       double genjet_pt = jet.genJet()->pt();
       double jet_pt = jet.pt();
-      double rescorr = 1 - getResCorrFactor(jet);
+      double rescorr = getResCorrFactor(jet) - 1;
       double deltapt = (jet_pt - genjet_pt) * rescorr; 
-      double scalefac = (jet_pt + deltapt)/jet_pt;
-      if ( scalefac <=0 ) continue;
+      double scalefac = (jet_pt + deltapt) / jet_pt;
+      if (scalefac <= 0)
+        continue;
       
       correctedMetPx += (rawJet->px());
       correctedMetPy += (rawJet->py());
