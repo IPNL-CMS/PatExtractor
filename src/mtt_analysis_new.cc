@@ -351,13 +351,13 @@ int mtt_analysis_new::MuonSel()
   m_refLept = m_muon->getMuLorentzVector(goodmuidx);
   m_selectedLeptonIndex = goodmuidx;
 
-  if (!m_isMC) {
+  //if (!m_isMC) {
     // Get scale factor
     ScaleFactor sf = mScaleFactors->getMuonScaleFactor(m_refLept->Pt(), m_refLept->Eta());
     m_weight *= sf.value;
     m_weight_error_low += sf.error_low * sf.error_low;
     m_weight_error_high += sf.error_high * sf.error_high;
-  }
+  //}
 
   return 1;
 }
@@ -435,13 +435,13 @@ int mtt_analysis_new::ElectronSel()
   m_refLept = m_electron->getEleLorentzVector(goodelidx);
   m_selectedLeptonIndex = goodelidx;
 
-  if (!m_isMC) {
+  //if (!m_isMC) {
     // Get scale factor
     ScaleFactor sf = mScaleFactors->getElectronScaleFactor(m_refLept->Pt(), m_refLept->Eta());
     m_weight *= sf.value;
     m_weight_error_low += sf.error_low * sf.error_low;
     m_weight_error_high += sf.error_high * sf.error_high;
-  }
+  //}
 
   return 1;
 }
