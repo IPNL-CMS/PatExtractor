@@ -469,7 +469,8 @@ int mtt_analysis_new::JetSel()
 
     m_mtt_JetEta[m_mtt_NJets] = jetP->Eta();
     m_mtt_JetPt[m_mtt_NJets]  = jetP->Pt();
-    jetSF[m_mtt_NJets] = mScaleFactors->getBTaggingScaleFactor(jetP->Et(), jetP->Eta());
+    if (!m_isMC)
+      jetSF[m_mtt_NJets] = mScaleFactors->getBTaggingScaleFactor(jetP->Et(), jetP->Eta());
     ++m_mtt_NJets;
 
     AllJetsPt += jetP->Pt();
