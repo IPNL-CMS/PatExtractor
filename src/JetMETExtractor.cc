@@ -400,19 +400,19 @@ double JetMETExtractor::getResCorrFactor(const pat::Jet& jet) {
   double factor = 0.;
   double error  = 0.;
 
-  if (fabs(jet.eta()) > 0. || fabs(jet.eta()) <= 0.5) {
+  if (fabs(jet.eta()) > 0. && fabs(jet.eta()) <= 0.5) {
     factor = 1.052;
     error = (mJERSign == 1) ? 0.062 : 0.061;
-  } else if (fabs(jet.eta()) > 0.5 || fabs(jet.eta()) <= 1.1) {
+  } else if (fabs(jet.eta()) > 0.5 && fabs(jet.eta()) <= 1.1) {
     factor = 1.057;
     error = (mJERSign == 1) ? 0.056 : 0.055;
-  } else if (fabs(jet.eta()) > 1.1 || fabs(jet.eta()) <= 1.7) {
+  } else if (fabs(jet.eta()) > 1.1 && fabs(jet.eta()) <= 1.7) {
     factor = 1.096;
     error = (mJERSign == 1) ? 0.063 : 0.062;
-  } else if (fabs(jet.eta()) > 1.7 || fabs(jet.eta()) <= 2.3) {
+  } else if (fabs(jet.eta()) > 1.7 && fabs(jet.eta()) <= 2.3) {
     factor = 1.134;
     error = (mJERSign == 1) ? 0.087 : 0.085;
-  } else if (fabs(jet.eta()) > 2.3 || fabs(jet.eta()) <= 5.0) {
+  } else if (fabs(jet.eta()) > 2.3 && fabs(jet.eta()) <= 5.0) {
     factor = 1.288;
     error = (mJERSign == 1) ? 0.155 : 0.153;
   }
