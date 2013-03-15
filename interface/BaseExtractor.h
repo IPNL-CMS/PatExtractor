@@ -75,11 +75,11 @@ class BaseExtractor: public SuperBaseExtractor
     virtual void fillTree() = 0;
     virtual void getInfo(int ievt) = 0;
 
-    void fillSize(size_t size) {
+    void fillSize(uint32_t size) {
       m_size = size;
     }
 
-    int getSize() {
+    uint32_t getSize() {
       return m_size;
     }
 
@@ -190,5 +190,5 @@ class BaseExtractor: public SuperBaseExtractor
     bool  m_isPF;
     TFile* m_file;
 
-    size_t m_size;
+    uint32_t m_size;
 };

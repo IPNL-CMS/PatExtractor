@@ -16,7 +16,7 @@ VertexExtractor::VertexExtractor(const std::string& name, const edm::InputTag& t
   {
     m_OK = true;
     m_tree_vtx      = new TTree(m_name.c_str(), "RECO PV info") ;
-    m_tree_vtx->Branch("n_vertices",      &m_size,   "n_vertices/I");  
+    m_tree_vtx->Branch("n_vertices",      &m_size,   "n_vertices/i");  
     m_tree_vtx->Branch("vertex_vx",       &m_vtx_vx,       "vertex_vx[n_vertices]/F");  
     m_tree_vtx->Branch("vertex_vy",       &m_vtx_vy,       "vertex_vy[n_vertices]/F");  
     m_tree_vtx->Branch("vertex_vz",       &m_vtx_vz,       "vertex_vz[n_vertices]/F"); 

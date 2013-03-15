@@ -1,5 +1,8 @@
 #pragma once
 
+#include <memory>
+#include <Extractors/PatExtractor/interface/ScaleFactorService.h>
+
 namespace edm {
   class EventSetup;
   class Event;
@@ -23,8 +26,15 @@ class SuperBaseExtractor
       m_isMC = isMC;
     }
 
+    void setScaleFactorsService(std::shared_ptr<ScaleFactorService> service) {
+      m_scaleFactorService = service;
+    }
+
   protected:
     bool m_isMC;
     bool m_OK;
+
+    std::shared_ptr<ScaleFactorService> m_scaleFactorService;
+    
 };
 

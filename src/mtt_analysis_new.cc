@@ -18,7 +18,6 @@
 #include "Extractors/PatExtractor/interface/KinFit.h"
 #include "Extractors/PatExtractor/interface/EventExtractor.h"
 #include "Extractors/PatExtractor/interface/PatExtractor.h"
-#include "Extractors/PatExtractor/interface/ScaleFactors.h"
 
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
@@ -182,6 +181,7 @@ mtt_analysis_new::mtt_analysis_new(const edm::ParameterSet& cmsswSettings, Analy
   m_JET_btag_CSVM = cmsswSettings.getParameter<edm::ParameterSet>("jets").getParameter<double>("btag_CSVM");
   m_JET_btag_CSVT = cmsswSettings.getParameter<edm::ParameterSet>("jets").getParameter<double>("btag_CSVT");
   m_JET_btag_TCHPT = cmsswSettings.getParameter<edm::ParameterSet>("jets").getParameter<double>("btag_TCHPT");
+  m_b_tagging_efficiency = cmsswSettings.getParameter<edm::ParameterSet>("jets").getParameter<double>("b_tagging_efficiency");
 
   m_MAIN_doUseBTag = cmsswSettings.getParameter<edm::ParameterSet>("chi2_sorting").getParameter<bool>("use_btagging");
 
@@ -189,7 +189,6 @@ mtt_analysis_new::mtt_analysis_new(const edm::ParameterSet& cmsswSettings, Analy
   m_KinFit = new KinFit(fname, cmsswSettings);
 
   m_weight = 1.;
-  mScaleFactors.reset(new ScaleFactors(cmsswSettings));
 }
 
 mtt_analysis_new::~mtt_analysis_new()
@@ -353,10 +352,10 @@ int mtt_analysis_new::MuonSel()
 
   //if (!m_isMC) {
     // Get scale factor
-    ScaleFactor sf = mScaleFactors->getMuonScaleFactor(m_refLept->Pt(), m_refLept->Eta());
-    m_weight *= sf.value;
-    m_weight_error_low += sf.error_low * sf.error_low;
-    m_weight_error_high += sf.error_high * sf.error_high;
+    ScaleFactor sf = m_muon->getScaleFactor(goodmuidx);
+    m_weight *= sf.getValue();
+    m_weight_error_low += sf.getErrorLow() * sf.getErrorLow();
+    m_weight_error_high += sf.getErrorHigh() * sf.getErrorHigh();
   //}
 
   return 1;
@@ -437,10 +436,10 @@ int mtt_analysis_new::ElectronSel()
 
   //if (!m_isMC) {
     // Get scale factor
-    ScaleFactor sf = mScaleFactors->getElectronScaleFactor(m_refLept->Pt(), m_refLept->Eta());
-    m_weight *= sf.value;
-    m_weight_error_low += sf.error_low * sf.error_low;
-    m_weight_error_high += sf.error_high * sf.error_high;
+    ScaleFactor sf = m_electron->getScaleFactor(goodelidx);
+    m_weight *= sf.getValue();
+    m_weight_error_low += sf.getErrorLow() * sf.getErrorLow();
+    m_weight_error_high += sf.getErrorHigh() * sf.getErrorHigh();
   //}
 
   return 1;
@@ -470,7 +469,8 @@ int mtt_analysis_new::JetSel()
     m_mtt_JetEta[m_mtt_NJets] = jetP->Eta();
     m_mtt_JetPt[m_mtt_NJets]  = jetP->Pt();
     if (!m_isMC)
-      jetSF[m_mtt_NJets] = mScaleFactors->getBTaggingScaleFactor(jetP->Et(), jetP->Eta());
+      jetSF[m_mtt_NJets] = m_jetMet->getScaleFactor(i);
+
     ++m_mtt_NJets;
 
     AllJetsPt += jetP->Pt();
@@ -531,9 +531,8 @@ int mtt_analysis_new::JetSel()
 
       // We have one 1 b-tagged jet and not the other one
       // e = e_btag * (1 - e_btag) * 2
-      double b_tagging_efficiency = mScaleFactors->getBTaggingEfficiency();
-      sf = sf_jet.value * ((1. - b_tagging_efficiency * sf_jet.value) / (1. - b_tagging_efficiency));
-      sf_error = ((1 - 2 * b_tagging_efficiency * sf_jet.value) / (1 - b_tagging_efficiency)) * sf_jet.error_high;
+      sf = sf_jet.getValue() * ((1. - m_b_tagging_efficiency * sf_jet.getValue()) / (1. - m_b_tagging_efficiency));
+      sf_error = ((1 - 2 * m_b_tagging_efficiency * sf_jet.getValue()) / (1 - m_b_tagging_efficiency)) * sf_jet.getErrorHigh();
       sf_error *= sf_error; // square
 
     } else if (m_mtt_NBtaggedJets_CSVM >= 2) {
@@ -555,9 +554,9 @@ int mtt_analysis_new::JetSel()
         }
       }
 
-      sf = sf_jet1.value * sf_jet2.value;
-      sf_error = sf_jet2.value * sf_jet2.value * sf_jet1.error_high * sf_jet1.error_high +
-        sf_jet1.value * sf_jet1.value * sf_jet2.error_high * sf_jet2.error_high;
+      sf = sf_jet1.getValue() * sf_jet2.getValue();
+      sf_error = sf_jet2.getValue() * sf_jet2.getValue() * sf_jet1.getErrorHigh() * sf_jet1.getErrorHigh() +
+        sf_jet1.getValue() * sf_jet1.getValue() * sf_jet2.getErrorHigh() * sf_jet2.getErrorHigh();
     }
 
     m_weight *= sf;
@@ -647,7 +646,7 @@ int mtt_analysis_new::mtt_Sel(const edm::EventSetup& iSetup, PatExtractor* extra
     MCidentification();
   } else {
     // Init BTag scale factors
-    mScaleFactors->prepareBTaggingScaleFactors(iSetup);
+    //mScaleFactors->prepareBTaggingScaleFactors(iSetup);
   }
 
   if (m_MAIN_systSign != SystematicsSign::NOMINAL)

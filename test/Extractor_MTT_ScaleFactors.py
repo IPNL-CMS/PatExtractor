@@ -38,6 +38,8 @@ def loadMuonScaleFactor(filename):
         )
       )
 
+  f.close()
+
   return mainSet
 
 def loadElectronScaleFactor(filename):

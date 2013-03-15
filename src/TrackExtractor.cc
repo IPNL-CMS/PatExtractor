@@ -16,7 +16,7 @@ TrackExtractor::TrackExtractor(const std::string& name, const edm::InputTag& tag
   {
     m_OK = true;
     m_tree_track         = new TTree(name.c_str(), "General tracks info");     
-    m_tree_track->Branch("n_tracks",  &m_size,  "n_tracks/I");  
+    m_tree_track->Branch("n_tracks",  &m_size,  "n_tracks/i");  
     m_tree_track->Branch("track_px",  &m_trk_px,   "track_px[n_tracks]/F");  
     m_tree_track->Branch("track_py",  &m_trk_py,   "track_py[n_tracks]/F");  
     m_tree_track->Branch("track_pz",  &m_trk_pz,   "track_pz[n_tracks]/F"); 

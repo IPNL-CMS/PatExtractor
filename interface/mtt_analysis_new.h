@@ -31,7 +31,6 @@ class VertexExtractor;
 class KinFit;
 class HLTExtractor;
 class PatExtractor;
-class ScaleFactors;
 
 class JetCorrectionUncertainty;
 
@@ -247,6 +246,8 @@ private:
   int m_mtt_NBtaggedJets_CSVM;
   int m_mtt_NBtaggedJets_CSVT;
 
+  float m_b_tagging_efficiency;
+
   float m_mtt_GoodJetEta[1000];
   float m_mtt_JetEta[1000];
   float m_mtt_JetPt[1000];
@@ -300,7 +301,6 @@ private:
   float m_weight;
   float m_weight_error_low;
   float m_weight_error_high;
-  std::shared_ptr<ScaleFactors> mScaleFactors;
 };
 
 #endif

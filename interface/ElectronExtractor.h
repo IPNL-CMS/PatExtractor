@@ -18,6 +18,8 @@
 #include "../interface/BaseExtractor.h"
 #include "../interface/MCExtractor.h"
 
+#include <Extractors/PatExtractor/interface/ScaleFactor.h>
+
 //Include std C++
 #include <iostream>
 
@@ -113,6 +115,10 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
       return m_ele_SCEta[index];
     }
 
+    ScaleFactor getScaleFactor(int index) const {
+      return m_scaleFactors.at(index);
+    }
+
   private:
 
     TTree* m_tree_electron;
@@ -173,6 +179,7 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
     int   m_ele_numberOfMissedInnerLayer[m_electrons_MAX]; // Access the hit pattern counting (in the Tracker) the number of expected crossed layers  before the first trajectory's hit
     int   m_ele_MCIndex[m_electrons_MAX];
 
+    ScaleFactorCollection m_scaleFactors;
 
 };
 

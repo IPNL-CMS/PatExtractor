@@ -29,6 +29,7 @@
 #include "../interface/HLTExtractor.h"
 #include "../interface/AnalysisSettings.h"
 #include "../interface/TrackExtractor.h"
+#include "../interface/ScaleFactorService.h"
 
 #include "../interface/mtt_analysis_new.h"
 #include "../interface/dimuon_analysis.h"
@@ -63,7 +64,6 @@ class PatExtractor : public edm::EDAnalyzer {
   std::shared_ptr<SuperBaseExtractor>& getExtractor(const std::string& name) {
     return m_extractors[m_extractorsIndexes[name]];
   }
-
 
  private:
 
@@ -121,6 +121,7 @@ class PatExtractor : public edm::EDAnalyzer {
 
   int iseventselected;
 
+  std::shared_ptr<ScaleFactorService> m_scaleFactors;
 };
 
 

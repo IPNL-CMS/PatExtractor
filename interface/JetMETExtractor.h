@@ -21,6 +21,7 @@
 
 #include "../interface/BaseExtractor.h"
 #include "../interface/MCExtractor.h"
+#include <Extractors/PatExtractor/interface/ScaleFactor.h>
 
 //Include std C++
 #include <iostream>
@@ -105,6 +106,10 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
       delete v;
     }
 
+    ScaleFactor getScaleFactor(int index) const {
+      return m_scaleFactors.at(index);
+    }
+
     TLorentzVector *getMETLorentzVector(int metidx) {return (TLorentzVector*)m_met_lorentzvector->At(metidx);}
     void setMETLorentzVector(int idx, float E, float Px, float Py, float Pz);
 
@@ -164,6 +169,8 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     edm::InputTag m_metTag;
     TTree* m_tree_met;
     TClonesArray* m_met_lorentzvector;
+
+    ScaleFactorCollection m_scaleFactors;
 };
 
 #endif 

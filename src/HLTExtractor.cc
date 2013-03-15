@@ -13,6 +13,7 @@ HLTExtractor::HLTExtractor(const std::string& name, bool doTree, const edm::Para
 
   m_OK         = false;
   m_HLT_vector = new std::vector< std::string >;
+  m_mustPass = new std::string();
   reset();
 
   // Tree definition
@@ -25,7 +26,7 @@ HLTExtractor::HLTExtractor(const std::string& name, bool doTree, const edm::Para
     m_tree_HLT->Branch("HLT_vector","vector<string>",&m_HLT_vector);
 
     m_tree_HLT->Branch("HLT_filtered", &m_filterHLT, "HLT_filtered/O");
-    m_tree_HLT->Branch("HLT_mustPass", "string", &m_mustPass);
+    m_tree_HLT->Branch("HLT_mustPass", &m_mustPass);
     m_tree_HLT->Branch("HLT_passed", &m_passed, "HLT_passed/O");
   }
 
@@ -60,6 +61,7 @@ HLTExtractor::HLTExtractor(const std::string& name, TFile *a_file)
 
   // Branches definition
   m_HLT_vector = new std::vector<std::string>();
+  m_mustPass = NULL;
 
   if (m_tree_HLT->FindBranch("n_paths")) 
     m_tree_HLT->SetBranchAddress("n_paths",  &m_n_HLTs);       
@@ -93,7 +95,7 @@ void HLTExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
   const boost::regex* triggerRegex = nullptr;
   if (m_filterHLT) {
     const PathVector& triggers = m_triggersService->getTriggers(event.run());
-    m_mustPass = triggers[0].str();
+    *m_mustPass = triggers[0].str();
     triggerRegex = &triggers[0];
   }
 
@@ -146,7 +148,7 @@ void HLTExtractor::reset()
   m_n_HLTs = 0;
   m_HLT_vector->clear();
   m_passed = false;
-  m_mustPass = "";
+  *m_mustPass = "";
 }
 
 

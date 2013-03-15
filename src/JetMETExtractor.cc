@@ -48,6 +48,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   // Set everything to 0
   m_jet_lorentzvector = new TClonesArray("TLorentzVector");
   m_met_lorentzvector = new TClonesArray("TLorentzVector");
+  m_scaleFactors.setWriteMode();
 
   reset();
 
@@ -55,7 +56,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
 
   m_tree_jet = NULL;
   m_tree_jet     = new TTree(name.c_str(), "PAT PF jet info");  
-  m_tree_jet->Branch("n_jets",  &m_size,   "n_jets/I");  
+  m_tree_jet->Branch("n_jets",  &m_size,   "n_jets/i");  
   m_tree_jet->Branch("jet_4vector","TClonesArray",&m_jet_lorentzvector, 5000, 0);
   m_tree_jet->Branch("jet_vx",  &m_jet_vx,   "jet_vx[n_jets]/F");  
   m_tree_jet->Branch("jet_vy",  &m_jet_vy,   "jet_vy[n_jets]/F");  
@@ -77,6 +78,8 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   //m_tree_jet->Branch("jet_btag_SSVHP",    &m_jet_btag_SSVHP,   "jet_btag_SSVHP[n_jets]/F");
   //m_tree_jet->Branch("jet_btag_TCHE",    &m_jet_btag_TCHE,   "jet_btag_TCHE[n_jets]/F");
   m_tree_jet->Branch("jet_mcParticleIndex",&m_jet_MCIndex,"jet_mcParticleIndex[n_jets]/I");
+
+  m_tree_jet->Branch("jet_scaleFactor", &m_scaleFactors.getBackingArray());
 
   m_tree_met = NULL;
   m_tree_met      = new TTree(met_name.c_str(), "PAT PF MET info");  
@@ -139,6 +142,9 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
 
     if (m_tree_jet->FindBranch("jet_mcParticleIndex")) 
       m_tree_jet->SetBranchAddress("jet_mcParticleIndex",&m_jet_MCIndex);
+
+    if (m_tree_jet->FindBranch("jet_scaleFactor"))
+      m_tree_jet->SetBranchAddress("jet_scaleFactor", &m_scaleFactors.getBackingArray());
   }
 
   m_tree_met = dynamic_cast<TTree*>(a_file->Get(met_name.c_str()));
@@ -287,6 +293,8 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
     m_jet_btag_TCHP[index]     = part.bDiscriminator("trackCountingHighPurBJetTags");
     m_jet_btag_CSV[index]      = part.bDiscriminator("combinedSecondaryVertexBJetTags");
   }
+
+  m_scaleFactors.push_back(m_scaleFactorService->getBTaggingScaleFactor(part.et(), part.eta()));
 }
 
 void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::MET& part, int index) 
@@ -316,6 +324,8 @@ void JetMETExtractor::getInfo(int ievt)
 void JetMETExtractor::reset()
 {
   m_size = 0;
+
+  m_scaleFactors.clear();
 
   for (int i=0;i<m_jets_MAX;++i) 
   {

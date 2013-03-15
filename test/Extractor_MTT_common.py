@@ -108,6 +108,10 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
   from Extractor_MTT_ScaleFactors import loadMuonScaleFactor, loadBTagScaleFactors, loadElectronScaleFactor
   loadBTagScaleFactors(process)
 
+  # Scale factors
+  process.PATextraction.muon_scale_factors = loadMuonScaleFactor("Muon_ID_iso_Efficiencies_Run_2012ABCD_53X.pkl")
+  process.PATextraction.electron_scale_factors = loadElectronScaleFactor("Electron_scale_factors.json")
+
   # MTT analysis configuration
   process.PATextraction.mtt = cms.PSet(
       do_semimu = cms.bool(isSemiMu),
@@ -145,7 +149,8 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
         btag_CSVL = cms.double(0.244),
         btag_CSVM = cms.double(0.679),
         btag_CSVT = cms.double(0.898),
-        btag_TCHPT = cms.double(3.41)
+        btag_TCHPT = cms.double(3.41),
+        b_tagging_efficiency = cms.double(0.6915)
         ),
 
       chi2_sorting = cms.PSet(

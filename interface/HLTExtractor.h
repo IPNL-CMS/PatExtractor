@@ -139,11 +139,9 @@ class HLTExtractor: public SuperBaseExtractor
   int m_n_HLTs;
   std::vector< std::string > *m_HLT_vector;
 
-  bool m_OK;
-
   bool m_filterHLT;
   std::string m_triggersXML;
-  std::string m_mustPass;
+  std::string* m_mustPass;
   bool m_passed;
 
   std::shared_ptr<Triggers> m_triggersService; 

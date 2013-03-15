@@ -17,6 +17,7 @@
 
 #include "../interface/BaseExtractor.h"
 #include "../interface/MCExtractor.h"
+#include <Extractors/PatExtractor/interface/ScaleFactor.h>
 
 //Include std C++
 #include <iostream>
@@ -105,6 +106,10 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
       return m_muo_deltaBetaCorrectedRelIsolation[index];
     }
 
+    ScaleFactor getScaleFactor(int index) const {
+      return m_scaleFactors.at(index);
+    }
+
 
   private:
 
@@ -148,6 +153,8 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
     float m_muo_dZ[m_muons_MAX];
     float m_muo_pixelLayerWithMeasurement[m_muons_MAX];
     float m_muo_globalTrackNumberOfValidHits[m_muons_MAX];
+
+    ScaleFactorCollection m_scaleFactors;
 };
 
 #endif 

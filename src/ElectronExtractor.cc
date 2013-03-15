@@ -13,6 +13,7 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTa
 
   m_deltaR_cut = 0.5; // Maximum acceptable distance for MC matching
   m_ele_lorentzvector = new TClonesArray("TLorentzVector");
+  m_scaleFactors.setWriteMode();
 
   // Set everything to 0
 
@@ -27,7 +28,7 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTa
     m_OK = true;
 
     m_tree_electron     = new TTree(m_name.c_str(), "PAT PF electron info");  
-    m_tree_electron->Branch("n_electrons",                       &m_size, "n_electrons/I");  
+    m_tree_electron->Branch("n_electrons",                       &m_size, "n_electrons/i");  
     m_tree_electron->Branch("electron_4vector","TClonesArray",   &m_ele_lorentzvector, 1000, 0);
     m_tree_electron->Branch("electron_vx",                       &m_ele_vx,     "electron_vx[n_electrons]/F");  
     m_tree_electron->Branch("electron_vy",                       &m_ele_vy,     "electron_vy[n_electrons]/F");  
@@ -77,6 +78,8 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTa
     m_tree_electron->Branch("electron_passLooseID",              &m_ele_passLooseID, "electron_passLooseID[n_electrons]/O");
     m_tree_electron->Branch("electron_passMediumID",             &m_ele_passMediumID, "electron_passMediumID[n_electrons]/O");
     m_tree_electron->Branch("electron_passTightID",              &m_ele_passTightID, "electron_passTightID[n_electrons]/O");
+
+    m_tree_electron->Branch("electron_scaleFactor",              &m_scaleFactors.getBackingArray());
   }
 }
 
@@ -197,6 +200,9 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTa
 
   if (m_tree_electron->FindBranch("electron_deltaBetaCorrectedRelIsolation"))
     m_tree_electron->SetBranchAddress("electron_deltaBetaCorrectedRelIsolation", &m_ele_deltaBetaCorrectedRelIsolation);
+
+  if (m_tree_electron->FindBranch("electron_scaleFactor"))
+    m_tree_electron->SetBranchAddress("electron_scaleFactor", &m_scaleFactors.getBackingArray());
 }
 
 
@@ -410,6 +416,8 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
       delete veto;
     */
   }
+
+  m_scaleFactors.push_back(m_scaleFactorService->getElectronScaleFactor(part.pt(), part.eta()));
 }
 
 //
@@ -426,6 +434,7 @@ void ElectronExtractor::getInfo(int ievt)
 void ElectronExtractor::reset()
 {
   m_size = 0;
+  m_scaleFactors.clear();
 
   for (int i=0;i<m_electrons_MAX;++i) 
   {

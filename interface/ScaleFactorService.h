@@ -12,13 +12,9 @@
 #include <RecoBTag/PerformanceDB/interface/BtagPerformance.h>
 #include <RecoBTag/Records/interface/BTagPerformanceRecord.h>
 
-struct ScaleFactor {
-  double value;
-  double error_low;
-  double error_high;
-};
+#include <Extractors/PatExtractor/interface/ScaleFactor.h>
 
-class ScaleFactors {
+class ScaleFactorService {
   private:
     typedef std::map<
       // Eta binning
@@ -31,10 +27,9 @@ class ScaleFactors {
     > ScaleFactorMap;
 
   public:
-    ScaleFactors(const edm::ParameterSet& settings) {
+    ScaleFactorService(const edm::ParameterSet& settings) {
       parseMuonScaleFactors(settings);
       parseElectronScaleFactors(settings);
-      parseBTagScaleFactors(settings);
       mBTagPerfInit = false;
     }
 
@@ -56,6 +51,9 @@ class ScaleFactors {
 
     ScaleFactor getBTaggingScaleFactor(double et, double eta) const {
 
+      if (!mBTagPerfInit)
+        return ScaleFactor();
+
       eta = fabs(eta);
 
       BinningPointByMap measurePoint;
@@ -63,19 +61,12 @@ class ScaleFactors {
       measurePoint.insert(BinningVariables::JetEta, eta);
 
       if (mBTagPerf->isResultOk(PerformanceResult::BTAGBEFFCORR, measurePoint) && mBTagPerf->isResultOk(PerformanceResult::BTAGBERRCORR, measurePoint)) {
-        ScaleFactor sf;
-        sf.value = mBTagPerf->getResult(PerformanceResult::BTAGBEFFCORR, measurePoint);
-        sf.error_high = mBTagPerf->getResult(PerformanceResult::BTAGBERRCORR, measurePoint);
-        sf.error_low = sf.error_high;
+        ScaleFactor sf(mBTagPerf->getResult(PerformanceResult::BTAGBEFFCORR, measurePoint), mBTagPerf->getResult(PerformanceResult::BTAGBERRCORR, measurePoint));
 
         return sf;
       }
 
-      return {1., 0, 0};
-    }
-
-    double getBTaggingEfficiency() const {
-      return mBTagEfficiency;
+      return ScaleFactor();
     }
 
     ScaleFactor getHLTScaleFactor(double pt, double eta) {
@@ -97,7 +88,7 @@ class ScaleFactors {
         }
       }
 
-      return {1., 0, 0};
+      return ScaleFactor();
     }
 
     void parseScaleFactors(const edm::ParameterSet& settings, const std::string& name, ScaleFactorMap& map) {
@@ -109,18 +100,12 @@ class ScaleFactors {
         nPt = 0;
         const std::vector<double> etaBinVector = etaBin.getParameter<std::vector<double>>("eta");
         auto eta = std::make_pair(etaBinVector[0], etaBinVector[1]);
-
         for (const edm::ParameterSet& ptBin: etaBin.getParameterSetVector("SF")) {
           nPt++;
           const std::vector<double> ptBinVector = ptBin.getParameter<std::vector<double>>("pt");
           auto pt = std::make_pair(ptBinVector[0], ptBinVector[1]);
 
-          ScaleFactor sf = {
-            ptBin.getParameter<double>("value"),
-            ptBin.getParameter<double>("error_low"),
-            ptBin.getParameter<double>("error_high")
-          };
-
+          ScaleFactor sf(ptBin.getParameter<double>("value"), ptBin.getParameter<double>("error_low"), ptBin.getParameter<double>("error_high"));
           map[eta][pt] = sf;
         }
       }
@@ -137,10 +122,6 @@ class ScaleFactors {
     void parseElectronScaleFactors(const edm::ParameterSet& settings) {
       std::cout << "Loading electron scale factors..." << std::endl;
       parseScaleFactors(settings, "electron_scale_factors", mElectronScaleFactors);
-    }
-
-    void parseBTagScaleFactors(const edm::ParameterSet& settings) {
-      mBTagEfficiency = settings.getParameter<double>("b_tagging_efficiency");
     }
 
     ScaleFactorMap mMuonScaleFactors;

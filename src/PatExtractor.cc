@@ -46,6 +46,8 @@ PatExtractor::PatExtractor(const edm::ParameterSet& config) :
   // If do_fill is set to True, you extract the whole data, otherwise you start 
   // from a file already extracted (inFilename_)
 
+  m_scaleFactors.reset(new ScaleFactorService(config));
+
   (do_fill_) 
     ? PatExtractor::initialize(config)
     : PatExtractor::retrieve(config);
@@ -73,8 +75,12 @@ void PatExtractor::beginJob()
 
 
 // What to do at the start of a new run
-void PatExtractor::beginRun(Run const& run, EventSetup const& setup) 
+void PatExtractor::beginRun(Run const& run, EventSetup const& setup)
 {
+
+  if (! is_MC_)
+    m_scaleFactors->prepareBTaggingScaleFactors(setup);
+
   nevent = 0;
 
   // If we start from existing file we don't have to loop over events
@@ -185,8 +191,10 @@ void PatExtractor::getInfo(int ievent)
   //if (do_Jet_)      m_jet->getInfo(ievent);
   //if (do_Photon_)   m_photon->getInfo(ievent);
 
-  for (auto& extractor: m_extractors)
-    extractor->getInfo(ievent);
+  for (auto& extractor: m_extractors) {
+    if (extractor->isOK())
+      extractor->getInfo(ievent);
+  }
 }
 
 
@@ -242,8 +250,10 @@ void PatExtractor::initialize(const edm::ParameterSet& config)
   if (do_Muon_)
     addExtractor("muons_loose", new MuonExtractor("muon_loose_PF", edm::InputTag("selectedPatMuonsLoosePFlow"), vtx_tag_, true));
 
-  for (auto& extractor: m_extractors)
+  for (auto& extractor: m_extractors) {
     extractor->setIsMC(is_MC_);
+    extractor->setScaleFactorsService(m_scaleFactors);
+  }
 }
 
 
@@ -273,12 +283,17 @@ void PatExtractor::retrieve(const edm::ParameterSet& config)
   // Register extractors
   addExtractor("event", new EventExtractor("event", m_infile));
   addExtractor("MC", new MCExtractor("MC", m_infile));
-  addExtractor("HLT", new HLTExtractor("HLT", m_infile, config));
+  addExtractor("HLT", new HLTExtractor("HLT", m_infile));
   addExtractor("track", new TrackExtractor("track", m_infile));
 
   addExtractor("vertex", new VertexExtractor("Vertices", m_infile));
+
   addExtractor("electrons", new ElectronExtractor("electron_PF", m_infile));
-  addExtractor("muons", new MuonExtractor("electron_PF", m_infile));
+  addExtractor("electrons_loose", new ElectronExtractor("electron_loose_PF", m_infile));
+
+  addExtractor("muons", new MuonExtractor("muon_PF", m_infile));
+  addExtractor("muons_loose", new MuonExtractor("muon_loose_PF", m_infile));
+
   addExtractor("JetMET", new JetMETExtractor("jet_PF", "MET_PF", m_infile));
   addExtractor("photons", new PhotonExtractor("photon", m_infile));
 
@@ -289,12 +304,13 @@ void PatExtractor::retrieve(const edm::ParameterSet& config)
   do_Electron_ = getExtractor("electrons")->isOK();
   do_Jet_      = getExtractor("JetMET")->isOK();
   do_Muon_     = getExtractor("muons")->isOK();
-  do_MET_      = getExtractor("MET")->isOK();
   do_Vertex_   = getExtractor("vertex")->isOK();
   do_Trk_      = getExtractor("track")->isOK();
 
-  for (auto& extractor: m_extractors)
+  for (auto& extractor: m_extractors) {
     extractor->setIsMC(is_MC_);
+    extractor->setScaleFactorsService(m_scaleFactors);
+  }
 }
 
 
@@ -306,7 +322,7 @@ void PatExtractor::retrieve(const edm::ParameterSet& config)
 void PatExtractor::doAna(const edm::EventSetup& setup) 
 {
 
-  if (do_Mtt_ && do_Muon_ && do_Electron_ && do_Jet_ && do_MET_ && do_Vertex_ && do_HLT_) 
+  if (do_Mtt_ && do_Muon_ && do_Electron_ && do_Jet_ && do_Vertex_ && do_HLT_) 
   {   
     m_Mtt_analysis_new->mtt_Sel(setup, this);
     m_Mtt_analysis_new->fillTree();

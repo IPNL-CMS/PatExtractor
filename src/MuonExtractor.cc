@@ -11,12 +11,14 @@ MuonExtractor::MuonExtractor(const std::string& name, const edm::InputTag& tag, 
   // Set everything to 0
  
   setPF((tag.label()).find("PFlow")); 
+
   m_muo_lorentzvector = new TClonesArray("TLorentzVector");
+  m_scaleFactors.setWriteMode();
+
   reset();
 
   m_tag = tag;
   m_deltaR_cut = 0.5; // Maximum acceptable distance for MC matching
-
 
   // Tree definition
 
@@ -25,7 +27,7 @@ MuonExtractor::MuonExtractor(const std::string& name, const edm::InputTag& tag, 
     m_OK = true;
 
     m_tree_muon         = new TTree(m_name.c_str(), "PAT PF muon info"); 
-    m_tree_muon->Branch("n_muons",  &m_size,  "n_muons/I");  
+    m_tree_muon->Branch("n_muons",  &m_size,  "n_muons/i");  
     m_tree_muon->Branch("muon_4vector","TClonesArray",&m_muo_lorentzvector, 1000, 0);
     m_tree_muon->Branch("muon_vx",  &m_muo_vx,   "muon_vx[n_muons]/F");  
     m_tree_muon->Branch("muon_vy",  &m_muo_vy,   "muon_vy[n_muons]/F");  
@@ -57,6 +59,8 @@ MuonExtractor::MuonExtractor(const std::string& name, const edm::InputTag& tag, 
 
     m_tree_muon->Branch("muon_relIsolation",                   &m_muo_relIsolation, "muon_relIsolation[n_muons]/F");
     m_tree_muon->Branch("muon_deltaBetaCorrectedRelIsolation", &m_muo_deltaBetaCorrectedRelIsolation, "muon_deltaBetaCorrectedRelIsolation[n_muons]/F");
+
+    m_tree_muon->Branch("muon_scaleFactor", &m_scaleFactors.getBackingArray());
   }
 
 }
@@ -81,7 +85,6 @@ MuonExtractor::MuonExtractor(const std::string& name, TFile *a_file)
   m_OK = true;
 
   m_muo_lorentzvector = new TClonesArray("TLorentzVector");
-
 
   // Branches definition
 
@@ -152,10 +155,15 @@ MuonExtractor::MuonExtractor(const std::string& name, TFile *a_file)
 
   if (m_tree_muon->FindBranch("muon_deltaBetaCorrectedRelIsolation"))
     m_tree_muon->SetBranchAddress("muon_deltaBetaCorrectedRelIsolation", &m_muo_deltaBetaCorrectedRelIsolation);
+
+  if (m_tree_muon->FindBranch("muon_scaleFactor"))
+    m_tree_muon->SetBranchAddress("muon_scaleFactor", &m_scaleFactors.getBackingArray());
 }
 
 MuonExtractor::~MuonExtractor()
-{}
+{
+  delete m_muo_lorentzvector;
+}
 
 //
 // Method getting the info from an input file
@@ -221,6 +229,11 @@ void MuonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iS
     m_muo_relIsolation[index] = (part.chargedHadronIso() + part.neutralHadronIso() + part.photonIso()) / part.pt();
     m_muo_deltaBetaCorrectedRelIsolation[index] = (part.chargedHadronIso() + std::max((part.neutralHadronIso() + part.photonIso()) - 0.5 * part.puChargedHadronIso(), 0.0)) / part.pt();
   } 
+
+  if (! m_isMC)
+    m_scaleFactors.push_back(m_scaleFactorService->getMuonScaleFactor(part.pt(), part.eta()));
+  else
+    m_scaleFactors.push_back(ScaleFactor());
 }
 
 
@@ -229,6 +242,7 @@ void MuonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iS
 void MuonExtractor::reset()
 {
   m_size = 0;
+  m_scaleFactors.clear();
 
   for (int i=0;i<m_muons_MAX;++i) 
   {

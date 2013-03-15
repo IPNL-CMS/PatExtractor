@@ -18,7 +18,7 @@ PhotonExtractor::PhotonExtractor(const std::string& name, const edm::InputTag& t
   if (doTree)
   {
     m_tree_photon   = new TTree(name.c_str(), "PAT photon info");  
-    m_tree_photon->Branch("n_photons",  &m_size, "n_photons/I");  
+    m_tree_photon->Branch("n_photons",  &m_size, "n_photons/i");  
     m_tree_photon->Branch("photon_4vector","TClonesArray",&m_pho_lorentzvector, 1000, 0);    
     m_tree_photon->Branch("photon_vx",  &m_pho_vx,   "photon_vx[n_photons]/F");  
     m_tree_photon->Branch("photon_vy",  &m_pho_vy,   "photon_vy[n_photons]/F");  
