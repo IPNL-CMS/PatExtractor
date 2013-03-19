@@ -417,7 +417,8 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
     */
   }
 
-  m_scaleFactors.push_back(m_scaleFactorService->getElectronScaleFactor(part.pt(), part.eta()));
+  if (m_isMC)
+    m_scaleFactors.push_back(m_scaleFactorService->getElectronScaleFactor(part.pt(), part.eta()));
 }
 
 //

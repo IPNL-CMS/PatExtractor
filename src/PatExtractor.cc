@@ -78,7 +78,7 @@ void PatExtractor::beginJob()
 void PatExtractor::beginRun(Run const& run, EventSetup const& setup)
 {
 
-  if (! is_MC_)
+  if (is_MC_)
     m_scaleFactors->prepareBTaggingScaleFactors(setup);
 
   nevent = 0;

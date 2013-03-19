@@ -294,7 +294,8 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
     m_jet_btag_CSV[index]      = part.bDiscriminator("combinedSecondaryVertexBJetTags");
   }
 
-  m_scaleFactors.push_back(m_scaleFactorService->getBTaggingScaleFactor(part.et(), part.eta()));
+  if (m_isMC)
+    m_scaleFactors.push_back(m_scaleFactorService->getBTaggingScaleFactor(part.et(), part.eta()));
 }
 
 void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::MET& part, int index) 

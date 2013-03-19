@@ -350,13 +350,13 @@ int mtt_analysis_new::MuonSel()
   m_refLept = m_muon->getMuLorentzVector(goodmuidx);
   m_selectedLeptonIndex = goodmuidx;
 
-  //if (!m_isMC) {
+  if (m_isMC) {
     // Get scale factor
     ScaleFactor sf = m_muon->getScaleFactor(goodmuidx);
     m_weight *= sf.getValue();
     m_weight_error_low += sf.getErrorLow() * sf.getErrorLow();
     m_weight_error_high += sf.getErrorHigh() * sf.getErrorHigh();
-  //}
+  }
 
   return 1;
 }
@@ -434,13 +434,13 @@ int mtt_analysis_new::ElectronSel()
   m_refLept = m_electron->getEleLorentzVector(goodelidx);
   m_selectedLeptonIndex = goodelidx;
 
-  //if (!m_isMC) {
+  if (m_isMC) {
     // Get scale factor
     ScaleFactor sf = m_electron->getScaleFactor(goodelidx);
     m_weight *= sf.getValue();
     m_weight_error_low += sf.getErrorLow() * sf.getErrorLow();
     m_weight_error_high += sf.getErrorHigh() * sf.getErrorHigh();
-  //}
+  }
 
   return 1;
 }
@@ -468,7 +468,7 @@ int mtt_analysis_new::JetSel()
 
     m_mtt_JetEta[m_mtt_NJets] = jetP->Eta();
     m_mtt_JetPt[m_mtt_NJets]  = jetP->Pt();
-    if (!m_isMC)
+    if (m_isMC)
       jetSF[m_mtt_NJets] = m_jetMet->getScaleFactor(i);
 
     ++m_mtt_NJets;
@@ -512,7 +512,7 @@ int mtt_analysis_new::JetSel()
   if (m_mtt_NJets < 4)
     return 8;
 
-  if (! m_isMC) {
+  if (m_isMC) {
     // Get scale factors
     double sf = 1;
     double sf_error = 0;
@@ -644,9 +644,6 @@ int mtt_analysis_new::mtt_Sel(const edm::EventSetup& iSetup, PatExtractor* extra
   {
     m_MC = std::static_pointer_cast<MCExtractor>(extractor->getExtractor("MC"));
     MCidentification();
-  } else {
-    // Init BTag scale factors
-    //mScaleFactors->prepareBTaggingScaleFactors(iSetup);
   }
 
   if (m_MAIN_systSign != SystematicsSign::NOMINAL)

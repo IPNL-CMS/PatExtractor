@@ -230,10 +230,8 @@ void MuonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iS
     m_muo_deltaBetaCorrectedRelIsolation[index] = (part.chargedHadronIso() + std::max((part.neutralHadronIso() + part.photonIso()) - 0.5 * part.puChargedHadronIso(), 0.0)) / part.pt();
   } 
 
-  if (! m_isMC)
+  if (m_isMC)
     m_scaleFactors.push_back(m_scaleFactorService->getMuonScaleFactor(part.pt(), part.eta()));
-  else
-    m_scaleFactors.push_back(ScaleFactor());
 }
 
 
