@@ -100,6 +100,9 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
    doTrack       = cms.untracked.bool(False),
    trk_tag       = cms.InputTag( "generalTracks" ),
 
+   # Add Track information
+   doPF          = cms.untracked.bool(False),
+   pf_tag        = cms.InputTag( "particleFlow" ),
 
 ##
 ## Finally you put some details on the analysis

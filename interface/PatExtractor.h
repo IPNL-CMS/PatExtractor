@@ -29,6 +29,7 @@
 #include "../interface/HLTExtractor.h"
 #include "../interface/AnalysisSettings.h"
 #include "../interface/TrackExtractor.h"
+#include "../interface/PFpartExtractor.h"
 #include "../interface/ScaleFactorService.h"
 
 #include "../interface/mtt_analysis_new.h"
@@ -85,6 +86,7 @@ class PatExtractor : public edm::EDAnalyzer {
   bool do_MET_;
   bool do_Vertex_;
   bool do_Trk_;
+  bool do_PF_;
 
   bool do_Mtt_;
   bool do_dimu_;
@@ -97,6 +99,7 @@ class PatExtractor : public edm::EDAnalyzer {
   edm::InputTag MC_tag_;       // 
   edm::InputTag vtx_tag_;      // 
   edm::InputTag trk_tag_;      // 
+  edm::InputTag pf_tag_;      //
 
   // Definition of root-tuple :
 

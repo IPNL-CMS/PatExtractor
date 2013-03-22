@@ -16,6 +16,7 @@ PatExtractor::PatExtractor(const edm::ParameterSet& config) :
   do_MET_        (config.getUntrackedParameter<bool>("doMET", false)),
   do_Vertex_     (config.getUntrackedParameter<bool>("doVertex", false)),
   do_Trk_        (config.getUntrackedParameter<bool>("doTrack", false)),
+  do_PF_         (config.getUntrackedParameter<bool>("doPF", false)),
   do_Mtt_        (config.getUntrackedParameter<bool>("doMtt", false)),
   do_dimu_       (config.getUntrackedParameter<bool>("doDimuon", false)),
   do_ftt_        (config.getUntrackedParameter<bool>("do4TopHLT", false)),
@@ -27,6 +28,8 @@ PatExtractor::PatExtractor(const edm::ParameterSet& config) :
   MC_tag_        (config.getParameter<edm::InputTag>("MC_tag")),
   vtx_tag_       (config.getParameter<edm::InputTag>("vtx_tag")),
   trk_tag_       (config.getParameter<edm::InputTag>("trk_tag")),
+  pf_tag_        (config.getParameter<edm::InputTag>("pf_tag")),
+
   outFilename_   (config.getParameter<std::string>("extractedRootFile")),
   inFilename_    (config.getParameter<std::string>("inputRootFile")),
   m_settings_    (config.getUntrackedParameter<std::vector<std::string> >("analysisSettings"))
@@ -228,6 +231,9 @@ void PatExtractor::initialize(const edm::ParameterSet& config)
   if (do_Trk_)
     addExtractor("track", new TrackExtractor("track", trk_tag_, do_Trk_));
 
+  if (do_PF_)
+    addExtractor("PFpart", new PFpartExtractor("PFpart", pf_tag_, do_PF_));
+
   if (do_Vertex_)
     addExtractor("vertex", new VertexExtractor("Vertices", vtx_tag_, do_Vertex_));
 
@@ -285,6 +291,7 @@ void PatExtractor::retrieve(const edm::ParameterSet& config)
   addExtractor("MC", new MCExtractor("MC", m_infile));
   addExtractor("HLT", new HLTExtractor("HLT", m_infile));
   addExtractor("track", new TrackExtractor("track", m_infile));
+  addExtractor("PFpart", new PFpartExtractor("PFpart", m_infile));
 
   addExtractor("vertex", new VertexExtractor("Vertices", m_infile));
 
@@ -306,6 +313,7 @@ void PatExtractor::retrieve(const edm::ParameterSet& config)
   do_Muon_     = getExtractor("muons")->isOK();
   do_Vertex_   = getExtractor("vertex")->isOK();
   do_Trk_      = getExtractor("track")->isOK();
+  do_PF_       = getExtractor("PFpart")->isOK();
 
   for (auto& extractor: m_extractors) {
     extractor->setIsMC(is_MC_);
