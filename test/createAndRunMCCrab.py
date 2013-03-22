@@ -4,8 +4,14 @@ import os, copy, datetime, pwd, re
 
 from optparse import OptionParser
 parser = OptionParser()
+parser.add_option("", "--create-cfg", action="store_true", dest="create_cfg", default=False, help="create config files for crab")
 parser.add_option("", "--run", action="store_true", dest="run", default=False, help="run crab")
+parser.add_option("", "--status", action="store_true", dest="status", default=False, help="run crab -status")
+parser.add_option("", "--get", action="store_true", dest="get", default=False, help="run crab -get")
 (options, args) = parser.parse_args()
+
+if options.run:
+  options.create_cfg = True
 
 datasets = [
     # Z' narrow
@@ -118,31 +124,40 @@ for dataset in datasets:
   #dataset_globaltag = re.search('START\d{0,2}_V\d[A-Z]?', dataset_path).group(0)
 
   #publish_name = "%s_%s_%s-v%d" % (dataset_name, dataset_globaltag, d, version)
-  ui_working_dir = ("multicrab_MC_%s_%s") % (dataset_name, d)
   output_file = "multicrab_MC_%s_%s.cfg" % (dataset_name, d)
+  ui_working_dir = ("multicrab_MC_%s") % (dataset_name)
 
-  output_dir_semie = ("Extracted_step2/MC/Summer12/%s/semie/%s" % (d, dataset_name))
-  output_dir_semimu = ("Extracted_step2/MC/Summer12/%s/semimu/%s" % (d, dataset_name))
+  if options.create_cfg:
+    output_dir_semie = ("Extracted_step2/MC/Summer12/%s/semie/%s" % (d, dataset_name))
+    output_dir_semimu = ("Extracted_step2/MC/Summer12/%s/semimu/%s" % (d, dataset_name))
 
-  full_template = copy.copy(multicrab)
-  if "EMEnriched" in dataset_path:
-    full_template.template += multicrab_semie
-  elif "MuEnriched" in dataset_path:
-    full_template.template += multicrab_semimu
-  else:
-    full_template.template += multicrab_semie
-    full_template.template += multicrab_semimu
+    full_template = copy.copy(multicrab)
+    if "EMEnriched" in dataset_path:
+      full_template.template += multicrab_semie
+    elif "MuEnriched" in dataset_path:
+      full_template.template += multicrab_semimu
+    else:
+      full_template.template += multicrab_semie
+      full_template.template += multicrab_semimu
 
-  print("Creating config file for '%s'" % (dataset_path))
-  print("\tName: %s" % dataset_name)
-  print("\tOutput directory (semi-mu): %s" % output_dir_semimu)
-  print("\tOutput directory (semi-e): %s" % output_dir_semie)
-  print("")
+    print("Creating config file for '%s'" % (dataset_path))
+    print("\tName: %s" % dataset_name)
+    print("\tOutput directory (semi-mu): %s" % output_dir_semimu)
+    print("\tOutput directory (semi-e): %s" % output_dir_semie)
+    print("")
 
-  f = open(output_file, "w")
-  f.write(full_template.substitute(ui_working_dir=ui_working_dir, dataset=dataset_path, remote_dir_semie=output_dir_semie, remote_dir_semimu=output_dir_semimu, name=dataset_name, email=email, events=dataset_size))
-  f.close()
+    f = open(output_file, "w")
+    f.write(full_template.substitute(ui_working_dir=ui_working_dir, dataset=dataset_path, remote_dir_semie=output_dir_semie, remote_dir_semimu=output_dir_semimu, name=dataset_name, email=email, events=dataset_size))
+    f.close()
 
   if options.run:
     cmd = "multicrab -create -submit -cfg %s" % (output_file)
+    os.system(cmd)
+
+  if options.status:
+    cmd = "multicrab -status -c %s" % (ui_working_dir)
+    os.system(cmd)
+
+  if options.get:
+    cmd = "multicrab -get -c %s" % (ui_working_dir)
     os.system(cmd)
