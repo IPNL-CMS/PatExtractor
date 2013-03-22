@@ -301,6 +301,8 @@ private:
   float m_weight;
   float m_weight_error_low;
   float m_weight_error_high;
+
+  bool m_is_neutrino_pz_corrected;
 };
 
 #endif

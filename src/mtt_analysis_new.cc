@@ -140,6 +140,9 @@ mtt_analysis_new::mtt_analysis_new(const edm::ParameterSet& cmsswSettings, Analy
   m_tree_Mtt->Branch("weight_error_low", &m_weight_error_low, "weight_error_low/F");
   m_tree_Mtt->Branch("weight_error_high", &m_weight_error_high, "weight_error_high/F");
 
+  // Neutrino Pz calculation study
+  m_tree_Mtt->Branch("is_neutrino_pz_corrected", &m_is_neutrino_pz_corrected, "is_neutrino_pz_corrected/O");
+
   std::string sign = cmsswSettings.getParameter<edm::ParameterSet>("systematics").getParameter<std::string>("jec");
   std::transform(sign.begin(), sign.end(), sign.begin(), ::tolower);
 
@@ -769,7 +772,7 @@ void mtt_analysis_new::loopOverCombinations()
             m_mtt_OneMatchedCombi = match_MC(c_j1, c_j2, c_j3, c_j4, 0);
 
           // This call corrects MET pz
-          int res = m_KinFit->ReadObjects(*m_jetMet->getJetLorentzVector(c_j3),
+          bool res = m_KinFit->ReadObjects(*m_jetMet->getJetLorentzVector(c_j3),
               *m_jetMet->getJetLorentzVector(c_j4),
               *m_jetMet->getJetLorentzVector(c_j1),
               *m_refLept,
@@ -828,7 +831,8 @@ void mtt_analysis_new::loopOverCombinations()
         *m_refLept,
         *m_jetMet->getMETLorentzVector(0),
         *m_jetMet->getJetLorentzVector(bestj2),
-        m_MAIN_doSemiMu
+        m_MAIN_doSemiMu,
+        &m_is_neutrino_pz_corrected
         );
 
     const TLorentzVector& measuredLepton = m_KinFit->GetMeasuredLepton();
@@ -1319,4 +1323,6 @@ void mtt_analysis_new::reset()
   m_weight = 1.;
   m_weight_error_low = 0.;
   m_weight_error_high = 0.;
+
+  m_is_neutrino_pz_corrected = false;
 }

@@ -18,6 +18,8 @@
 #include "../interface/KinFit.h"
 #include "../interface/AnalysisSettings.h"
 
+//#define HIGH_MASS_METHOD
+
 using namespace std;
 
 static void * vdummy = 0;
@@ -170,7 +172,7 @@ int KinFit::ReadErrors(TString ParamsFile)
 }
 
 // ------------------------------------------------------------------------------------------
-int KinFit::ReadObjects(const TLorentzVector& Jet1, const TLorentzVector& Jet2, const TLorentzVector& BJetH, const TLorentzVector& Lepton, const TLorentzVector& Neutrino, const TLorentzVector& BJetL, bool doSemiMu)
+bool KinFit::ReadObjects(const TLorentzVector& Jet1, const TLorentzVector& Jet2, const TLorentzVector& BJetH, const TLorentzVector& Lepton, const TLorentzVector& Neutrino, const TLorentzVector& BJetL, bool doSemiMu, bool* eventCorrected/* = NULL*/)
 {
 
   /*(Lepton->M()>0.05) // This is a muon    
@@ -191,8 +193,8 @@ int KinFit::ReadObjects(const TLorentzVector& Jet1, const TLorentzVector& Jet2, 
 
   /// We compute Pz of the neutrino
 
-  if (! PzNeutrino(Lepton, MeasuredNeutrino, BJetL))
-    return 0; // Don't go further if things are bad
+  if (! PzNeutrino(Lepton, MeasuredNeutrino, BJetL, eventCorrected))
+    return false; // Don't go further if things are bad
 
   FittedLepton.reset(new TLorentzVector(Lepton));
   FittedBJetH.reset(new TLorentzVector(BJetH));
@@ -227,7 +229,7 @@ int KinFit::ReadObjects(const TLorentzVector& Jet1, const TLorentzVector& Jet2, 
     ? SigmEMu = C_mu+B_mu*Lepton.E()+A_mu*Lepton.E()*Lepton.E()
     : SigmEMu = C_ele+B_ele*Lepton.E()+A_ele*Lepton.E()*Lepton.E();
 
-  return 1;
+  return true;
 
 }
 
@@ -614,8 +616,11 @@ TLorentzVector* KinFit::GetFittedNeutrino()
 ///////////////////////////////
 
 
-double  KinFit::PzNeutrino(const TLorentzVector& lept, TLorentzVector& neut, const TLorentzVector& bJet)
+double KinFit::PzNeutrino(const TLorentzVector& lept, TLorentzVector& neut, const TLorentzVector& bJet, bool* eventCorrected/* = NULL*/)
 {
+  if (eventCorrected)
+    *eventCorrected = false;
+
   if(!lept.E()) return 0;
 
   double x = (m_w * m_w - lept.M() * lept.M() + 2. * (neut.Px() * lept.Px() + neut.Py() * lept.Py())) / (2 * lept.E());
@@ -635,7 +640,14 @@ double  KinFit::PzNeutrino(const TLorentzVector& lept, TLorentzVector& neut, con
 
   double delta = b * b - 4 * a *c;
 
+#ifdef HIGH_MASS_METHOD
+  if (delta < 0) {
+    if (eventCorrected)
+      *eventCorrected = true;
 
+    delta = 0;
+  }
+#else
   if (delta < 0)     // No solution, try to correct MET
   {
     double rat = neut.Py() / neut.Px();
@@ -705,8 +717,13 @@ double  KinFit::PzNeutrino(const TLorentzVector& lept, TLorentzVector& neut, con
 
 //    std::cout << "New delta     : " << delta << std::endl;
 
-    if (delta != 0) return 0; // This should not happen, but who knows...
+    if (delta != 0)
+      return 0; // This should not happen, but who knows...
+
+    if (eventCorrected)
+      *eventCorrected = true;
   }
+#endif
 
 
   // We can go back to the normal path: 

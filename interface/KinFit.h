@@ -44,7 +44,7 @@ public:
   double Chi2();
   double GlobalSimpleChi2(double TotPt);
   
-  int ReadObjects(const TLorentzVector& Jet1, const TLorentzVector& Jet2, const TLorentzVector& BJetH, const TLorentzVector& Lepton, const TLorentzVector& Neutrino, const TLorentzVector& BJetL, bool doSemiMu);
+  bool ReadObjects(const TLorentzVector& Jet1, const TLorentzVector& Jet2, const TLorentzVector& BJetH, const TLorentzVector& Lepton, const TLorentzVector& Neutrino, const TLorentzVector& BJetL, bool doSemiMu, bool* eventCorrected = NULL);
   
   bool Fit();
   
@@ -89,7 +89,7 @@ public:
     return MeasuredNeutrino;
   }
   
-  double PzNeutrino(const TLorentzVector& lept, TLorentzVector& neut, const TLorentzVector& bJet);
+  double PzNeutrino(const TLorentzVector& lept, TLorentzVector& neut, const TLorentzVector& bJet, bool* eventCorrected = NULL);
   
   void FuncChi2(const int &npar, double &f, double *par, int iflag);
   
