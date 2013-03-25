@@ -132,6 +132,13 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
 
     if (st==3)
     {
+
+      // MC@NLO use different status code
+      // Status 3 are only assigned to proton, with Px = Py = Pt = 0.
+      // Remove then until proper support of MC@NLO
+      if (p.px() == 0 && p.py() == 0)
+        continue;
+
       if (n_mot>0)
       {
         id_r = (p.mother(0))->pdgId();

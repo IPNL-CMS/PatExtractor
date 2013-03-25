@@ -266,6 +266,13 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
 {
   if (index>=m_jets_MAX) return;
 
+#if DEBUG
+  std::cout << "---" << std::endl;
+  std::cout << "Writing jet #" << index << std::endl;
+  std::cout << "Pt: " << part.pt() << "; Px / Pz / Pz / E : " << part.px() << " / " << part.py() << " / " << part.pz() << " / " << part.energy() << std::endl;
+  std::cout << "Eta: " << part.eta() << "; Phi : " << part.phi() << std::endl;
+#endif
+
   new((*m_jet_lorentzvector)[index]) TLorentzVector(part.px(),part.py(),part.pz(),part.energy());
 
   m_jet_vx[index]   = part.vx();
@@ -302,6 +309,13 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
 {
   if (index > 1)
     return;
+
+#if DEBUG
+  std::cout << "---" << std::endl;
+  std::cout << "Writing MET #" << index << std::endl;
+  std::cout << "Pt: " << part.pt() << "; Px / Pz / Pz : " << part.px() << " / " << part.py() << " / " << part.pz() << std::endl;
+  std::cout << "Eta: " << part.eta() << "; Phi : " << part.phi() << std::endl;
+#endif
 
   new((*m_met_lorentzvector)[index]) TLorentzVector(part.px(),part.py(),part.pz(),part.energy());
 }
@@ -369,6 +383,11 @@ void JetMETExtractor::fillTree()
 
 void JetMETExtractor::correctJets(pat::JetCollection& jets, const edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
+#if DEBUG
+  std::cout << "---" << std::endl;
+  std::cout << "Recompute jet energy corrections..." << std::endl;
+#endif
+
   // Get Jet corrector
   const JetCorrector* corrector = JetCorrector::getJetCorrector(mJetCorrectorLabel, iSetup);
 
@@ -432,6 +451,11 @@ double JetMETExtractor::getResCorrFactor(const pat::Jet& jet) {
 }
 
 void JetMETExtractor::correctJetsMETresolution(pat::JetCollection& jets, pat::MET& met) {
+
+#if DEBUG
+  std::cout << "---" << std::endl;
+  std::cout << "Doing jet resolution smearing" << std::endl;
+#endif
   
   double correctedMetPx = met.px(); 
   double correctedMetPy = met.py(); 
@@ -491,6 +515,7 @@ void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met,
   double deltaPx = 0., deltaPy = 0.;
 #if DEBUG
     std::cout << "---" << std::endl;
+    std::cout << "Computing TypeI correction" << std::endl;
     std::cout << "MET Raw et: " << rawMet.et() << std::endl;
     std::cout << "PAT corrected MET et: " << met.et() << std::endl;
 #endif
@@ -572,7 +597,8 @@ void JetMETExtractor::correctMETWithSysShift(const edm::Event& event, pat::MET& 
 
 
 #if DEBUG
-    std::cout << "MET et without SysShift corrections: " << met.et() << std::endl;
+  std::cout << "Correcting MET phi shift" << std::endl;
+  std::cout << "MET et without SysShift corrections: " << met.et() << std::endl;
 #endif
 
   double correctedMetPx = met.px() + getSysShifCorrFactorX(Nvtx);
