@@ -32,6 +32,8 @@
 #include "TLorentzVector.h"
 #include "TClonesArray.h"
 
+class JetCorrectionUncertainty;
+
 class JetMETExtractor: public BaseExtractor<pat::Jet>
 {
 
@@ -126,6 +128,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     double getSysShifCorrFactorY(const int Nvtx);
     void correctMETWithSysShift(const edm::Event& event, pat::MET& met);
 
+    void doJESSystematics(pat::JetCollection& jets, pat::MET& met);
 
     void extractRawJets(pat::JetCollection& jets);
 
@@ -140,6 +143,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     bool mRedoTypeI;
     bool mDoJER;
     int  mJERSign;
+    int  mJESSign;
 
     static const int 	m_jets_MAX       = 200;
 
@@ -171,6 +175,8 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     TClonesArray* m_met_lorentzvector;
 
     ScaleFactorCollection m_scaleFactors;
+
+    std::shared_ptr<JetCorrectionUncertainty> jecUncertainty;
 };
 
 #endif 

@@ -102,6 +102,10 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
   # Use -1 for 1-sigma down, 0 for nominal correction, and 1 for 1-sigma up
   process.PATextraction.jet_PF.jerSign = 0
 
+  # JES systematics:
+  # Use -1 for 1-sigma down, 0 for nominal correction, and 1 for 1-sigma up
+  process.PATextraction.jet_PF.jesSign = 0
+
   process.PATextraction.MET_PF.redoMetPhiCorrection   = True
   process.PATextraction.MET_PF.redoMetTypeICorrection = False # Automatically true if redoJetCorrection is True
 
@@ -181,53 +185,49 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
           use_ht_frac = cms.bool(False)
           ),
 
-        systematics = cms.PSet(
-            jec = cms.string("nominal") # can be "down", "nominal" or "up"
-            ),
-
         # Scale factors
-      muon_scale_factors = loadMuonScaleFactor("Muon_ID_iso_Efficiencies_Run_2012ABCD_53X.pkl"),
-      electron_scale_factors = loadElectronScaleFactor("Electron_scale_factors.json"),
-      b_tagging_efficiency = cms.double(0.6915),
+        muon_scale_factors = loadMuonScaleFactor("Muon_ID_iso_Efficiencies_Run_2012ABCD_53X.pkl"),
+        electron_scale_factors = loadElectronScaleFactor("Electron_scale_factors.json"),
+        b_tagging_efficiency = cms.double(0.6915),
 
-      # ------------------------------------------------
-      # settings for the KinFitter
-      # ------------------------------------------------    
-      maxNrIter = cms.uint32(500),
-      maxDeltaS = cms.double(5e-05),
-      maxF      = cms.double(0.0001),
-      # ------------------------------------------------
-      # select parametrisation
-      # 0: EMom, 1: EtEtaPhi, 2: EtThetaPhi
-      # ------------------------------------------------
-      jetParametrisation = cms.uint32(1),
-      lepParametrisation = cms.uint32(1),
-      metParametrisation = cms.uint32(1),
+        # ------------------------------------------------
+        # settings for the KinFitter
+        # ------------------------------------------------    
+        maxNrIter = cms.uint32(500),
+        maxDeltaS = cms.double(5e-05),
+        maxF      = cms.double(0.0001),
+        # ------------------------------------------------
+        # select parametrisation
+        # 0: EMom, 1: EtEtaPhi, 2: EtThetaPhi
+        # ------------------------------------------------
+        jetParametrisation = cms.uint32(1),
+        lepParametrisation = cms.uint32(1),
+        metParametrisation = cms.uint32(1),
 
-      # ------------------------------------------------
-      # set constraints
-      # 1: Whad-mass, 2: Wlep-mass, 3: thad-mass,
-      # 4: tlep-mass, 5: nu-mass, 6: equal t-masses
-      # 7: sum-pt conservation
-      # ------------------------------------------------
-      constraints = cms.vuint32(1, 2, 3, 4),
+        # ------------------------------------------------
+        # set constraints
+        # 1: Whad-mass, 2: Wlep-mass, 3: thad-mass,
+        # 4: tlep-mass, 5: nu-mass, 6: equal t-masses
+        # 7: sum-pt conservation
+        # ------------------------------------------------
+        constraints = cms.vuint32(1, 2, 3, 4),
 
-      # ------------------------------------------------
-      # set mass values used in the constraints
-      # ------------------------------------------------
-      mW   = cms.double(80.4),
-      mTop = cms.double(173.),
+        # ------------------------------------------------
+        # set mass values used in the constraints
+        # ------------------------------------------------
+        mW   = cms.double(80.4),
+        mTop = cms.double(173.),
 
-      # ------------------------------------------------
-      # set correction factor(s) for the jet energy resolution:
-      # - (optional) eta dependence assumed to be symmetric
-      #   around eta=0, i.e. parametrized in |eta|
-      # - any negative value as last bin edge is read as "inf"
-      # - make sure that number of entries in vector with
-      #   bin edges = number of scale factors + 1
-      # ------------------------------------------------
-      jetEnergyResolutionScaleFactors = cms.vdouble(1.0),
-      jetEnergyResolutionEtaBinning = cms.vdouble(0.0,-1.0))
+        # ------------------------------------------------
+        # set correction factor(s) for the jet energy resolution:
+        # - (optional) eta dependence assumed to be symmetric
+        #   around eta=0, i.e. parametrized in |eta|
+        # - any negative value as last bin edge is read as "inf"
+        # - make sure that number of entries in vector with
+        #   bin edges = number of scale factors + 1
+        # ------------------------------------------------
+        jetEnergyResolutionScaleFactors = cms.vdouble(1.0),
+        jetEnergyResolutionEtaBinning = cms.vdouble(0.0,-1.0))
       )
 
   #########################################

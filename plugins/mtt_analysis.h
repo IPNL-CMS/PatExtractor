@@ -18,8 +18,10 @@
 #include <vector>
 #include <boost/regex.hpp>
 
-#include <Extractors/PatExtractor/interface/JetMETExtractor.h>
 #include <Extractors/PatExtractor/interface/ExtractorPlugin.h>
+
+#include <TTree.h>
+#include <TLorentzVector.h>
 
 class AnalysisSettings;
 class EventExtractor;
@@ -30,18 +32,12 @@ class VertexExtractor;
 class KinFit;
 class HLTExtractor;
 class PatExtractor;
-
-class JetCorrectionUncertainty;
+class MCExtractor;
+class JetMETExtractor;
 
 namespace edm {
   class EventSetup;
 }
-
-enum class SystematicsSign {
-  UP,
-  DOWN,
-  NOMINAL
-};
 
 namespace patextractor {
 
@@ -66,7 +62,7 @@ namespace patextractor {
       void loopOverCombinations();
 
       //makes the 2D cut for a given lepton
-      int Make2DCut(TVector3 lept3P, float cutDR, float cutPtrel);
+      //int Make2DCut(TVector3 lept3P, float cutDR, float cutPtrel);
 
       /// MC event channel identification
       int match_MC(int idxJetbH, int idxJetbL, int idxJet1, int idxJet2, int idxLepton);
@@ -75,19 +71,10 @@ namespace patextractor {
       void reset();
       void fillTree();
 
-      void SystModifJetsAndMET();
-
-      bool isBJet(unsigned int index) {
-        // Use recommanded WP from https://indico.cern.ch/getFile.py/access?contribId=4&resId=2&materialId=slides&confId=195042
-        return m_jetMet->getJetBTagProb_CSV(index) > m_JET_btag_CSVM;
-      }
-
-
-      JetCorrectionUncertainty* jecUnc;
+      bool isBJet(unsigned int index); 
 
       bool   m_MAIN_doUseBTag;
       //bool   m_MAIN_doKF;
-      SystematicsSign m_MAIN_systSign;
       bool   m_MAIN_doSemiMu;
 
       TTree*  m_tree_Mtt;

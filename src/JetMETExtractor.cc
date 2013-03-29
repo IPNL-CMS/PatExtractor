@@ -5,6 +5,10 @@
 #include <FWCore/ParameterSet/interface/ParameterSet.h>
 #include <DataFormats/VertexReco/interface/Vertex.h>
 
+#include <CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h>
+#include <CondFormats/JetMETObjects/interface/JetCorrectorParameters.h>
+#include <JetMETCorrections/Objects/interface/JetCorrectionsRecord.h>
+
 #define DEBUG false
 
 JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met_name, const edm::ParameterSet& config)
@@ -31,8 +35,13 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
     mJERSign = jetConfig.getUntrackedParameter<int>("jerSign", 0);
   }
 
+  mJESSign = jetConfig.getUntrackedParameter<int>("jesSign", 0);
+
   if (mJERSign != 0 && mJERSign != -1 && mJERSign != 1)
     throw edm::Exception(edm::errors::LogicError) << "jerSign must be 0 for nominal correction, -1 for 1-sigma down correction, or 1 for 1-sigma up correction";
+
+  if (mJESSign != 0 && mJESSign != -1 && mJESSign != 1)
+    throw edm::Exception(edm::errors::LogicError) << "jesSign must be 0 for nominal correction, -1 for 1-sigma down correction, or 1 for 1-sigma up correction";
 
   mCorrectSysShiftMet = metConfig.getUntrackedParameter<bool>("redoMetPhiCorrection", false);
   mRedoTypeI  = metConfig.getUntrackedParameter<bool>("redoMetTypeICorrection", false);
@@ -201,6 +210,15 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
   reset();
   m_size = 0;
 
+  if (mJESSign != 0) {
+    if (! jecUncertainty.get()) {
+      edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
+      iSetup.get<JetCorrectionsRecord>().get("AK5PFchs",JetCorParColl);
+      JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
+      jecUncertainty.reset(new JetCorrectionUncertainty(JetCorPar));
+    }
+  }
+
   if (mCorrectJets) {
     correctJets(p_jets, event, iSetup);
   } else {
@@ -230,6 +248,10 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
   //do MET SysShift corrections
   if (mCorrectSysShiftMet)
     correctMETWithSysShift(event, MET);
+
+  // JES systematics
+  if (mJESSign != 0)
+    doJESSystematics(p_jets, MET);
 
 
   for (unsigned int i = 0; i < p_jets.size(); ++i)
@@ -613,7 +635,61 @@ void JetMETExtractor::correctMETWithSysShift(const edm::Event& event, pat::MET& 
 
 }
 
+void JetMETExtractor::doJESSystematics(pat::JetCollection& jets, pat::MET& met) {
+#if DEBUG
+  std::cout << "---" << std::endl;
+  std::cout << "JES systematic" << std::endl;
+#endif
 
+  double correctedMetPx = met.px();
+  double correctedMetPy = met.py();
+
+  // Correct jets
+  for (pat::JetCollection::iterator it = jets.begin(); it != jets.end(); ++it)  {
+    pat::Jet& jet = *it;
+
+    jecUncertainty->setJetEta(jet.eta());
+    jecUncertainty->setJetPt(jet.pt()); // here you must use the CORRECTED jet pt
+
+    double uncertainty = (mJESSign == 1) ? fabs(jecUncertainty->getUncertainty(true)) : fabs(jecUncertainty->getUncertainty(false));
+    double signedCorrection = mJESSign * uncertainty;
+
+    double scaleFactor = 1. + signedCorrection;
+
+    correctedMetPx += (jet.px());
+    correctedMetPy += (jet.py());
+
+#if DEBUG
+    std::cout << "---" << std::endl;
+    std::cout << "Pt before JES uncertainty: " << jet.pt() << std::endl;
+#endif
+
+    jet.scaleEnergy(scaleFactor);
+
+#if DEBUG
+    std::cout << "Pt after JES uncertainty: " << jet.pt() << std::endl;
+#endif
+
+    correctedMetPx -= (jet.px());
+    correctedMetPy -= (jet.py());
+  }
+
+  double correctedMetPt = sqrt(correctedMetPx * correctedMetPx + correctedMetPy * correctedMetPy);
+
+#if DEBUG
+  std::cout << "---" << std::endl;
+  std::cout << "MET Et before JES uncertainty: " << met.et() << std::endl;
+#endif
+
+  met.setP4(reco::Candidate::LorentzVector(correctedMetPx, correctedMetPy, 0., correctedMetPt));
+
+#if DEBUG
+  std::cout << "MET Et after JES uncertainty: " << met.et() << std::endl;
+#endif
+
+  // Sort collection by pt
+  std::sort(jets.begin(), jets.end(), mSorter);
+}
 
 void JetMETExtractor::extractRawJets(pat::JetCollection& jets) {
 

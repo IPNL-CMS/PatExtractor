@@ -46,7 +46,6 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
   jetEnergyResolutionEtaBinning_    (cmsswSettings.getParameter<std::vector<double> >("jetEnergyResolutionEtaBinning"))
 {
   reset();
-  jecUnc = NULL;
 
   /// Tree definition
   m_tree_Mtt = new TTree("Mtt", "Analysis info");
@@ -145,17 +144,6 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
   // Neutrino Pz calculation study
   m_tree_Mtt->Branch("is_neutrino_pz_corrected", &m_is_neutrino_pz_corrected, "is_neutrino_pz_corrected/O");
 
-  std::string sign = cmsswSettings.getParameter<edm::ParameterSet>("systematics").getParameter<std::string>("jec");
-  std::transform(sign.begin(), sign.end(), sign.begin(), ::tolower);
-
-  if (sign == "down") {
-    m_MAIN_systSign = SystematicsSign::DOWN;
-  } else if (sign == "up") {
-    m_MAIN_systSign = SystematicsSign::UP;
-  } else {
-    m_MAIN_systSign = SystematicsSign::NOMINAL;
-  }
-
   m_MAIN_doSemiMu = cmsswSettings.getParameter<bool>("do_semimu");
 
   // METSel()
@@ -198,7 +186,6 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
 
 mtt_analysis::~mtt_analysis()
 {
-  delete jecUnc; // Always safe
   delete m_KinFit;
 }
 
@@ -574,6 +561,7 @@ int mtt_analysis::JetSel()
 
 
 
+/*
 int mtt_analysis::Make2DCut(TVector3 lept3P, float cutDR, float cutPtrel)
 {
   pass2Dcut   = 0;
@@ -612,6 +600,7 @@ int mtt_analysis::Make2DCut(TVector3 lept3P, float cutDR, float cutPtrel)
 
   return pass2Dcut;
 }
+*/
 
 #define CHECK_RES_AND_RETURN(res) \
   if (res != 1) { \
@@ -652,20 +641,6 @@ void mtt_analysis::analyze(const edm::EventSetup& iSetup, PatExtractor& extracto
   {
     m_MC = std::static_pointer_cast<MCExtractor>(extractor.getExtractor("MC"));
     MCidentification();
-  }
-
-  if (m_MAIN_systSign != SystematicsSign::NOMINAL)
-  {
-
-    if (! jecUnc) {
-      // Get jet uncertainty from GlobalTag
-      edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
-      iSetup.get<JetCorrectionsRecord>().get("AK5PFchs",JetCorParColl); 
-      JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
-      jecUnc = new JetCorrectionUncertainty(JetCorPar);
-    }
-
-    SystModifJetsAndMET();
   }
 
   m_nPU = m_event->nPU();
@@ -1207,39 +1182,6 @@ void mtt_analysis::fillTree()
   m_tree_Mtt->Fill();
 }
 
-void mtt_analysis::SystModifJetsAndMET()
-{
-  double numericSign = (m_MAIN_systSign == SystematicsSign::UP) ? 1. : (m_MAIN_systSign == SystematicsSign::DOWN ? -1. : 0);
-  if (numericSign == 0)
-    return;
-
-  double met_corr_x = 0.;
-  double met_corr_y = 0.;
-  unsigned int nJets = m_jetMet->getSize();
-  TLorentzVector *myMET = m_jetMet->getMETLorentzVector(0);
-
-  for (unsigned int iJet = 0; iJet < nJets; iJet++)
-  {
-    TLorentzVector *myJet = m_jetMet->getJetLorentzVector(iJet);
-
-    jecUnc->setJetEta(myJet->Eta());
-    jecUnc->setJetPt(myJet->Pt()); // here you must use the CORRECTED jet pt
-
-    double unc = (m_MAIN_systSign == SystematicsSign::UP) ? jecUnc->getUncertainty(true) : jecUnc->getUncertainty(false);
-    double corr = fabs(unc);
-    double signedCorrection = numericSign * corr;
-
-    // use corrected jet pt for met correction
-    met_corr_x += myJet->Px() * signedCorrection;
-    met_corr_y += myJet->Py() * signedCorrection;
-
-    m_jetMet->setJetLorentzVector(iJet, myJet->E() * (1. + signedCorrection), myJet->Px() * (1. + signedCorrection), myJet->Py() * (1. + signedCorrection), myJet->Pz() * (1. + signedCorrection));
-  }
-
-  m_jetMet->setMETLorentzVector(0, myMET->E(), myMET->Px() - met_corr_x, myMET->Py() - met_corr_y, myMET->Pz());
-}
-
-
 // Here we just reset the ROOTtree parameters
 
 void mtt_analysis::reset()
@@ -1330,6 +1272,11 @@ void mtt_analysis::reset()
   m_weight_error_high = 0.;
 
   m_is_neutrino_pz_corrected = false;
+}
+
+bool mtt_analysis::isBJet(unsigned int index) {
+  // Use recommanded WP from https://indico.cern.ch/getFile.py/access?contribId=4&resId=2&materialId=slides&confId=195042
+  return m_jetMet->getJetBTagProb_CSV(index) > m_JET_btag_CSVM;
 }
 
 }
