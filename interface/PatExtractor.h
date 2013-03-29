@@ -32,7 +32,8 @@
 #include "../interface/PFpartExtractor.h"
 #include "../interface/ScaleFactorService.h"
 
-#include "../interface/mtt_analysis_new.h"
+#include <Extractors/PatExtractor/interface/ExtractorPlugin.h>
+
 #include "../interface/dimuon_analysis.h"
 #include "../interface/fourtop_trigger_analysis.h"
 
@@ -60,9 +61,8 @@ class PatExtractor : public edm::EDAnalyzer {
   void getInfo(int ievent);
   void initialize(const edm::ParameterSet&);
   void retrieve(const edm::ParameterSet&);
-  void doAna(const edm::EventSetup&);
 
-  std::shared_ptr<SuperBaseExtractor>& getExtractor(const std::string& name) {
+  std::shared_ptr<SuperBaseExtractor> getExtractor(const std::string& name) {
     return m_extractors[m_extractorsIndexes[name]];
   }
 
@@ -116,9 +116,10 @@ class PatExtractor : public edm::EDAnalyzer {
   std::vector<std::shared_ptr<SuperBaseExtractor>> m_extractors;
   std::map<std::string, size_t> m_extractorsIndexes;
 
+  std::vector<std::shared_ptr<patextractor::Plugin>> m_plugins;
+
   AnalysisSettings*  m_ana_settings;
 
-  mtt_analysis_new*           m_Mtt_analysis_new;
   dimuon_analysis*            m_dimuon_analysis;
   fourtop_trigger_analysis*   m_fourtop_trigger_analysis;
 
