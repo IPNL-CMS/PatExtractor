@@ -1,0 +1,11 @@
+<library file="*.cc" name="ExtractorsPatExtractorPlugins">
+  <flags EDM_PLUGIN="1" />
+  <use name="FWCore/Framework"/>
+  <use name="FWCore/ParameterSet"/>
+  <use name="clhep"/>
+  <use name="root" />
+  <use name="CondFormats/JetMETObjects"/>
+  <use name="JetMETCorrections/Objects" />
+
+  <use name="Extractors/PatExtractor" />
+</library>

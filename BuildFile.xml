@@ -44,5 +44,9 @@
 <use   name="EGamma/EGammaAnalysisTools" />
 <use   name="RecoBTag/PerformanceDB" />
 <use   name="RecoBTag/Records" />
+
 <lib   name="MathMore"/>
-<flags EDM_PLUGIN="1"/>
+
+<export>
+  <lib name="1" />
+</export>
