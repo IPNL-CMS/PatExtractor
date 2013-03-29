@@ -19,8 +19,7 @@ crabFolders = [name for name in os.listdir(options.path) if os.path.isdir(os.pat
 for crabFolder in crabFolders:
   dataset = crabFolder.rstrip("/").replace("multicrab_MC_", "")
   # Remove date
-  dataset_name = dataset.rsplit("_", 1)
-  dataset_name = dataset_name[0]
+  dataset_name = dataset
   print("Processing %s" % dataset)
   for a in ["semie", "semimu"]:
     outputName = "MTT_%s_%s.list" % (dataset, a)
