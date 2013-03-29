@@ -55,10 +55,19 @@ PatExtractor::PatExtractor(const edm::ParameterSet& config) :
     ? PatExtractor::initialize(config)
     : PatExtractor::retrieve(config);
 
-  // Analysis is done on request, if the infos are there
+  // Load plugins
+  if (config.existsAs<edm::ParameterSet>("plugins")) {
+    const edm::ParameterSet& plugins = config.getParameterSet("plugins");
+    std::vector<std::string> pluginNames = plugins.getParameterNames();
+    for (std::string& pluginName: pluginNames) {
+      edm::ParameterSet pluginParameters;
+      if (plugins.existsAs<edm::ParameterSet>(pluginName))
+        pluginParameters = plugins.getParameterSet(pluginName);
 
-  if (do_Mtt_ && do_Muon_ && do_Electron_ && do_Jet_ && do_MET_ && do_Vertex_)      
-    m_Mtt_analysis_new = new mtt_analysis_new(m_mttParameterSet, m_ana_settings, is_MC_);
+      m_plugins.push_back(std::shared_ptr<patextractor::Plugin>(PatExtractorPluginFactory::get()->create(pluginName, pluginParameters)));
+      m_plugins.back()->setIsMC(is_MC_);
+    }
+  }
 
   // Here is the small example analysis (dimuon mass spectra)
 
@@ -101,7 +110,10 @@ void PatExtractor::beginRun(Run const& run, EventSetup const& setup)
         std::cout << "Processing " << i << "th event" << std::endl;
 
       PatExtractor::getInfo(i);// Retrieve the info from an existing ROOTuple      
-      PatExtractor::doAna(setup);   // Then do the analysis on request  
+      // Execute each plugins
+      for (auto& plugin: m_plugins) {
+        plugin->analyze(setup, *this);
+      }
 
       ++nevent_tot; 
     }
@@ -118,7 +130,10 @@ void PatExtractor::analyze(const edm::Event& event, const edm::EventSetup& setup
   if (do_fill_) 
   {
     PatExtractor::fillInfo(&event, setup); // Fill the ROOTuple
-    PatExtractor::doAna(setup);            // Then do the analysis on request    
+    // Execute each plugins
+    for (auto& plugin: m_plugins) {
+      plugin->analyze(event, setup, *this);
+    }
   }
 
   ++nevent;
@@ -319,36 +334,4 @@ void PatExtractor::retrieve(const edm::ParameterSet& config)
     extractor->setIsMC(is_MC_);
     extractor->setScaleFactorsService(m_scaleFactors);
   }
-}
-
-
-// Here we define all things which are post event extraction
-//
-// In other words this is where the analysis is done
-//
-
-void PatExtractor::doAna(const edm::EventSetup& setup) 
-{
-
-  if (do_Mtt_ && do_Muon_ && do_Electron_ && do_Jet_ && do_Vertex_ && do_HLT_) 
-  {   
-    m_Mtt_analysis_new->mtt_Sel(setup, this);
-    m_Mtt_analysis_new->fillTree();
-  }
-
-
-  // Our example analysis
-
-  if (do_dimu_&& do_Muon_) 
-  {
-    //m_dimuon_analysis->dimuon_Sel(m_muon,nevent_tot);
-  }
-
-  // A four top trigger analysis
-
-  if (do_ftt_&& do_HLT_ && do_MC_) 
-  {
-    //m_fourtop_trigger_analysis->fourtop_trigger_Sel(m_HLT,m_MC,nevent_tot);
-  }
-
 }
