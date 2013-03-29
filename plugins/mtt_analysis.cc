@@ -1,3 +1,5 @@
+#include <Extractors/PatExtractor/plugins/mtt_analysis.h>
+
 #include <iostream>
 #include <vector>
 #include <limits>
@@ -25,12 +27,12 @@
 #include <FWCore/Framework/interface/EventSetup.h>
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "../interface/mtt_analysis_new.h"
-
 using namespace std;
 
-mtt_analysis_new::mtt_analysis_new(const edm::ParameterSet& cmsswSettings, AnalysisSettings *settings, bool isMC):
-  m_isMC(isMC),
+namespace patextractor {
+
+mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
+  Plugin(cmsswSettings),
   maxNrIter_                        (cmsswSettings.getParameter<unsigned>     ("maxNrIter"           )),
   maxDeltaS_                        (cmsswSettings.getParameter<double>       ("maxDeltaS"           )),
   maxF_                             (cmsswSettings.getParameter<double>       ("maxF"                )),
@@ -194,21 +196,19 @@ mtt_analysis_new::mtt_analysis_new(const edm::ParameterSet& cmsswSettings, Analy
   m_weight = 1.;
 }
 
-mtt_analysis_new::~mtt_analysis_new()
+mtt_analysis::~mtt_analysis()
 {
   delete jecUnc; // Always safe
   delete m_KinFit;
 }
 
 
-
 //
 // First you start with the different physics objects selections
 //
 
-
 // Vertices
-int mtt_analysis_new::VertexSel()
+int mtt_analysis::VertexSel()
 {
   int n_vtx = m_vertex->getSize();
 
@@ -228,7 +228,7 @@ int mtt_analysis_new::VertexSel()
 
 
 // MET
-int mtt_analysis_new::METSel()
+int mtt_analysis::METSel()
 {
   m_mtt_MET = m_jetMet->getMETLorentzVector(0)->Pt();
   if (m_mtt_MET > m_MET_Pt_Min) {
@@ -239,7 +239,7 @@ int mtt_analysis_new::METSel()
 }
 
 
-int mtt_analysis_new::MuonSel()
+int mtt_analysis::MuonSel()
 {
   int goodmuidx = -1;
 
@@ -364,7 +364,7 @@ int mtt_analysis_new::MuonSel()
   return 1;
 }
 
-int mtt_analysis_new::ElectronSel()
+int mtt_analysis::ElectronSel()
 {
   int goodelidx = -1;
 
@@ -449,7 +449,7 @@ int mtt_analysis_new::ElectronSel()
 }
 
 
-int mtt_analysis_new::JetSel()
+int mtt_analysis::JetSel()
 {
   AllJetsPt       = 0.;
   m_selJetsIds.clear();
@@ -574,7 +574,7 @@ int mtt_analysis_new::JetSel()
 
 
 
-int mtt_analysis_new::Make2DCut(TVector3 lept3P, float cutDR, float cutPtrel)
+int mtt_analysis::Make2DCut(TVector3 lept3P, float cutDR, float cutPtrel)
 {
   pass2Dcut   = 0;
   minjetpt2D  = 30.;
@@ -616,36 +616,41 @@ int mtt_analysis_new::Make2DCut(TVector3 lept3P, float cutDR, float cutPtrel)
 #define CHECK_RES_AND_RETURN(res) \
   if (res != 1) { \
     m_mtt_isSel = res; \
-    return res; \
+    fillTree(); \
+    return; \
   }
 
 #define   MTT_TRIGGER_NOT_FOUND   1000
 
-int mtt_analysis_new::mtt_Sel(const edm::EventSetup& iSetup, PatExtractor* extractor)
+void mtt_analysis::analyze(const edm::Event& event, const edm::EventSetup& iSetup, PatExtractor& extractor) {
+  analyze(iSetup, extractor);
+}
+
+void mtt_analysis::analyze(const edm::EventSetup& iSetup, PatExtractor& extractor)
 {
   reset();
 
   m_refLept  = nullptr;
 
-  m_vertex   = std::static_pointer_cast<VertexExtractor>(extractor->getExtractor("vertex"));
+  m_vertex   = std::static_pointer_cast<VertexExtractor>(extractor.getExtractor("vertex"));
   //m_MET      = std::static_pointer_cast<METExtractor>(extractor->getExtractor("MET"));
   
-  m_muon     = std::static_pointer_cast<MuonExtractor>(extractor->getExtractor("muons"));
-  m_muon_loose = std::static_pointer_cast<MuonExtractor>(extractor->getExtractor("muons_loose"));
+  m_muon     = std::static_pointer_cast<MuonExtractor>(extractor.getExtractor("muons"));
+  m_muon_loose = std::static_pointer_cast<MuonExtractor>(extractor.getExtractor("muons_loose"));
 
-  m_electron = std::static_pointer_cast<ElectronExtractor>(extractor->getExtractor("electrons"));
-  m_electron_loose = std::static_pointer_cast<ElectronExtractor>(extractor->getExtractor("electrons_loose"));
+  m_electron = std::static_pointer_cast<ElectronExtractor>(extractor.getExtractor("electrons"));
+  m_electron_loose = std::static_pointer_cast<ElectronExtractor>(extractor.getExtractor("electrons_loose"));
 
-  m_jetMet   = std::static_pointer_cast<JetMETExtractor>(extractor->getExtractor("JetMET"));
+  m_jetMet   = std::static_pointer_cast<JetMETExtractor>(extractor.getExtractor("JetMET"));
 
-  m_event    = std::static_pointer_cast<EventExtractor>(extractor->getExtractor("event"));
+  m_event    = std::static_pointer_cast<EventExtractor>(extractor.getExtractor("event"));
 
-  std::shared_ptr<HLTExtractor> HLT = std::static_pointer_cast<HLTExtractor>(extractor->getExtractor("HLT"));
+  std::shared_ptr<HLTExtractor> HLT = std::static_pointer_cast<HLTExtractor>(extractor.getExtractor("HLT"));
   m_trigger_passed = HLT->isTriggerFired();
 
   if (m_isMC)
   {
-    m_MC = std::static_pointer_cast<MCExtractor>(extractor->getExtractor("MC"));
+    m_MC = std::static_pointer_cast<MCExtractor>(extractor.getExtractor("MC"));
     MCidentification();
   }
 
@@ -686,12 +691,12 @@ int mtt_analysis_new::mtt_Sel(const edm::EventSetup& iSetup, PatExtractor* extra
   // We selected a candidate (and m_refLept)
   loopOverCombinations();
 
-  return 1;
+  fillTree();
 }
 
 
 
-void mtt_analysis_new::loopOverCombinations()
+void mtt_analysis::loopOverCombinations()
 {
   //jets indices
   int c_j1 = -1;
@@ -913,7 +918,7 @@ void mtt_analysis_new::loopOverCombinations()
 
 #define ID_W (24)
 
-void mtt_analysis_new::MCidentification()
+void mtt_analysis::MCidentification()
 {
   nEle    = 0;
   nMu     = 0;
@@ -1165,7 +1170,7 @@ void mtt_analysis_new::MCidentification()
   m_MC_leptonicTopMass = (*m_MC->getP4(m_neutrinoIndex) + *m_MC->getP4(m_leptonIndex) + *m_MC->getP4(m_leptonicBIndex)).M();
 }
 
-int mtt_analysis_new::match_MC(int idxJetbH, int idxJetbL, int idxJet1,	int idxJet2,
+int mtt_analysis::match_MC(int idxJetbH, int idxJetbL, int idxJet1,	int idxJet2,
     int idxLepton)
 {
   if (
@@ -1195,14 +1200,14 @@ int mtt_analysis_new::match_MC(int idxJetbH, int idxJetbL, int idxJet1,	int idxJ
 }
 
 
-void mtt_analysis_new::fillTree()
+void mtt_analysis::fillTree()
 {
   m_weight_error_low = sqrt(m_weight_error_low);
   m_weight_error_high = sqrt(m_weight_error_high);
   m_tree_Mtt->Fill();
 }
 
-void mtt_analysis_new::SystModifJetsAndMET()
+void mtt_analysis::SystModifJetsAndMET()
 {
   double numericSign = (m_MAIN_systSign == SystematicsSign::UP) ? 1. : (m_MAIN_systSign == SystematicsSign::DOWN ? -1. : 0);
   if (numericSign == 0)
@@ -1237,7 +1242,7 @@ void mtt_analysis_new::SystModifJetsAndMET()
 
 // Here we just reset the ROOTtree parameters
 
-void mtt_analysis_new::reset()
+void mtt_analysis::reset()
 {
   m_mtt_isSel = 0;
   m_mtt_IsBestSolMatched = -1;
@@ -1326,3 +1331,7 @@ void mtt_analysis_new::reset()
 
   m_is_neutrino_pz_corrected = false;
 }
+
+}
+
+DEFINE_EDM_PLUGIN(PatExtractorPluginFactory, patextractor::mtt_analysis, "mtt_analysis");

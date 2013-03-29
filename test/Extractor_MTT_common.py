@@ -113,78 +113,79 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
   process.PATextraction.electron_scale_factors = loadElectronScaleFactor("Electron_scale_factors.json")
 
   # MTT analysis configuration
-  process.PATextraction.mtt = cms.PSet(
-      do_semimu = cms.bool(isSemiMu),
-      met = cms.PSet(
-        pt_min = cms.double(20)
-        ),
+  process.PATextraction.plugins = cms.PSet(
+      mtt_analysis = cms.PSet(
+        do_semimu = cms.bool(isSemiMu),
+        met = cms.PSet(
+          pt_min = cms.double(20)
+          ),
 
-      muons_tight = cms.PSet(
-        pt_min = cms.double(27),
-        eta_max = cms.double(2.1),
-        isolation_max = cms.double(0.12)
-        ),
+        muons_tight = cms.PSet(
+          pt_min = cms.double(27),
+          eta_max = cms.double(2.1),
+          isolation_max = cms.double(0.12)
+          ),
 
-      muons_loose = cms.PSet(
-        pt_min = cms.double(10),
-        eta_max = cms.double(2.5),
-        isolation_max = cms.double(0.20)
-        ),
+        muons_loose = cms.PSet(
+          pt_min = cms.double(10),
+          eta_max = cms.double(2.5),
+          isolation_max = cms.double(0.20)
+          ),
 
-      electrons_tight = cms.PSet(
-        pt_min = cms.double(30),
-        eta_max = cms.double(2.5),
-        isolation_max = cms.double(0.10)
-        ),
+        electrons_tight = cms.PSet(
+          pt_min = cms.double(30),
+          eta_max = cms.double(2.5),
+          isolation_max = cms.double(0.10)
+          ),
 
-      electrons_loose = cms.PSet(
-        pt_min = cms.double(20),
-        eta_max = cms.double(2.5),
-        isolation_max = cms.double(0.15)
-        ),
+        electrons_loose = cms.PSet(
+          pt_min = cms.double(20),
+          eta_max = cms.double(2.5),
+          isolation_max = cms.double(0.15)
+          ),
 
-      jets = cms.PSet(
-        pt_min = cms.double(30),
-        eta_max = cms.double(2.4),
-        btag_CSVL = cms.double(0.244),
-        btag_CSVM = cms.double(0.679),
-        btag_CSVT = cms.double(0.898),
-        btag_TCHPT = cms.double(3.41),
-        b_tagging_efficiency = cms.double(0.6915)
-        ),
+        jets = cms.PSet(
+          pt_min = cms.double(30),
+          eta_max = cms.double(2.4),
+          btag_CSVL = cms.double(0.244),
+          btag_CSVM = cms.double(0.679),
+          btag_CSVT = cms.double(0.898),
+          btag_TCHPT = cms.double(3.41),
+          b_tagging_efficiency = cms.double(0.6915)
+          ),
 
-      chi2_sorting = cms.PSet(
-        w_mass = cms.double(80.399),
-        w_mass_error = cms.double(10),
-        top_mass = cms.double(172),
-        top_mass_error = cms.double(10),
-        b_mass = cms.double(4.67),
+        chi2_sorting = cms.PSet(
+          w_mass = cms.double(80.399),
+          w_mass_error = cms.double(10),
+          top_mass = cms.double(172),
+          top_mass_error = cms.double(10),
+          b_mass = cms.double(4.67),
 
-        use_btagging = cms.bool(False),
+          use_btagging = cms.bool(False),
 
-        hadronic_top_mass = cms.double(175.164),
-        leptonic_top_mass_semimu = cms.double(170.937),
-        leptonic_top_mass_semie = cms.double(170.875),
-        hadronic_w_mass = cms.double(84.0569),
-        pt_ttbar_system = cms.double(0),
-        ht_frac = cms.double(1),
+          hadronic_top_mass = cms.double(175.164),
+          leptonic_top_mass_semimu = cms.double(170.937),
+          leptonic_top_mass_semie = cms.double(170.875),
+          hadronic_w_mass = cms.double(84.0569),
+          pt_ttbar_system = cms.double(0),
+          ht_frac = cms.double(1),
 
-        sigma_hadronic_top_mass = cms.double(17.3484),
-        sigma_leptonic_top_mass_semimu = cms.double(17.3594),
-        sigma_leptonic_top_mass_semie = cms.double(17.2875),
-        sigma_hadronic_w_mass = cms.double(10.1166),
-        sigma_pt_ttbar_system = cms.double(56.93),
-        sigma_ht_frac = cms.double(0.151),
+          sigma_hadronic_top_mass = cms.double(17.3484),
+          sigma_leptonic_top_mass_semimu = cms.double(17.3594),
+          sigma_leptonic_top_mass_semie = cms.double(17.2875),
+          sigma_hadronic_w_mass = cms.double(10.1166),
+          sigma_pt_ttbar_system = cms.double(56.93),
+          sigma_ht_frac = cms.double(0.151),
 
-        use_pt_syst = cms.bool(False),
-        use_ht_frac = cms.bool(False)
-        ),
+          use_pt_syst = cms.bool(False),
+          use_ht_frac = cms.bool(False)
+          ),
 
-      systematics = cms.PSet(
-        jec = cms.string("nominal") # can be "down", "nominal" or "up"
-        ),
+        systematics = cms.PSet(
+            jec = cms.string("nominal") # can be "down", "nominal" or "up"
+            ),
 
-      # Scale factors
+        # Scale factors
       muon_scale_factors = loadMuonScaleFactor("Muon_ID_iso_Efficiencies_Run_2012ABCD_53X.pkl"),
       electron_scale_factors = loadElectronScaleFactor("Electron_scale_factors.json"),
       b_tagging_efficiency = cms.double(0.6915),
@@ -227,6 +228,7 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
       # ------------------------------------------------
       jetEnergyResolutionScaleFactors = cms.vdouble(1.0),
       jetEnergyResolutionEtaBinning = cms.vdouble(0.0,-1.0))
+      )
 
   #########################################
   #
