@@ -1,0 +1,398 @@
+// To compile, simply run 'asciidoc manual.txt'
+Pat extractor : an utility to transform PAT tuples to plain root trees
+======================================================================
+Sébastien Brochet <s.brochet@ipnl.in2p3.fr>, Sébastien Viret <s.viret@ipnl.in2p3.fr>
+02 April 2013
+:toc2:
+:data-uri:
+:latexmath:
+:icons:
+:theme: flask
+:html5:
+
+Presentation
+------------
+
++PatExtractor+ is an advanced CMSSW EDAnalyzer which transforms PAT tuples (usually produced with PF2PAT) to plain root trees, using modules called +extractors+. Each +extractor+ is idenpendant, and only +extracts+ informations about one type of object (+muons+, +electrons+, +tracks+, ...).
+
+On top of that, there are +analysis+. An +analysis+ is a simple module that is ran after all +extractors+, whom purpose is left to the end user. Usually, it's for performing one step of the analysis (typically the second step). An +analysis+ has access to all the +extractors+ data, and can produce, for exemple, a tree.
+
++PatExtractor+ uses an advanced plugin system for managing analysis. You don't have to modify the source of +PatExtractor+ in order to add your own analysis. Just register your new plugin in the +PatExtractorFactory+ and you're done.
+
+Get the code
+------------
+
++PatExtractor+ is not hosted on CMSSW CVS repository, but on +git+. To retrieve it, you simply need to clone the repository on your existing CMSSW directory :
+
+[source,bash]
+----
+src> mkdir Extractors
+src> cd Extractors
+Extractors> git clone git://ipnl.madalynn.eu/MttAnalysis.git
+Extractors> cd ..
+src> scram b -j8
+----
+
+You also need to checkout a bunch of packages. Please read the +README+ document for a list of packages.
+
+Operating mode
+--------------
+
+There are two differents operating mode available in +PatExtractor+ :
+
+. The first mode is the default one, and called +extractors + analysis+ mode. As its name indicate, in this mode the +extractors+ _and_ the +analysis+ are ran, one by one. Input files are expected to be PAT tuples, and +analysis+ have access to the whole CMSSW framework.
+
+. The second mode is called +analysis+ mode. In this mode, no +extractors+ are ran, because the input files are expected to be +extracted+ files. Only the +analyses+ are ran, and have access only to the data previously +extracted+ by the +extractors+.
+
+=================
+Supposed you want to run the same analysis twice on the same dataset. Here's the best way to do :
+
+* First, run +PatExtractor+ in +extractors + analysis+ mode. In input, specify the PAT dataset as you would do in CMSSW python configuration (with the +PoolSource+ module). This will produce an +extracted+ output file.
+* Next, run +PatExtractor+ in +analysis+ mode only. In input, specify the previously +extracted+ root file (using the +inputRootFile+ python attribute, and _not the +PoolSource+ module_). Don't forget to switch the flag +fillTree+ to +false+!. This way, no +extractors+ will be ran, with a noticable gain of time.
+=================
+
+[CAUTION]
+======================================
+When using +analysis+ mode, you _have_ to add the following things to your python configuration
+
+[source,python]
+----
+process.maxEvents = cms.untracked.PSet(
+    input = cms.untracked.int32(1)
+)
+
+process.source = cms.Source("EmptySource")
+----
+======================================
+
+[[extractors]]
+Extractors
+----------
+
+There are currently 10 +extractors+ available :
+
+- +EventExtractor+: extracts informations related to the event, like the event id, run number, lumi section, the number of true interactions, ...
+- +ElectronExtractor+, +MuonExtractor+, +PhotonExtractor+: extract informations about +electrons+, +muons+ and +photons+.
+- +JetMETExtractor+: extracts informations about jets and MET.
+- +MCExtractor+: extracts informations about the generated events.
+- +HLTExtractor+ extracts informations about HLT
+- +PFpartExtractor+: extracts informations about PF particles
+- +TrackExtractor+, +VertexExtractor+: extracts informations about tracks and vertices.
+
+Below are more informations about specific extractors. If an +extractor+ is not listed, there's nothing special about its behaviour.
+
+EventExtractor
+~~~~~~~~~~~~~~
+.Technical details
+************************************************
+* Output tree:
+** +event+
+* +extractor+ name:
+** +event+
+************************************************
+
+ElectronExtractor, MuonExtractor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.Technical details
+************************************************
+* Output trees:
+** +electron_PF+, +muon_PF+
+** +electron_loose_PF+, +muon_loose_PF+
+* +extractor+ names:
+** +electrons+, +muons+
+** +electrons_loose+, +muons_loose+
+************************************************
+
+These +extractors+ are ran twice, once on $isolated$ leptons collection, and once on $full$ leptons collection.
+
+[CAUTION]
+======================================
+Beware: there wil be $duplicated$ between the isolated and non-isolated collection. Be sure to perform a cleaning.
+======================================
+
+JetMETExtractor
+~~~~~~~~~~~~~~~
+
+.Technical details
+************************************************
+* Output trees:
+** +jet_PF+, +MET_PF+
+* +extractor+ name:
+** +JetMET+
+************************************************
+
+This +extractor+ must be configured in the CMSSW python configuration file. It expects to read a +cms.PSet+ named +jet_PF+ for jets extracting configuration, and another +cms.PSet+ named +met_PF+ for MET extraction. Possible options are listed below.
+
+[[jetmet_python]]
+.Python configuration
+************************************************
+* Jets extraction:
+** +input (cms.InputTag)+: the input tag of the jet collection to extract
+** +redoJetCorrection (cms.untracked.bool, false)+: Should this +extractor+ redo the jet energy corrections. If +true+, a valid global tag must be set.
+** +jetCorrectorLabel (cms.string)+: the corrector label to use if +redoJetCorrection+ is +true+. Use something like +ak5PFchsL1FastL2L3Residual+ for data and +ak5PFchsL1FastL2L3+ for MC.
+** +doJER (cms.untracked.bool, true)+: if +true+, the jet resolution is smeared. Automatically set to +false+ when running on data.
+** +jerSign (cms.untracked.int32, 0)+: for JER systematic evaluation. Set to 1 for 1-sigma up variation, or set to -1 for 1-sigma down variation.
+** +jesSign (cms.untracked.int32, 0)+: for JES systematic evaluation. Set to 1 for 1-sigma up variation, or set to -1 for 1-sigma down variation.
+
+* MET extraction:
+** +input (cms.InputTag)+: the input tag of the MET collection to extract
+** +redoMetPhiCorrection (cms.untracked.bool, false)+: if +true+, perform the MET phi correction. Useful if the jet energy corrections are redone and you still want the MET phi correction.
+** +redoMetTypeICorrection (cms.untracked.bool, false)+: if +true+, recompute Type-I correction (JEC propagation to MET). Automatically +true+ if +redoJetCorrection+ is +true+.
+************************************************
+
+MCExtractor
+~~~~~~~~~~~
+
+.Technical details
+************************************************
+* Output tree:
+** +MC+
+* +extractor+ name:
+** +MC+
+************************************************
+
+This module extracts generator particles informations _with status 3 only_, and is only compatible with +MADGRAPH+ samples. It's useful if you want to perform a matching between jets and partons.
+
+HLTExtractor
+~~~~~~~~~~~~
+
+.Technical details
+************************************************
+* Output tree:
+** +HLT+
+* +extractor+ name:
+** +HLT+
+************************************************
+
+This module extracts HLT informations from the event, and store _only triggers which fired_. Furthermore, it also provides a way to flag events which pass a pre-selected trigger (this allow the user to select only events passing a dedicated trigger).
+
+.Python configuration
+************************************************
+* +triggersXML (cms.untracked.string, "")+: A +string+ containing the content of a +XML+ document describing the triggers to flag
+************************************************
+
+.XML document structure
+************************************************
+The +XML+ document must follow the following structure (it's a real document used for a latexmath:[$t\bar{t}$] analysis) :
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<triggers>
+  <runs from="0" to="193621">
+    <path>
+      <name>HLT_IsoMu17_eta2p1_TriCentralPFJet30_v.*</name>
+    </path>
+  </runs>
+  <runs from="193834" to="194225">
+    <path>
+      <name>HLT_IsoMu17_eta2p1_TriCentralPFNoPUJet30_v.*</name>
+    </path>
+  </runs>
+  <runs from="194270" to="199608">
+    <path>
+      <name>HLT_IsoMu17_eta2p1_TriCentralPFNoPUJet30_30_20_v.*</name>
+    </path>
+  </runs>
+  <runs from="199698" to="500000">
+    <path>
+      <name>HLT_IsoMu17_eta2p1_TriCentralPFNoPUJet45_35_25_v.*</name>
+    </path>
+  </runs>
+</triggers>
+----
+
+Run ranges are inclusive (ie, latexmath:[$r \leq min~or~r \geq max$]). Path name must be a valid regex.
+
+************************************************
+
+[NOTE]
+No event will be thrown if trigger are not matched. Only a flag will be set.
+
+
+PFpartExtractor
+~~~~~~~~~~~~~~~
+
+.Technical details
+************************************************
+* Output tree:
+** +PFpart+
+* +extractor+ name:
+** +PFpart+
+************************************************
+
+TrackExtractor
+~~~~~~~~~~~~~~
+
+.Technical details
+************************************************
+* Output tree:
+** +track+
+* +extractor+ name:
+** +track+
+************************************************
+
+VertexExtractor
+~~~~~~~~~~~~~~~
+
+.Technical details
+************************************************
+* Output tree:
+** +event+
+* +extractor+ name:
+** +event+
+************************************************
+
+Python configuration
+--------------------
+
+The default python configuration of +PatExtractor+ can be found in the file +python/PAT_extractor_cfi.py+. Below is a description of all options :
+
+* +extractedRootFile (cms.string)+: the output file produced by +PatExtractor+, where all the extracted trees and analysis objects are stored.
+* +fillTree (cms.untracked.bool, true)+: Allow to set the mode of +PatExtractor+. If +true+, mode "extractors + analysis" is set, otherwise, mode "analysis" is set. See <> for more details.
+* +inputRootFile (cms.string)+: when running in +analysis+ mode, indicates the input file to use.
+* +isMC (cms.untracked.bool, true)+: Indicates whether or not input file is MC.
+* +doHLT (cms.untracked.bool, false)+: If +true+, run +HLTExtractor+
+
+* +doMC (cms.untracked.bool, false)+: If +true+, run +MCExtractor+
+
+* +doPhoton (cms.untracked.bool, false)+: If +true+, run +PhotonExtractor+
+* +photon_tag (cms.InputTag, selectedPatPhotons)+: The input tag of the photons collection
+
+* +doElectron (cms.untracked.bool, false)+: If +true+, run +ElectronExtractor+
+* +electron_tag (cms.InputTag, selectedPatElectronsPFlow)+: The input tag of the electrons collection
+
+* +doMuon (cms.untracked.bool, false)+: If +true+, run +MuonExtractor+
+* +muon_tag (cms.InputTag, selectedPatMuonsPFlow)+: The input tag of the muons collection
+
+* +doJet (cms.untracked.bool, false)+: If +true+, run the jet part of +JetMETExtractor+
+* +jet_PF (cms.PSet)+: See <<jetmet_python, here>> for more details
+
+* +doMET (cms.untracked.bool, false)+: If +true+, run the MET part of +JetMETExtractor+
+* +MET_PF (cms.PSet)+: See <<jetmet_python, here>> for more details
+
+* +doVertex (cms.untracked.bool, false)+: If +true+, run +VertexExtractor+
+* +vtx_tag (cms.InputTag, offlinePrimaryVertices)+: The input tag of the vertices collection
+
+* +doTrack (cms.untracked.bool, false)+: If +true+, run +TrackExtractor+
+* +trk_tag (cms.InputTag, generalTracks)+: The input tag of the tracks collection
+
+* +doPF (cms.untracked.bool, false)+: If +true+, run +PFpartExtractor+
+* +pf_tag (cms.InputTag, particleFlow)+: The input tag of the PF particles collection
+
+* +n_events (cms.untracked.int32, 10000)+: If operates in +analysis+ mode, the number of events to process.
+
+* +plugins (cms.PSet)+: The list of plugins (+analysis+) to run. The expected format is +pluginname = cms.PSet($parameters$)+.
+
+Adding your own analysis
+------------------------
+
+Adding your own analysis in +PatExtractors+ is easy. Here's a list of steps to follow:
+
+. Each new +analysis+ (or plugin) must be a class inheriting from +patextractor::Plugin+ (you can find declaration in +interface/ExtractorPlugin.h+).
+. +patextractor::Plugin+ has one pure virtual function that you must override in your class: +virtual void analyze(const edm::Event&, const edm::EventSetup&, PatExtractor&)+. It's the function that will be called for each events.
+. You now need to register your plugin in the +PatExtractorPluginFactory+, using the +DEFINE_EDM_PLUGIN($factory$, $class$, $name$)+ macro.
+. Finally, you need to add your plugin to the python configuration.
+
+Let's see an example :
+
+.Plugin skeleton
+================
++MyAnalysis.h+
+[source,cpp]
+----
+#include <Extractors/PatExtractor/interface/ExtractorPlugin.h>
+
+class MyAnalysis: patextractor::Plugin {
+  public:
+    MyAnalysis(const edm::ParameterSet& iConfig);
+
+    virtual void analyze(const edm::EventSetup& iSetup, PatExtractor& extractor);
+};
+----
+
++MyAnalysis.cpp+
+[source,cpp]
+----
+#include "MyAnalysis.h"
+
+MyAnalysis::MyAnalysis(const edm::ParameterSet& iConfig): Plugin(iConfig)
+{
+  // Initialize the analysis parameters using the ParameterSet iConfig
+  int an_option = iConfig.getUntrackedParameter<int>("an_option", 0);
+}
+
+MyAnalysis::analysis(const edm::EventSetup& iSetup, PatExtractor& extractor)
+{
+  // Do the analysis
+}
+
+// Register the plugin inside the factory
+DEFINE_EDM_PLUGIN(PatExtractorPluginFactory, MyAnalysis, "MyAnalysis");
+----
+
+In the example above, we created a new analysis called $MyAnalysis$, and we registered it inside the +PatExtractorPluginFactory+. We now just need to add into the python configuration file that we want to use this analysis.
+
+[source,python]
+----
+import FWCore.ParameterSet.Config as cms
+
+# Create process
+process = cms.Process("PATextractor")
+
+# Load various configurations
+process.load('Configuration/StandardSequences/Services_cff')
+process.load('Configuration/StandardSequences/GeometryIdeal_cff')
+process.load('Configuration/StandardSequences/MagneticField_38T_cff')
+process.load('Configuration/StandardSequences/EndOfProcess_cff')
+process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
+process.load("FWCore.MessageLogger.MessageLogger_cfi")
+process.load("Extractors.PatExtractor.PAT_extractor_cff")
+
+# Set the number of events we want to process
+process.maxEvents = cms.untracked.PSet(
+    input = cms.untracked.int32(10)
+    )
+
+# Input PAT file to extract
+process.source = cms.Source("PoolSource",
+    fileNames = cms.untracked.vstring("myfilename.root"),                           
+    duplicateCheckMode = cms.untracked.string( 'noDuplicateCheck' )
+    )
+
+# Run on MC
+process.PATextraction.isMC = True
+process.PATextraction.doMC = True
+
+# Set the output file name
+process.PATextraction.extractedRootFile = cms.string('extracted_mc.root')
+
+# Turn on some extractors
+process.PATextraction.doMuon     = True
+process.PATextraction.doElectron = True
+process.PATextraction.doJet      = True
+
+# And finally, loads our analysis
+process.PATextraction.plugins = cms.PSet( # <1>
+    MyAnalysis = cms.PSet(
+      an_option = cms.untracked.int32(42)
+      )
+    )
+----
+
+<1> this tells +PatExtractor+ to load a plugin named _MyAnalysis_ (case sensitive!). The associated +cms.PSet()+ will be given to argement to the class constructor. It contains only one option, +an_option+, an integer with value 42.
+================
+
+Accessing +extractors+ inside your +analysis+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In order to access +extractors+ inside your analysis, you have to use the +extractor+ reference passed inside the +analyze+ function, and more precisely the method
+
+[source,cpp]
+std::shared_ptr<SuperBaseExtractor> PatExtractor::getExtractor(const std::string& name);
+
+This method takes at first argument the name of the +extractor+ you want to access (see section <<extractors,extractors>> for the list of all +extractors+ name), and return a pointer to the extractor.
+
+For a list of methods of each +extractor+, please refer to the class declaration inside the header file (in +interface/+)
+
+// vim: set syntax=asciidoc:

@@ -1,0 +1,3026 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.8" />
+<title>Pat extractor : an utility to transform PAT tuples to plain root trees</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+pre {
+  padding: 0;
+  margin: 0;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #777777;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+tt {
+  font-family: monospace;
+  font-size: inherit;
+  color: navy;
+}
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+.monospaced {
+  font-family: monospace;
+  font-size: inherit;
+  color: navy;
+}
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+/*
+ * Theme specific overrides of the preceding (asciidoc.css) CSS.
+ *
+ */
+body {
+  font-family: Garamond, Georgia, serif;
+  font-size: 17px;
+  color: #3E4349;
+  line-height: 1.3em;
+}
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Garmond, Georgia, serif;
+  font-weight: normal;
+  border-bottom-width: 0;
+  color: #3E4349;
+}
+div.title, caption.title { color: #596673; font-weight: bold; }
+h1 { font-size: 240%; }
+h2 { font-size: 180%; }
+h3 { font-size: 150%; }
+h4 { font-size: 130%; }
+h5 { font-size: 115%; }
+h6 { font-size: 100%; }
+#header h1 { margin-top: 0; }
+#toc {
+  color: #444444;
+  line-height: 1.5;
+  padding-top: 1.5em;
+}
+#toctitle {
+  font-size: 20px;
+}
+#toc a {
+    border-bottom: 1px dotted #999999;
+    color: #444444 !important;
+    text-decoration: none !important;
+}
+#toc a:hover {
+    border-bottom: 1px solid #6D4100;
+    color: #6D4100 !important;
+    text-decoration: none !important;
+}
+div.toclevel1 { margin-top: 0.2em; font-size: 16px; }
+div.toclevel2 { margin-top: 0.15em; font-size: 14px; }
+em, dt, td.hdlist1 { color: black; }
+strong { color: #3E4349; }
+a { color: #004B6B; text-decoration: none; border-bottom: 1px dotted #004B6B; }
+a:visited { color: #615FA0; border-bottom: 1px dotted #615FA0; }
+a:hover { color: #6D4100; border-bottom: 1px solid #6D4100; }
+div.tableblock > table, table.tableblock { border: 3px solid #E8E8E8; }
+th.tableblock, td.tableblock { border: 1px solid #E8E8E8; }
+ul > li > * { color: #3E4349; }
+pre, tt, .monospaced { font-family: Consolas,Menlo,'Deja Vu Sans Mono','Bitstream Vera Sans Mono',monospace; }
+tt, .monospaced { font-size: 0.9em; color: black;
+}
+div.exampleblock > div.content, div.sidebarblock > div.content, div.listingblock > div.content { border-width: 0 0 0 3px; border-color: #E8E8E8; }
+div.verseblock { border-left-width: 0; margin-left: 3em; }
+div.quoteblock { border-left-width: 3px; margin-left: 0; margin-right: 0;}
+div.admonitionblock td.content { border-left: 3px solid #E8E8E8; }
+
+
+@media screen {
+  body {
+    max-width: 50em; /* approximately 80 characters wide */
+    margin-left: 16em;
+  }
+
+  #toc {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 13em;
+    padding: 0.5em;
+    padding-bottom: 1.5em;
+    margin: 0;
+    overflow: auto;
+    border-right: 3px solid #f8f8f8;
+    background-color: white;
+  }
+
+  #toc .toclevel1 {
+    margin-top: 0.5em;
+  }
+
+  #toc .toclevel2 {
+    margin-top: 0.25em;
+    display: list-item;
+    color: #aaaaaa;
+  }
+
+  #toctitle {
+    margin-top: 0.5em;
+  }
+}
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install(2);
+/*]]>*/
+</script>
+<script type="text/javascript">
+/*<![CDATA[*/
+/*
+LaTeXMathML.js
+==============
+
+This file, in this form, is due to Douglas Woodall, June 2006.
+It contains JavaScript functions to convert (most simple) LaTeX
+math notation to Presentation MathML.  It was obtained by
+downloading the file ASCIIMathML.js from
+	http://www1.chapman.edu/~jipsen/mathml/asciimathdownload/
+and modifying it so that it carries out ONLY those conversions
+that would be carried out in LaTeX.  A description of the original
+file, with examples, can be found at
+	www1.chapman.edu/~jipsen/mathml/asciimath.html
+	ASCIIMathML: Math on the web for everyone
+
+Here is the header notice from the original file:
+
+ASCIIMathML.js
+==============
+This file contains JavaScript functions to convert ASCII math notation
+to Presentation MathML. The conversion is done while the (X)HTML page
+loads, and should work with Firefox/Mozilla/Netscape 7+ and Internet
+Explorer 6+MathPlayer (http://www.dessci.com/en/products/mathplayer/).
+Just add the next line to your (X)HTML page with this file in the same folder:
+This is a convenient and inexpensive solution for authoring MathML.
+
+Version 1.4.7 Dec 15, 2005, (c) Peter Jipsen http://www.chapman.edu/~jipsen
+Latest version at http://www.chapman.edu/~jipsen/mathml/ASCIIMathML.js
+For changes see http://www.chapman.edu/~jipsen/mathml/asciimathchanges.txt
+If you use it on a webpage, please send the URL to jipsen@chapman.edu
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or (at
+your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+General Public License (at http://www.gnu.org/copyleft/gpl.html)
+for more details.
+
+LaTeXMathML.js (ctd)
+==============
+
+The instructions for use are the same as for the original
+ASCIIMathML.js, except that of course the line you add to your
+file should be
+Or use absolute path names if the file is not in the same folder
+as your (X)HTML page.
+*/
+
+var checkForMathML = true;   // check if browser can display MathML
+var notifyIfNoMathML = true; // display note if no MathML capability
+var alertIfNoMathML = false;  // show alert box if no MathML capability
+// was "red":
+var mathcolor = "";	     // change it to "" (to inherit) or any other color
+// was "serif":
+var mathfontfamily = "";      // change to "" to inherit (works in IE)
+                              // or another family (e.g. "arial")
+var showasciiformulaonhover = true; // helps students learn ASCIIMath
+/*
+// Commented out by DRW -- not now used -- see DELIMITERS (twice) near the end
+var displaystyle = false;     // puts limits above and below large operators
+var decimalsign = ".";        // change to "," if you like, beware of `(1,2)`!
+var AMdelimiter1 = "`", AMescape1 = "\\\\`"; // can use other characters
+var AMdelimiter2 = "$", AMescape2 = "\\\\\\$", AMdelimiter2regexp = "\\$";
+var doubleblankmathdelimiter = false; // if true,  x+1  is equal to `x+1`
+                                      // for IE this works only in <!--   -->
+//var separatetokens;// has been removed (email me if this is a problem)
+*/
+var isIE = document.createElementNS==null;
+
+if (document.getElementById==null)
+  alert("This webpage requires a recent browser such as\
+\nMozilla/Netscape 7+ or Internet Explorer 6+MathPlayer")
+
+// all further global variables start with "AM"
+
+function AMcreateElementXHTML(t) {
+  if (isIE) return document.createElement(t);
+  else return document.createElementNS("http://www.w3.org/1999/xhtml",t);
+}
+
+function AMnoMathMLNote() {
+  var nd = AMcreateElementXHTML("h3");
+  nd.setAttribute("align","center")
+  nd.appendChild(AMcreateElementXHTML("p"));
+  nd.appendChild(document.createTextNode("To view the "));
+  var an = AMcreateElementXHTML("a");
+  an.appendChild(document.createTextNode("LaTeXMathML"));
+  an.setAttribute("href","http://www.maths.nott.ac.uk/personal/drw/lm.html");
+  nd.appendChild(an);
+  nd.appendChild(document.createTextNode(" notation use Internet Explorer 6+"));
+  an = AMcreateElementXHTML("a");
+  an.appendChild(document.createTextNode("MathPlayer"));
+  an.setAttribute("href","http://www.dessci.com/en/products/mathplayer/download.htm");
+  nd.appendChild(an);
+  nd.appendChild(document.createTextNode(" or Netscape/Mozilla/Firefox"));
+  nd.appendChild(AMcreateElementXHTML("p"));
+  return nd;
+}
+
+function AMisMathMLavailable() {
+  if (navigator.appName.slice(0,8)=="Netscape")
+    if (navigator.appVersion.slice(0,1)>="5") return null;
+    else return AMnoMathMLNote();
+  else if (navigator.appName.slice(0,9)=="Microsoft")
+    try {
+        var ActiveX = new ActiveXObject("MathPlayer.Factory.1");
+        return null;
+    } catch (e) {
+        return AMnoMathMLNote();
+    }
+  else return AMnoMathMLNote();
+}
+
+// character lists for Mozilla/Netscape fonts
+var AMcal = [0xEF35,0x212C,0xEF36,0xEF37,0x2130,0x2131,0xEF38,0x210B,0x2110,0xEF39,0xEF3A,0x2112,0x2133,0xEF3B,0xEF3C,0xEF3D,0xEF3E,0x211B,0xEF3F,0xEF40,0xEF41,0xEF42,0xEF43,0xEF44,0xEF45,0xEF46];
+var AMfrk = [0xEF5D,0xEF5E,0x212D,0xEF5F,0xEF60,0xEF61,0xEF62,0x210C,0x2111,0xEF63,0xEF64,0xEF65,0xEF66,0xEF67,0xEF68,0xEF69,0xEF6A,0x211C,0xEF6B,0xEF6C,0xEF6D,0xEF6E,0xEF6F,0xEF70,0xEF71,0x2128];
+var AMbbb = [0xEF8C,0xEF8D,0x2102,0xEF8E,0xEF8F,0xEF90,0xEF91,0x210D,0xEF92,0xEF93,0xEF94,0xEF95,0xEF96,0x2115,0xEF97,0x2119,0x211A,0x211D,0xEF98,0xEF99,0xEF9A,0xEF9B,0xEF9C,0xEF9D,0xEF9E,0x2124];
+
+var CONST = 0, UNARY = 1, BINARY = 2, INFIX = 3, LEFTBRACKET = 4,
+    RIGHTBRACKET = 5, SPACE = 6, UNDEROVER = 7, DEFINITION = 8,
+    TEXT = 9, BIG = 10, LONG = 11, STRETCHY = 12, MATRIX = 13; // token types
+
+var AMsqrt = {input:"\\sqrt",	tag:"msqrt", output:"sqrt",	ttype:UNARY},
+  AMroot = {input:"\\root",	tag:"mroot", output:"root",	ttype:BINARY},
+  AMfrac = {input:"\\frac",	tag:"mfrac", output:"/",	ttype:BINARY},
+  AMover = {input:"\\stackrel", tag:"mover", output:"stackrel", ttype:BINARY},
+  AMatop = {input:"\\atop",	tag:"mfrac", output:"",		ttype:INFIX},
+  AMchoose = {input:"\\choose", tag:"mfrac", output:"",		ttype:INFIX},
+  AMsub  = {input:"_",		tag:"msub",  output:"_",	ttype:INFIX},
+  AMsup  = {input:"^",		tag:"msup",  output:"^",	ttype:INFIX},
+  AMtext = {input:"\\mathrm",	tag:"mtext", output:"text",	ttype:TEXT},
+  AMmbox = {input:"\\mbox",	tag:"mtext", output:"mbox",	ttype:TEXT};
+
+// Commented out by DRW to prevent 1/2 turning into a 2-line fraction
+// AMdiv   = {input:"/",	 tag:"mfrac", output:"/",    ttype:INFIX},
+// Commented out by DRW so that " prints literally in equations
+// AMquote = {input:"\"",	 tag:"mtext", output:"mbox", ttype:TEXT};
+
+var AMsymbols = [
+//Greek letters
+{input:"\\alpha",	tag:"mi", output:"\u03B1", ttype:CONST},
+{input:"\\beta",	tag:"mi", output:"\u03B2", ttype:CONST},
+{input:"\\gamma",	tag:"mi", output:"\u03B3", ttype:CONST},
+{input:"\\delta",	tag:"mi", output:"\u03B4", ttype:CONST},
+{input:"\\epsilon",	tag:"mi", output:"\u03B5", ttype:CONST},
+{input:"\\varepsilon",  tag:"mi", output:"\u025B", ttype:CONST},
+{input:"\\zeta",	tag:"mi", output:"\u03B6", ttype:CONST},
+{input:"\\eta",		tag:"mi", output:"\u03B7", ttype:CONST},
+{input:"\\theta",	tag:"mi", output:"\u03B8", ttype:CONST},
+{input:"\\vartheta",	tag:"mi", output:"\u03D1", ttype:CONST},
+{input:"\\iota",	tag:"mi", output:"\u03B9", ttype:CONST},
+{input:"\\kappa",	tag:"mi", output:"\u03BA", ttype:CONST},
+{input:"\\lambda",	tag:"mi", output:"\u03BB", ttype:CONST},
+{input:"\\mu",		tag:"mi", output:"\u03BC", ttype:CONST},
+{input:"\\nu",		tag:"mi", output:"\u03BD", ttype:CONST},
+{input:"\\xi",		tag:"mi", output:"\u03BE", ttype:CONST},
+{input:"\\pi",		tag:"mi", output:"\u03C0", ttype:CONST},
+{input:"\\varpi",	tag:"mi", output:"\u03D6", ttype:CONST},
+{input:"\\rho",		tag:"mi", output:"\u03C1", ttype:CONST},
+{input:"\\varrho",	tag:"mi", output:"\u03F1", ttype:CONST},
+{input:"\\varsigma",	tag:"mi", output:"\u03C2", ttype:CONST},
+{input:"\\sigma",	tag:"mi", output:"\u03C3", ttype:CONST},
+{input:"\\tau",		tag:"mi", output:"\u03C4", ttype:CONST},
+{input:"\\upsilon",	tag:"mi", output:"\u03C5", ttype:CONST},
+{input:"\\phi",		tag:"mi", output:"\u03C6", ttype:CONST},
+{input:"\\varphi",	tag:"mi", output:"\u03D5", ttype:CONST},
+{input:"\\chi",		tag:"mi", output:"\u03C7", ttype:CONST},
+{input:"\\psi",		tag:"mi", output:"\u03C8", ttype:CONST},
+{input:"\\omega",	tag:"mi", output:"\u03C9", ttype:CONST},
+{input:"\\Gamma",	tag:"mo", output:"\u0393", ttype:CONST},
+{input:"\\Delta",	tag:"mo", output:"\u0394", ttype:CONST},
+{input:"\\Theta",	tag:"mo", output:"\u0398", ttype:CONST},
+{input:"\\Lambda",	tag:"mo", output:"\u039B", ttype:CONST},
+{input:"\\Xi",		tag:"mo", output:"\u039E", ttype:CONST},
+{input:"\\Pi",		tag:"mo", output:"\u03A0", ttype:CONST},
+{input:"\\Sigma",	tag:"mo", output:"\u03A3", ttype:CONST},
+{input:"\\Upsilon",	tag:"mo", output:"\u03A5", ttype:CONST},
+{input:"\\Phi",		tag:"mo", output:"\u03A6", ttype:CONST},
+{input:"\\Psi",		tag:"mo", output:"\u03A8", ttype:CONST},
+{input:"\\Omega",	tag:"mo", output:"\u03A9", ttype:CONST},
+
+//fractions
+{input:"\\frac12",	tag:"mo", output:"\u00BD", ttype:CONST},
+{input:"\\frac14",	tag:"mo", output:"\u00BC", ttype:CONST},
+{input:"\\frac34",	tag:"mo", output:"\u00BE", ttype:CONST},
+{input:"\\frac13",	tag:"mo", output:"\u2153", ttype:CONST},
+{input:"\\frac23",	tag:"mo", output:"\u2154", ttype:CONST},
+{input:"\\frac15",	tag:"mo", output:"\u2155", ttype:CONST},
+{input:"\\frac25",	tag:"mo", output:"\u2156", ttype:CONST},
+{input:"\\frac35",	tag:"mo", output:"\u2157", ttype:CONST},
+{input:"\\frac45",	tag:"mo", output:"\u2158", ttype:CONST},
+{input:"\\frac16",	tag:"mo", output:"\u2159", ttype:CONST},
+{input:"\\frac56",	tag:"mo", output:"\u215A", ttype:CONST},
+{input:"\\frac18",	tag:"mo", output:"\u215B", ttype:CONST},
+{input:"\\frac38",	tag:"mo", output:"\u215C", ttype:CONST},
+{input:"\\frac58",	tag:"mo", output:"\u215D", ttype:CONST},
+{input:"\\frac78",	tag:"mo", output:"\u215E", ttype:CONST},
+
+//binary operation symbols
+{input:"\\pm",		tag:"mo", output:"\u00B1", ttype:CONST},
+{input:"\\mp",		tag:"mo", output:"\u2213", ttype:CONST},
+{input:"\\triangleleft",tag:"mo", output:"\u22B2", ttype:CONST},
+{input:"\\triangleright",tag:"mo",output:"\u22B3", ttype:CONST},
+{input:"\\cdot",	tag:"mo", output:"\u22C5", ttype:CONST},
+{input:"\\star",	tag:"mo", output:"\u22C6", ttype:CONST},
+{input:"\\ast",		tag:"mo", output:"\u002A", ttype:CONST},
+{input:"\\times",	tag:"mo", output:"\u00D7", ttype:CONST},
+{input:"\\div",		tag:"mo", output:"\u00F7", ttype:CONST},
+{input:"\\circ",	tag:"mo", output:"\u2218", ttype:CONST},
+//{input:"\\bullet",	  tag:"mo", output:"\u2219", ttype:CONST},
+{input:"\\bullet",	tag:"mo", output:"\u2022", ttype:CONST},
+{input:"\\oplus",	tag:"mo", output:"\u2295", ttype:CONST},
+{input:"\\ominus",	tag:"mo", output:"\u2296", ttype:CONST},
+{input:"\\otimes",	tag:"mo", output:"\u2297", ttype:CONST},
+{input:"\\bigcirc",	tag:"mo", output:"\u25CB", ttype:CONST},
+{input:"\\oslash",	tag:"mo", output:"\u2298", ttype:CONST},
+{input:"\\odot",	tag:"mo", output:"\u2299", ttype:CONST},
+{input:"\\land",	tag:"mo", output:"\u2227", ttype:CONST},
+{input:"\\wedge",	tag:"mo", output:"\u2227", ttype:CONST},
+{input:"\\lor",		tag:"mo", output:"\u2228", ttype:CONST},
+{input:"\\vee",		tag:"mo", output:"\u2228", ttype:CONST},
+{input:"\\cap",		tag:"mo", output:"\u2229", ttype:CONST},
+{input:"\\cup",		tag:"mo", output:"\u222A", ttype:CONST},
+{input:"\\sqcap",	tag:"mo", output:"\u2293", ttype:CONST},
+{input:"\\sqcup",	tag:"mo", output:"\u2294", ttype:CONST},
+{input:"\\uplus",	tag:"mo", output:"\u228E", ttype:CONST},
+{input:"\\amalg",	tag:"mo", output:"\u2210", ttype:CONST},
+{input:"\\bigtriangleup",tag:"mo",output:"\u25B3", ttype:CONST},
+{input:"\\bigtriangledown",tag:"mo",output:"\u25BD", ttype:CONST},
+{input:"\\dag",		tag:"mo", output:"\u2020", ttype:CONST},
+{input:"\\dagger",	tag:"mo", output:"\u2020", ttype:CONST},
+{input:"\\ddag",	tag:"mo", output:"\u2021", ttype:CONST},
+{input:"\\ddagger",	tag:"mo", output:"\u2021", ttype:CONST},
+{input:"\\lhd",		tag:"mo", output:"\u22B2", ttype:CONST},
+{input:"\\rhd",		tag:"mo", output:"\u22B3", ttype:CONST},
+{input:"\\unlhd",	tag:"mo", output:"\u22B4", ttype:CONST},
+{input:"\\unrhd",	tag:"mo", output:"\u22B5", ttype:CONST},
+
+
+//BIG Operators
+{input:"\\sum",		tag:"mo", output:"\u2211", ttype:UNDEROVER},
+{input:"\\prod",	tag:"mo", output:"\u220F", ttype:UNDEROVER},
+{input:"\\bigcap",	tag:"mo", output:"\u22C2", ttype:UNDEROVER},
+{input:"\\bigcup",	tag:"mo", output:"\u22C3", ttype:UNDEROVER},
+{input:"\\bigwedge",	tag:"mo", output:"\u22C0", ttype:UNDEROVER},
+{input:"\\bigvee",	tag:"mo", output:"\u22C1", ttype:UNDEROVER},
+{input:"\\bigsqcap",	tag:"mo", output:"\u2A05", ttype:UNDEROVER},
+{input:"\\bigsqcup",	tag:"mo", output:"\u2A06", ttype:UNDEROVER},
+{input:"\\coprod",	tag:"mo", output:"\u2210", ttype:UNDEROVER},
+{input:"\\bigoplus",	tag:"mo", output:"\u2A01", ttype:UNDEROVER},
+{input:"\\bigotimes",	tag:"mo", output:"\u2A02", ttype:UNDEROVER},
+{input:"\\bigodot",	tag:"mo", output:"\u2A00", ttype:UNDEROVER},
+{input:"\\biguplus",	tag:"mo", output:"\u2A04", ttype:UNDEROVER},
+{input:"\\int",		tag:"mo", output:"\u222B", ttype:CONST},
+{input:"\\oint",	tag:"mo", output:"\u222E", ttype:CONST},
+
+//binary relation symbols
+{input:":=",		tag:"mo", output:":=",	   ttype:CONST},
+{input:"\\lt",		tag:"mo", output:"<",	   ttype:CONST},
+{input:"\\gt",		tag:"mo", output:">",	   ttype:CONST},
+{input:"\\ne",		tag:"mo", output:"\u2260", ttype:CONST},
+{input:"\\neq",		tag:"mo", output:"\u2260", ttype:CONST},
+{input:"\\le",		tag:"mo", output:"\u2264", ttype:CONST},
+{input:"\\leq",		tag:"mo", output:"\u2264", ttype:CONST},
+{input:"\\leqslant",	tag:"mo", output:"\u2264", ttype:CONST},
+{input:"\\ge",		tag:"mo", output:"\u2265", ttype:CONST},
+{input:"\\geq",		tag:"mo", output:"\u2265", ttype:CONST},
+{input:"\\geqslant",	tag:"mo", output:"\u2265", ttype:CONST},
+{input:"\\equiv",	tag:"mo", output:"\u2261", ttype:CONST},
+{input:"\\ll",		tag:"mo", output:"\u226A", ttype:CONST},
+{input:"\\gg",		tag:"mo", output:"\u226B", ttype:CONST},
+{input:"\\doteq",	tag:"mo", output:"\u2250", ttype:CONST},
+{input:"\\prec",	tag:"mo", output:"\u227A", ttype:CONST},
+{input:"\\succ",	tag:"mo", output:"\u227B", ttype:CONST},
+{input:"\\preceq",	tag:"mo", output:"\u227C", ttype:CONST},
+{input:"\\succeq",	tag:"mo", output:"\u227D", ttype:CONST},
+{input:"\\subset",	tag:"mo", output:"\u2282", ttype:CONST},
+{input:"\\supset",	tag:"mo", output:"\u2283", ttype:CONST},
+{input:"\\subseteq",	tag:"mo", output:"\u2286", ttype:CONST},
+{input:"\\supseteq",	tag:"mo", output:"\u2287", ttype:CONST},
+{input:"\\sqsubset",	tag:"mo", output:"\u228F", ttype:CONST},
+{input:"\\sqsupset",	tag:"mo", output:"\u2290", ttype:CONST},
+{input:"\\sqsubseteq",  tag:"mo", output:"\u2291", ttype:CONST},
+{input:"\\sqsupseteq",  tag:"mo", output:"\u2292", ttype:CONST},
+{input:"\\sim",		tag:"mo", output:"\u223C", ttype:CONST},
+{input:"\\simeq",	tag:"mo", output:"\u2243", ttype:CONST},
+{input:"\\approx",	tag:"mo", output:"\u2248", ttype:CONST},
+{input:"\\cong",	tag:"mo", output:"\u2245", ttype:CONST},
+{input:"\\Join",	tag:"mo", output:"\u22C8", ttype:CONST},
+{input:"\\bowtie",	tag:"mo", output:"\u22C8", ttype:CONST},
+{input:"\\in",		tag:"mo", output:"\u2208", ttype:CONST},
+{input:"\\ni",		tag:"mo", output:"\u220B", ttype:CONST},
+{input:"\\owns",	tag:"mo", output:"\u220B", ttype:CONST},
+{input:"\\propto",	tag:"mo", output:"\u221D", ttype:CONST},
+{input:"\\vdash",	tag:"mo", output:"\u22A2", ttype:CONST},
+{input:"\\dashv",	tag:"mo", output:"\u22A3", ttype:CONST},
+{input:"\\models",	tag:"mo", output:"\u22A8", ttype:CONST},
+{input:"\\perp",	tag:"mo", output:"\u22A5", ttype:CONST},
+{input:"\\smile",	tag:"mo", output:"\u2323", ttype:CONST},
+{input:"\\frown",	tag:"mo", output:"\u2322", ttype:CONST},
+{input:"\\asymp",	tag:"mo", output:"\u224D", ttype:CONST},
+{input:"\\notin",	tag:"mo", output:"\u2209", ttype:CONST},
+
+//matrices
+{input:"\\begin{eqnarray}",	output:"X",	ttype:MATRIX, invisible:true},
+{input:"\\begin{array}",	output:"X",	ttype:MATRIX, invisible:true},
+{input:"\\\\",			output:"}&{",	ttype:DEFINITION},
+{input:"\\end{eqnarray}",	output:"}}",	ttype:DEFINITION},
+{input:"\\end{array}",		output:"}}",	ttype:DEFINITION},
+
+//grouping and literal brackets -- ieval is for IE
+{input:"\\big",	   tag:"mo", output:"X", atval:"1.2", ieval:"2.2", ttype:BIG},
+{input:"\\Big",	   tag:"mo", output:"X", atval:"1.6", ieval:"2.6", ttype:BIG},
+{input:"\\bigg",   tag:"mo", output:"X", atval:"2.2", ieval:"3.2", ttype:BIG},
+{input:"\\Bigg",   tag:"mo", output:"X", atval:"2.9", ieval:"3.9", ttype:BIG},
+{input:"\\left",   tag:"mo", output:"X", ttype:LEFTBRACKET},
+{input:"\\right",  tag:"mo", output:"X", ttype:RIGHTBRACKET},
+{input:"{",	   output:"{", ttype:LEFTBRACKET,  invisible:true},
+{input:"}",	   output:"}", ttype:RIGHTBRACKET, invisible:true},
+
+{input:"(",	   tag:"mo", output:"(",      atval:"1", ttype:STRETCHY},
+{input:"[",	   tag:"mo", output:"[",      atval:"1", ttype:STRETCHY},
+{input:"\\lbrack", tag:"mo", output:"[",      atval:"1", ttype:STRETCHY},
+{input:"\\{",	   tag:"mo", output:"{",      atval:"1", ttype:STRETCHY},
+{input:"\\lbrace", tag:"mo", output:"{",      atval:"1", ttype:STRETCHY},
+{input:"\\langle", tag:"mo", output:"\u2329", atval:"1", ttype:STRETCHY},
+{input:"\\lfloor", tag:"mo", output:"\u230A", atval:"1", ttype:STRETCHY},
+{input:"\\lceil",  tag:"mo", output:"\u2308", atval:"1", ttype:STRETCHY},
+
+// rtag:"mi" causes space to be inserted before a following sin, cos, etc.
+// (see function AMparseExpr() )
+{input:")",	  tag:"mo",output:")",	    rtag:"mi",atval:"1",ttype:STRETCHY},
+{input:"]",	  tag:"mo",output:"]",	    rtag:"mi",atval:"1",ttype:STRETCHY},
+{input:"\\rbrack",tag:"mo",output:"]",	    rtag:"mi",atval:"1",ttype:STRETCHY},
+{input:"\\}",	  tag:"mo",output:"}",	    rtag:"mi",atval:"1",ttype:STRETCHY},
+{input:"\\rbrace",tag:"mo",output:"}",	    rtag:"mi",atval:"1",ttype:STRETCHY},
+{input:"\\rangle",tag:"mo",output:"\u232A", rtag:"mi",atval:"1",ttype:STRETCHY},
+{input:"\\rfloor",tag:"mo",output:"\u230B", rtag:"mi",atval:"1",ttype:STRETCHY},
+{input:"\\rceil", tag:"mo",output:"\u2309", rtag:"mi",atval:"1",ttype:STRETCHY},
+
+// "|", "\\|", "\\vert" and "\\Vert" modified later: lspace = rspace = 0em
+{input:"|",		tag:"mo", output:"\u2223", atval:"1", ttype:STRETCHY},
+{input:"\\|",		tag:"mo", output:"\u2225", atval:"1", ttype:STRETCHY},
+{input:"\\vert",	tag:"mo", output:"\u2223", atval:"1", ttype:STRETCHY},
+{input:"\\Vert",	tag:"mo", output:"\u2225", atval:"1", ttype:STRETCHY},
+{input:"\\mid",		tag:"mo", output:"\u2223", atval:"1", ttype:STRETCHY},
+{input:"\\parallel",	tag:"mo", output:"\u2225", atval:"1", ttype:STRETCHY},
+{input:"/",		tag:"mo", output:"/",	atval:"1.01", ttype:STRETCHY},
+{input:"\\backslash",	tag:"mo", output:"\u2216", atval:"1", ttype:STRETCHY},
+{input:"\\setminus",	tag:"mo", output:"\\",	   ttype:CONST},
+
+//miscellaneous symbols
+{input:"\\!",	  tag:"mspace", atname:"width", atval:"-0.167em", ttype:SPACE},
+{input:"\\,",	  tag:"mspace", atname:"width", atval:"0.167em", ttype:SPACE},
+{input:"\\>",	  tag:"mspace", atname:"width", atval:"0.222em", ttype:SPACE},
+{input:"\\:",	  tag:"mspace", atname:"width", atval:"0.222em", ttype:SPACE},
+{input:"\\;",	  tag:"mspace", atname:"width", atval:"0.278em", ttype:SPACE},
+{input:"~",	  tag:"mspace", atname:"width", atval:"0.333em", ttype:SPACE},
+{input:"\\quad",  tag:"mspace", atname:"width", atval:"1em", ttype:SPACE},
+{input:"\\qquad", tag:"mspace", atname:"width", atval:"2em", ttype:SPACE},
+//{input:"{}",		  tag:"mo", output:"\u200B", ttype:CONST}, // zero-width
+{input:"\\prime",	tag:"mo", output:"\u2032", ttype:CONST},
+{input:"'",		tag:"mo", output:"\u02B9", ttype:CONST},
+{input:"''",		tag:"mo", output:"\u02BA", ttype:CONST},
+{input:"'''",		tag:"mo", output:"\u2034", ttype:CONST},
+{input:"''''",		tag:"mo", output:"\u2057", ttype:CONST},
+{input:"\\ldots",	tag:"mo", output:"\u2026", ttype:CONST},
+{input:"\\cdots",	tag:"mo", output:"\u22EF", ttype:CONST},
+{input:"\\vdots",	tag:"mo", output:"\u22EE", ttype:CONST},
+{input:"\\ddots",	tag:"mo", output:"\u22F1", ttype:CONST},
+{input:"\\forall",	tag:"mo", output:"\u2200", ttype:CONST},
+{input:"\\exists",	tag:"mo", output:"\u2203", ttype:CONST},
+{input:"\\Re",		tag:"mo", output:"\u211C", ttype:CONST},
+{input:"\\Im",		tag:"mo", output:"\u2111", ttype:CONST},
+{input:"\\aleph",	tag:"mo", output:"\u2135", ttype:CONST},
+{input:"\\hbar",	tag:"mo", output:"\u210F", ttype:CONST},
+{input:"\\ell",		tag:"mo", output:"\u2113", ttype:CONST},
+{input:"\\wp",		tag:"mo", output:"\u2118", ttype:CONST},
+{input:"\\emptyset",	tag:"mo", output:"\u2205", ttype:CONST},
+{input:"\\infty",	tag:"mo", output:"\u221E", ttype:CONST},
+{input:"\\surd",	tag:"mo", output:"\\sqrt{}", ttype:DEFINITION},
+{input:"\\partial",	tag:"mo", output:"\u2202", ttype:CONST},
+{input:"\\nabla",	tag:"mo", output:"\u2207", ttype:CONST},
+{input:"\\triangle",	tag:"mo", output:"\u25B3", ttype:CONST},
+{input:"\\therefore",	tag:"mo", output:"\u2234", ttype:CONST},
+{input:"\\angle",	tag:"mo", output:"\u2220", ttype:CONST},
+//{input:"\\\\ ",	  tag:"mo", output:"\u00A0", ttype:CONST},
+{input:"\\diamond",	tag:"mo", output:"\u22C4", ttype:CONST},
+//{input:"\\Diamond",	  tag:"mo", output:"\u25CA", ttype:CONST},
+{input:"\\Diamond",	tag:"mo", output:"\u25C7", ttype:CONST},
+{input:"\\neg",		tag:"mo", output:"\u00AC", ttype:CONST},
+{input:"\\lnot",	tag:"mo", output:"\u00AC", ttype:CONST},
+{input:"\\bot",		tag:"mo", output:"\u22A5", ttype:CONST},
+{input:"\\top",		tag:"mo", output:"\u22A4", ttype:CONST},
+{input:"\\square",	tag:"mo", output:"\u25AB", ttype:CONST},
+{input:"\\Box",		tag:"mo", output:"\u25A1", ttype:CONST},
+{input:"\\wr",		tag:"mo", output:"\u2240", ttype:CONST},
+
+//standard functions
+//Note UNDEROVER *must* have tag:"mo" to work properly
+{input:"\\arccos", tag:"mi", output:"arccos", ttype:UNARY, func:true},
+{input:"\\arcsin", tag:"mi", output:"arcsin", ttype:UNARY, func:true},
+{input:"\\arctan", tag:"mi", output:"arctan", ttype:UNARY, func:true},
+{input:"\\arg",	   tag:"mi", output:"arg",    ttype:UNARY, func:true},
+{input:"\\cos",	   tag:"mi", output:"cos",    ttype:UNARY, func:true},
+{input:"\\cosh",   tag:"mi", output:"cosh",   ttype:UNARY, func:true},
+{input:"\\cot",	   tag:"mi", output:"cot",    ttype:UNARY, func:true},
+{input:"\\coth",   tag:"mi", output:"coth",   ttype:UNARY, func:true},
+{input:"\\csc",	   tag:"mi", output:"csc",    ttype:UNARY, func:true},
+{input:"\\deg",	   tag:"mi", output:"deg",    ttype:UNARY, func:true},
+{input:"\\det",	   tag:"mi", output:"det",    ttype:UNARY, func:true},
+{input:"\\dim",	   tag:"mi", output:"dim",    ttype:UNARY, func:true}, //CONST?
+{input:"\\exp",	   tag:"mi", output:"exp",    ttype:UNARY, func:true},
+{input:"\\gcd",	   tag:"mi", output:"gcd",    ttype:UNARY, func:true}, //CONST?
+{input:"\\hom",	   tag:"mi", output:"hom",    ttype:UNARY, func:true},
+{input:"\\inf",	      tag:"mo", output:"inf",	 ttype:UNDEROVER},
+{input:"\\ker",	   tag:"mi", output:"ker",    ttype:UNARY, func:true},
+{input:"\\lg",	   tag:"mi", output:"lg",     ttype:UNARY, func:true},
+{input:"\\lim",	      tag:"mo", output:"lim",	 ttype:UNDEROVER},
+{input:"\\liminf",    tag:"mo", output:"liminf", ttype:UNDEROVER},
+{input:"\\limsup",    tag:"mo", output:"limsup", ttype:UNDEROVER},
+{input:"\\ln",	   tag:"mi", output:"ln",     ttype:UNARY, func:true},
+{input:"\\log",	   tag:"mi", output:"log",    ttype:UNARY, func:true},
+{input:"\\max",	      tag:"mo", output:"max",	 ttype:UNDEROVER},
+{input:"\\min",	      tag:"mo", output:"min",	 ttype:UNDEROVER},
+{input:"\\Pr",	   tag:"mi", output:"Pr",     ttype:UNARY, func:true},
+{input:"\\sec",	   tag:"mi", output:"sec",    ttype:UNARY, func:true},
+{input:"\\sin",	   tag:"mi", output:"sin",    ttype:UNARY, func:true},
+{input:"\\sinh",   tag:"mi", output:"sinh",   ttype:UNARY, func:true},
+{input:"\\sup",	      tag:"mo", output:"sup",	 ttype:UNDEROVER},
+{input:"\\tan",	   tag:"mi", output:"tan",    ttype:UNARY, func:true},
+{input:"\\tanh",   tag:"mi", output:"tanh",   ttype:UNARY, func:true},
+
+//arrows
+{input:"\\gets",		tag:"mo", output:"\u2190", ttype:CONST},
+{input:"\\leftarrow",		tag:"mo", output:"\u2190", ttype:CONST},
+{input:"\\to",			tag:"mo", output:"\u2192", ttype:CONST},
+{input:"\\rightarrow",		tag:"mo", output:"\u2192", ttype:CONST},
+{input:"\\leftrightarrow",	tag:"mo", output:"\u2194", ttype:CONST},
+{input:"\\uparrow",		tag:"mo", output:"\u2191", ttype:CONST},
+{input:"\\downarrow",		tag:"mo", output:"\u2193", ttype:CONST},
+{input:"\\updownarrow",		tag:"mo", output:"\u2195", ttype:CONST},
+{input:"\\Leftarrow",		tag:"mo", output:"\u21D0", ttype:CONST},
+{input:"\\Rightarrow",		tag:"mo", output:"\u21D2", ttype:CONST},
+{input:"\\Leftrightarrow",	tag:"mo", output:"\u21D4", ttype:CONST},
+{input:"\\iff", tag:"mo", output:"~\\Longleftrightarrow~", ttype:DEFINITION},
+{input:"\\Uparrow",		tag:"mo", output:"\u21D1", ttype:CONST},
+{input:"\\Downarrow",		tag:"mo", output:"\u21D3", ttype:CONST},
+{input:"\\Updownarrow",		tag:"mo", output:"\u21D5", ttype:CONST},
+{input:"\\mapsto",		tag:"mo", output:"\u21A6", ttype:CONST},
+{input:"\\longleftarrow",	tag:"mo", output:"\u2190", ttype:LONG},
+{input:"\\longrightarrow",	tag:"mo", output:"\u2192", ttype:LONG},
+{input:"\\longleftrightarrow",	tag:"mo", output:"\u2194", ttype:LONG},
+{input:"\\Longleftarrow",	tag:"mo", output:"\u21D0", ttype:LONG},
+{input:"\\Longrightarrow",	tag:"mo", output:"\u21D2", ttype:LONG},
+{input:"\\Longleftrightarrow",  tag:"mo", output:"\u21D4", ttype:LONG},
+{input:"\\longmapsto",		tag:"mo", output:"\u21A6", ttype:CONST},
+							// disaster if LONG
+
+//commands with argument
+AMsqrt, AMroot, AMfrac, AMover, AMsub, AMsup, AMtext, AMmbox, AMatop, AMchoose,
+//AMdiv, AMquote,
+
+//diacritical marks
+{input:"\\acute",	tag:"mover",  output:"\u00B4", ttype:UNARY, acc:true},
+//{input:"\\acute",	  tag:"mover",  output:"\u0317", ttype:UNARY, acc:true},
+//{input:"\\acute",	  tag:"mover",  output:"\u0301", ttype:UNARY, acc:true},
+//{input:"\\grave",	  tag:"mover",  output:"\u0300", ttype:UNARY, acc:true},
+//{input:"\\grave",	  tag:"mover",  output:"\u0316", ttype:UNARY, acc:true},
+{input:"\\grave",	tag:"mover",  output:"\u0060", ttype:UNARY, acc:true},
+{input:"\\breve",	tag:"mover",  output:"\u02D8", ttype:UNARY, acc:true},
+{input:"\\check",	tag:"mover",  output:"\u02C7", ttype:UNARY, acc:true},
+{input:"\\dot",		tag:"mover",  output:".",      ttype:UNARY, acc:true},
+{input:"\\ddot",	tag:"mover",  output:"..",     ttype:UNARY, acc:true},
+//{input:"\\ddot",	  tag:"mover",  output:"\u00A8", ttype:UNARY, acc:true},
+{input:"\\mathring",	tag:"mover",  output:"\u00B0", ttype:UNARY, acc:true},
+{input:"\\vec",		tag:"mover",  output:"\u20D7", ttype:UNARY, acc:true},
+{input:"\\overrightarrow",tag:"mover",output:"\u20D7", ttype:UNARY, acc:true},
+{input:"\\overleftarrow",tag:"mover", output:"\u20D6", ttype:UNARY, acc:true},
+{input:"\\hat",		tag:"mover",  output:"\u005E", ttype:UNARY, acc:true},
+{input:"\\widehat",	tag:"mover",  output:"\u0302", ttype:UNARY, acc:true},
+{input:"\\tilde",	tag:"mover",  output:"~",      ttype:UNARY, acc:true},
+//{input:"\\tilde",	  tag:"mover",  output:"\u0303", ttype:UNARY, acc:true},
+{input:"\\widetilde",	tag:"mover",  output:"\u02DC", ttype:UNARY, acc:true},
+{input:"\\bar",		tag:"mover",  output:"\u203E", ttype:UNARY, acc:true},
+{input:"\\overbrace",	tag:"mover",  output:"\u23B4", ttype:UNARY, acc:true},
+{input:"\\overline",	tag:"mover",  output:"\u00AF", ttype:UNARY, acc:true},
+{input:"\\underbrace",  tag:"munder", output:"\u23B5", ttype:UNARY, acc:true},
+{input:"\\underline",	tag:"munder", output:"\u00AF", ttype:UNARY, acc:true},
+//{input:"underline",	tag:"munder", output:"\u0332", ttype:UNARY, acc:true},
+
+//typestyles and fonts
+{input:"\\displaystyle",tag:"mstyle",atname:"displaystyle",atval:"true", ttype:UNARY},
+{input:"\\textstyle",tag:"mstyle",atname:"displaystyle",atval:"false", ttype:UNARY},
+{input:"\\scriptstyle",tag:"mstyle",atname:"scriptlevel",atval:"1", ttype:UNARY},
+{input:"\\scriptscriptstyle",tag:"mstyle",atname:"scriptlevel",atval:"2", ttype:UNARY},
+{input:"\\textrm", tag:"mstyle", output:"\\mathrm", ttype: DEFINITION},
+{input:"\\mathbf", tag:"mstyle", atname:"mathvariant", atval:"bold", ttype:UNARY},
+{input:"\\textbf", tag:"mstyle", atname:"mathvariant", atval:"bold", ttype:UNARY},
+{input:"\\mathit", tag:"mstyle", atname:"mathvariant", atval:"italic", ttype:UNARY},
+{input:"\\textit", tag:"mstyle", atname:"mathvariant", atval:"italic", ttype:UNARY},
+{input:"\\mathtt", tag:"mstyle", atname:"mathvariant", atval:"monospace", ttype:UNARY},
+{input:"\\texttt", tag:"mstyle", atname:"mathvariant", atval:"monospace", ttype:UNARY},
+{input:"\\mathsf", tag:"mstyle", atname:"mathvariant", atval:"sans-serif", ttype:UNARY},
+{input:"\\mathbb", tag:"mstyle", atname:"mathvariant", atval:"double-struck", ttype:UNARY, codes:AMbbb},
+{input:"\\mathcal",tag:"mstyle", atname:"mathvariant", atval:"script", ttype:UNARY, codes:AMcal},
+{input:"\\mathfrak",tag:"mstyle",atname:"mathvariant", atval:"fraktur",ttype:UNARY, codes:AMfrk}
+];
+
+function compareNames(s1,s2) {
+  if (s1.input > s2.input) return 1
+  else return -1;
+}
+
+var AMnames = []; //list of input symbols
+
+function AMinitSymbols() {
+  AMsymbols.sort(compareNames);
+  for (i=0; i<AMsymbols.length; i++) AMnames[i] = AMsymbols[i].input;
+}
+
+var AMmathml = "http://www.w3.org/1998/Math/MathML";
+
+function AMcreateElementMathML(t) {
+  if (isIE) return document.createElement("m:"+t);
+  else return document.createElementNS(AMmathml,t);
+}
+
+function AMcreateMmlNode(t,frag) {
+//  var node = AMcreateElementMathML(name);
+  if (isIE) var node = document.createElement("m:"+t);
+  else var node = document.createElementNS(AMmathml,t);
+  node.appendChild(frag);
+  return node;
+}
+
+function newcommand(oldstr,newstr) {
+  AMsymbols = AMsymbols.concat([{input:oldstr, tag:"mo", output:newstr,
+                                 ttype:DEFINITION}]);
+}
+
+function AMremoveCharsAndBlanks(str,n) {
+//remove n characters and any following blanks
+  var st;
+  st = str.slice(n);
+  for (var i=0; i<st.length && st.charCodeAt(i)<=32; i=i+1);
+  return st.slice(i);
+}
+
+function AMposition(arr, str, n) {
+// return position >=n where str appears or would be inserted
+// assumes arr is sorted
+  if (n==0) {
+    var h,m;
+    n = -1;
+    h = arr.length;
+    while (n+1<h) {
+      m = (n+h) >> 1;
+      if (arr[m]<str) n = m; else h = m;
+    }
+    return h;
+  } else
+    for (var i=n; i<arr.length && arr[i]<str; i++);
+  return i; // i=arr.length || arr[i]>=str
+}
+
+function AMgetSymbol(str) {
+//return maximal initial substring of str that appears in names
+//return null if there is none
+  var k = 0; //new pos
+  var j = 0; //old pos
+  var mk; //match pos
+  var st;
+  var tagst;
+  var match = "";
+  var more = true;
+  for (var i=1; i<=str.length && more; i++) {
+    st = str.slice(0,i); //initial substring of length i
+    j = k;
+    k = AMposition(AMnames, st, j);
+    if (k<AMnames.length && str.slice(0,AMnames[k].length)==AMnames[k]){
+      match = AMnames[k];
+      mk = k;
+      i = match.length;
+    }
+    more = k<AMnames.length && str.slice(0,AMnames[k].length)>=AMnames[k];
+  }
+  AMpreviousSymbol=AMcurrentSymbol;
+  if (match!=""){
+    AMcurrentSymbol=AMsymbols[mk].ttype;
+    return AMsymbols[mk];
+  }
+  AMcurrentSymbol=CONST;
+  k = 1;
+  st = str.slice(0,1); //take 1 character
+  if ("0"<=st && st<="9") tagst = "mn";
+  else tagst = (("A">st || st>"Z") && ("a">st || st>"z")?"mo":"mi");
+/*
+// Commented out by DRW (not fully understood, but probably to do with
+// use of "/" as an INFIX version of "\\frac", which we don't want):
+//}
+//if (st=="-" && AMpreviousSymbol==INFIX) {
+//  AMcurrentSymbol = INFIX;  //trick "/" into recognizing "-" on second parse
+//  return {input:st, tag:tagst, output:st, ttype:UNARY, func:true};
+//}
+*/
+  return {input:st, tag:tagst, output:st, ttype:CONST};
+}
+
+
+/*Parsing ASCII math expressions with the following grammar
+v ::= [A-Za-z] | greek letters | numbers | other constant symbols
+u ::= sqrt | text | bb | other unary symbols for font commands
+b ::= frac | root | stackrel	binary symbols
+l ::= { | \left			left brackets
+r ::= } | \right		right brackets
+S ::= v | lEr | uS | bSS	Simple expression
+I ::= S_S | S^S | S_S^S | S	Intermediate expression
+E ::= IE | I/I			Expression
+Each terminal symbol is translated into a corresponding mathml node.*/
+
+var AMpreviousSymbol,AMcurrentSymbol;
+
+function AMparseSexpr(str) { //parses str and returns [node,tailstr,(node)tag]
+  var symbol, node, result, result2, i, st,// rightvert = false,
+    newFrag = document.createDocumentFragment();
+  str = AMremoveCharsAndBlanks(str,0);
+  symbol = AMgetSymbol(str);             //either a token or a bracket or empty
+  if (symbol == null || symbol.ttype == RIGHTBRACKET)
+    return [null,str,null];
+  if (symbol.ttype == DEFINITION) {
+    str = symbol.output+AMremoveCharsAndBlanks(str,symbol.input.length);
+    symbol = AMgetSymbol(str);
+    if (symbol == null || symbol.ttype == RIGHTBRACKET)
+      return [null,str,null];
+  }
+  str = AMremoveCharsAndBlanks(str,symbol.input.length);
+  switch (symbol.ttype) {
+  case SPACE:
+    node = AMcreateElementMathML(symbol.tag);
+    node.setAttribute(symbol.atname,symbol.atval);
+    return [node,str,symbol.tag];
+  case UNDEROVER:
+    if (isIE) {
+      if (symbol.input.substr(0,4) == "\\big") {   // botch for missing symbols
+	str = "\\"+symbol.input.substr(4)+str;	   // make \bigcup = \cup etc.
+	symbol = AMgetSymbol(str);
+	symbol.ttype = UNDEROVER;
+	str = AMremoveCharsAndBlanks(str,symbol.input.length);
+      }
+    }
+    return [AMcreateMmlNode(symbol.tag,
+			document.createTextNode(symbol.output)),str,symbol.tag];
+  case CONST:
+    var output = symbol.output;
+    if (isIE) {
+      if (symbol.input == "'")
+	output = "\u2032";
+      else if (symbol.input == "''")
+	output = "\u2033";
+      else if (symbol.input == "'''")
+	output = "\u2033\u2032";
+      else if (symbol.input == "''''")
+	output = "\u2033\u2033";
+      else if (symbol.input == "\\square")
+	output = "\u25A1";	// same as \Box
+      else if (symbol.input.substr(0,5) == "\\frac") {
+						// botch for missing fractions
+	var denom = symbol.input.substr(6,1);
+	if (denom == "5" || denom == "6") {
+	  str = symbol.input.replace(/\\frac/,"\\frac ")+str;
+	  return [node,str,symbol.tag];
+	}
+      }
+    }
+    node = AMcreateMmlNode(symbol.tag,document.createTextNode(output));
+    return [node,str,symbol.tag];
+  case LONG:  // added by DRW
+    node = AMcreateMmlNode(symbol.tag,document.createTextNode(symbol.output));
+    node.setAttribute("minsize","1.5");
+    node.setAttribute("maxsize","1.5");
+    node = AMcreateMmlNode("mover",node);
+    node.appendChild(AMcreateElementMathML("mspace"));
+    return [node,str,symbol.tag];
+  case STRETCHY:  // added by DRW
+    if (isIE && symbol.input == "\\backslash")
+	symbol.output = "\\";	// doesn't expand, but then nor does "\u2216"
+    node = AMcreateMmlNode(symbol.tag,document.createTextNode(symbol.output));
+    if (symbol.input == "|" || symbol.input == "\\vert" ||
+	symbol.input == "\\|" || symbol.input == "\\Vert") {
+	  node.setAttribute("lspace","0em");
+	  node.setAttribute("rspace","0em");
+    }
+    node.setAttribute("maxsize",symbol.atval);  // don't allow to stretch here
+    if (symbol.rtag != null)
+      return [node,str,symbol.rtag];
+    else
+      return [node,str,symbol.tag];
+  case BIG:  // added by DRW
+    var atval = symbol.atval;
+    if (isIE)
+      atval = symbol.ieval;
+    symbol = AMgetSymbol(str);
+    if (symbol == null)
+	return [null,str,null];
+    str = AMremoveCharsAndBlanks(str,symbol.input.length);
+    node = AMcreateMmlNode(symbol.tag,document.createTextNode(symbol.output));
+    if (isIE) {		// to get brackets to expand
+      var space = AMcreateElementMathML("mspace");
+      space.setAttribute("height",atval+"ex");
+      node = AMcreateMmlNode("mrow",node);
+      node.appendChild(space);
+    } else {		// ignored in IE
+      node.setAttribute("minsize",atval);
+      node.setAttribute("maxsize",atval);
+    }
+    return [node,str,symbol.tag];
+  case LEFTBRACKET:   //read (expr+)
+    if (symbol.input == "\\left") { // left what?
+      symbol = AMgetSymbol(str);
+      if (symbol != null) {
+	if (symbol.input == ".")
+	  symbol.invisible = true;
+	str = AMremoveCharsAndBlanks(str,symbol.input.length);
+      }
+    }
+    result = AMparseExpr(str,true,false);
+    if (symbol==null ||
+	(typeof symbol.invisible == "boolean" && symbol.invisible))
+      node = AMcreateMmlNode("mrow",result[0]);
+    else {
+      node = AMcreateMmlNode("mo",document.createTextNode(symbol.output));
+      node = AMcreateMmlNode("mrow",node);
+      node.appendChild(result[0]);
+    }
+    return [node,result[1],result[2]];
+  case MATRIX:	 //read (expr+)
+    if (symbol.input == "\\begin{array}") {
+      var mask = "";
+      symbol = AMgetSymbol(str);
+      str = AMremoveCharsAndBlanks(str,0);
+      if (symbol == null)
+	mask = "l";
+      else {
+	str = AMremoveCharsAndBlanks(str,symbol.input.length);
+	if (symbol.input != "{")
+	  mask = "l";
+	else do {
+	  symbol = AMgetSymbol(str);
+	  if (symbol != null) {
+	    str = AMremoveCharsAndBlanks(str,symbol.input.length);
+	    if (symbol.input != "}")
+	      mask = mask+symbol.input;
+	  }
+	} while (symbol != null && symbol.input != "" && symbol.input != "}");
+      }
+      result = AMparseExpr("{"+str,true,true);
+//    if (result[0]==null) return [AMcreateMmlNode("mo",
+//			   document.createTextNode(symbol.input)),str];
+      node = AMcreateMmlNode("mtable",result[0]);
+      mask = mask.replace(/l/g,"left ");
+      mask = mask.replace(/r/g,"right ");
+      mask = mask.replace(/c/g,"center ");
+      node.setAttribute("columnalign",mask);
+      node.setAttribute("displaystyle","false");
+      if (isIE)
+	return [node,result[1],null];
+// trying to get a *little* bit of space around the array
+// (IE already includes it)
+      var lspace = AMcreateElementMathML("mspace");
+      lspace.setAttribute("width","0.167em");
+      var rspace = AMcreateElementMathML("mspace");
+      rspace.setAttribute("width","0.167em");
+      var node1 = AMcreateMmlNode("mrow",lspace);
+      node1.appendChild(node);
+      node1.appendChild(rspace);
+      return [node1,result[1],null];
+    } else {	// eqnarray
+      result = AMparseExpr("{"+str,true,true);
+      node = AMcreateMmlNode("mtable",result[0]);
+      if (isIE)
+	node.setAttribute("columnspacing","0.25em"); // best in practice?
+      else
+	node.setAttribute("columnspacing","0.167em"); // correct (but ignored?)
+      node.setAttribute("columnalign","right center left");
+      node.setAttribute("displaystyle","true");
+      node = AMcreateMmlNode("mrow",node);
+      return [node,result[1],null];
+    }
+  case TEXT:
+      if (str.charAt(0)=="{") i=str.indexOf("}");
+      else i = 0;
+      if (i==-1)
+		 i = str.length;
+      st = str.slice(1,i);
+      if (st.charAt(0) == " ") {
+	node = AMcreateElementMathML("mspace");
+	node.setAttribute("width","0.33em");	// was 1ex
+	newFrag.appendChild(node);
+      }
+      newFrag.appendChild(
+        AMcreateMmlNode(symbol.tag,document.createTextNode(st)));
+      if (st.charAt(st.length-1) == " ") {
+	node = AMcreateElementMathML("mspace");
+	node.setAttribute("width","0.33em");	// was 1ex
+	newFrag.appendChild(node);
+      }
+      str = AMremoveCharsAndBlanks(str,i+1);
+      return [AMcreateMmlNode("mrow",newFrag),str,null];
+  case UNARY:
+      result = AMparseSexpr(str);
+      if (result[0]==null) return [AMcreateMmlNode(symbol.tag,
+                             document.createTextNode(symbol.output)),str];
+      if (typeof symbol.func == "boolean" && symbol.func) { // functions hack
+	st = str.charAt(0);
+//	if (st=="^" || st=="_" || st=="/" || st=="|" || st==",") {
+	if (st=="^" || st=="_" || st==",") {
+	  return [AMcreateMmlNode(symbol.tag,
+		    document.createTextNode(symbol.output)),str,symbol.tag];
+        } else {
+	  node = AMcreateMmlNode("mrow",
+	   AMcreateMmlNode(symbol.tag,document.createTextNode(symbol.output)));
+	  if (isIE) {
+	    var space = AMcreateElementMathML("mspace");
+	    space.setAttribute("width","0.167em");
+	    node.appendChild(space);
+	  }
+	  node.appendChild(result[0]);
+	  return [node,result[1],symbol.tag];
+        }
+      }
+      if (symbol.input == "\\sqrt") {		// sqrt
+	if (isIE) {	// set minsize, for \surd
+	  var space = AMcreateElementMathML("mspace");
+	  space.setAttribute("height","1.2ex");
+	  space.setAttribute("width","0em");	// probably no effect
+	  node = AMcreateMmlNode(symbol.tag,result[0])
+//	  node.setAttribute("minsize","1");	// ignored
+//	  node = AMcreateMmlNode("mrow",node);  // hopefully unnecessary
+	  node.appendChild(space);
+	  return [node,result[1],symbol.tag];
+	} else
+	  return [AMcreateMmlNode(symbol.tag,result[0]),result[1],symbol.tag];
+      } else if (typeof symbol.acc == "boolean" && symbol.acc) {   // accent
+        node = AMcreateMmlNode(symbol.tag,result[0]);
+	var output = symbol.output;
+	if (isIE) {
+		if (symbol.input == "\\hat")
+			output = "\u0302";
+		else if (symbol.input == "\\widehat")
+			output = "\u005E";
+		else if (symbol.input == "\\bar")
+			output = "\u00AF";
+		else if (symbol.input == "\\grave")
+			output = "\u0300";
+		else if (symbol.input == "\\tilde")
+			output = "\u0303";
+	}
+	var node1 = AMcreateMmlNode("mo",document.createTextNode(output));
+	if (symbol.input == "\\vec" || symbol.input == "\\check")
+						// don't allow to stretch
+	    node1.setAttribute("maxsize","1.2");
+		 // why doesn't "1" work?  \vec nearly disappears in firefox
+	if (isIE && symbol.input == "\\bar")
+	    node1.setAttribute("maxsize","0.5");
+	if (symbol.input == "\\underbrace" || symbol.input == "\\underline")
+	  node1.setAttribute("accentunder","true");
+	else
+	  node1.setAttribute("accent","true");
+	node.appendChild(node1);
+	if (symbol.input == "\\overbrace" || symbol.input == "\\underbrace")
+	  node.ttype = UNDEROVER;
+	return [node,result[1],symbol.tag];
+      } else {			      // font change or displaystyle command
+        if (!isIE && typeof symbol.codes != "undefined") {
+          for (i=0; i<result[0].childNodes.length; i++)
+            if (result[0].childNodes[i].nodeName=="mi" || result[0].nodeName=="mi") {
+              st = (result[0].nodeName=="mi"?result[0].firstChild.nodeValue:
+                              result[0].childNodes[i].firstChild.nodeValue);
+              var newst = [];
+              for (var j=0; j<st.length; j++)
+                if (st.charCodeAt(j)>64 && st.charCodeAt(j)<91) newst = newst +
+                  String.fromCharCode(symbol.codes[st.charCodeAt(j)-65]);
+                else newst = newst + st.charAt(j);
+              if (result[0].nodeName=="mi")
+                result[0]=AMcreateElementMathML("mo").
+                          appendChild(document.createTextNode(newst));
+              else result[0].replaceChild(AMcreateElementMathML("mo").
+          appendChild(document.createTextNode(newst)),result[0].childNodes[i]);
+            }
+        }
+        node = AMcreateMmlNode(symbol.tag,result[0]);
+        node.setAttribute(symbol.atname,symbol.atval);
+	if (symbol.input == "\\scriptstyle" ||
+	    symbol.input == "\\scriptscriptstyle")
+		node.setAttribute("displaystyle","false");
+	return [node,result[1],symbol.tag];
+      }
+  case BINARY:
+    result = AMparseSexpr(str);
+    if (result[0]==null) return [AMcreateMmlNode("mo",
+			   document.createTextNode(symbol.input)),str,null];
+    result2 = AMparseSexpr(result[1]);
+    if (result2[0]==null) return [AMcreateMmlNode("mo",
+			   document.createTextNode(symbol.input)),str,null];
+    if (symbol.input=="\\root" || symbol.input=="\\stackrel")
+      newFrag.appendChild(result2[0]);
+    newFrag.appendChild(result[0]);
+    if (symbol.input=="\\frac") newFrag.appendChild(result2[0]);
+    return [AMcreateMmlNode(symbol.tag,newFrag),result2[1],symbol.tag];
+  case INFIX:
+    str = AMremoveCharsAndBlanks(str,symbol.input.length);
+    return [AMcreateMmlNode("mo",document.createTextNode(symbol.output)),
+	str,symbol.tag];
+  default:
+    return [AMcreateMmlNode(symbol.tag,        //its a constant
+	document.createTextNode(symbol.output)),str,symbol.tag];
+  }
+}
+
+function AMparseIexpr(str) {
+  var symbol, sym1, sym2, node, result, tag, underover;
+  str = AMremoveCharsAndBlanks(str,0);
+  sym1 = AMgetSymbol(str);
+  result = AMparseSexpr(str);
+  node = result[0];
+  str = result[1];
+  tag = result[2];
+  symbol = AMgetSymbol(str);
+  if (symbol.ttype == INFIX) {
+    str = AMremoveCharsAndBlanks(str,symbol.input.length);
+    result = AMparseSexpr(str);
+    if (result[0] == null) // show box in place of missing argument
+      result[0] = AMcreateMmlNode("mo",document.createTextNode("\u25A1"));
+    str = result[1];
+    tag = result[2];
+    if (symbol.input == "_" || symbol.input == "^") {
+      sym2 = AMgetSymbol(str);
+      tag = null;	// no space between x^2 and a following sin, cos, etc.
+// This is for \underbrace and \overbrace
+      underover = ((sym1.ttype == UNDEROVER) || (node.ttype == UNDEROVER));
+//    underover = (sym1.ttype == UNDEROVER);
+      if (symbol.input == "_" && sym2.input == "^") {
+        str = AMremoveCharsAndBlanks(str,sym2.input.length);
+        var res2 = AMparseSexpr(str);
+	str = res2[1];
+	tag = res2[2];  // leave space between x_1^2 and a following sin etc.
+        node = AMcreateMmlNode((underover?"munderover":"msubsup"),node);
+        node.appendChild(result[0]);
+        node.appendChild(res2[0]);
+      } else if (symbol.input == "_") {
+	node = AMcreateMmlNode((underover?"munder":"msub"),node);
+        node.appendChild(result[0]);
+      } else {
+	node = AMcreateMmlNode((underover?"mover":"msup"),node);
+        node.appendChild(result[0]);
+      }
+      node = AMcreateMmlNode("mrow",node); // so sum does not stretch
+    } else {
+      node = AMcreateMmlNode(symbol.tag,node);
+      if (symbol.input == "\\atop" || symbol.input == "\\choose")
+	node.setAttribute("linethickness","0ex");
+      node.appendChild(result[0]);
+      if (symbol.input == "\\choose")
+	node = AMcreateMmlNode("mfenced",node);
+    }
+  }
+  return [node,str,tag];
+}
+
+function AMparseExpr(str,rightbracket,matrix) {
+  var symbol, node, result, i, tag,
+  newFrag = document.createDocumentFragment();
+  do {
+    str = AMremoveCharsAndBlanks(str,0);
+    result = AMparseIexpr(str);
+    node = result[0];
+    str = result[1];
+    tag = result[2];
+    symbol = AMgetSymbol(str);
+    if (node!=undefined) {
+      if ((tag == "mn" || tag == "mi") && symbol!=null &&
+	typeof symbol.func == "boolean" && symbol.func) {
+			// Add space before \sin in 2\sin x or x\sin x
+	  var space = AMcreateElementMathML("mspace");
+	  space.setAttribute("width","0.167em");
+	  node = AMcreateMmlNode("mrow",node);
+	  node.appendChild(space);
+      }
+      newFrag.appendChild(node);
+    }
+  } while ((symbol.ttype != RIGHTBRACKET)
+        && symbol!=null && symbol.output!="");
+  tag = null;
+  if (symbol.ttype == RIGHTBRACKET) {
+    if (symbol.input == "\\right") { // right what?
+      str = AMremoveCharsAndBlanks(str,symbol.input.length);
+      symbol = AMgetSymbol(str);
+      if (symbol != null && symbol.input == ".")
+	symbol.invisible = true;
+      if (symbol != null)
+	tag = symbol.rtag;
+    }
+    if (symbol!=null)
+      str = AMremoveCharsAndBlanks(str,symbol.input.length); // ready to return
+    var len = newFrag.childNodes.length;
+    if (matrix &&
+      len>0 && newFrag.childNodes[len-1].nodeName == "mrow" && len>1 &&
+      newFrag.childNodes[len-2].nodeName == "mo" &&
+      newFrag.childNodes[len-2].firstChild.nodeValue == "&") { //matrix
+	var pos = []; // positions of ampersands
+        var m = newFrag.childNodes.length;
+        for (i=0; matrix && i<m; i=i+2) {
+          pos[i] = [];
+          node = newFrag.childNodes[i];
+	  for (var j=0; j<node.childNodes.length; j++)
+	    if (node.childNodes[j].firstChild.nodeValue=="&")
+	      pos[i][pos[i].length]=j;
+        }
+	var row, frag, n, k, table = document.createDocumentFragment();
+	for (i=0; i<m; i=i+2) {
+	  row = document.createDocumentFragment();
+	  frag = document.createDocumentFragment();
+	  node = newFrag.firstChild; // <mrow> -&-&...&-&- </mrow>
+	  n = node.childNodes.length;
+	  k = 0;
+	  for (j=0; j<n; j++) {
+	    if (typeof pos[i][k] != "undefined" && j==pos[i][k]){
+	      node.removeChild(node.firstChild); //remove &
+	      row.appendChild(AMcreateMmlNode("mtd",frag));
+	      k++;
+	    } else frag.appendChild(node.firstChild);
+	  }
+	  row.appendChild(AMcreateMmlNode("mtd",frag));
+	  if (newFrag.childNodes.length>2) {
+	    newFrag.removeChild(newFrag.firstChild); //remove <mrow> </mrow>
+	    newFrag.removeChild(newFrag.firstChild); //remove <mo>&</mo>
+	  }
+	  table.appendChild(AMcreateMmlNode("mtr",row));
+	}
+	return [table,str];
+    }
+    if (typeof symbol.invisible != "boolean" || !symbol.invisible) {
+      node = AMcreateMmlNode("mo",document.createTextNode(symbol.output));
+      newFrag.appendChild(node);
+    }
+  }
+  return [newFrag,str,tag];
+}
+
+function AMparseMath(str) {
+  var result, node = AMcreateElementMathML("mstyle");
+  if (mathcolor != "") node.setAttribute("mathcolor",mathcolor);
+  if (mathfontfamily != "") node.setAttribute("fontfamily",mathfontfamily);
+  node.appendChild(AMparseExpr(str.replace(/^\s+/g,""),false,false)[0]);
+  node = AMcreateMmlNode("math",node);
+  if (showasciiformulaonhover)                      //fixed by djhsu so newline
+    node.setAttribute("title",str.replace(/\s+/g," "));//does not show in Gecko
+  if (mathfontfamily != "" && (isIE || mathfontfamily != "serif")) {
+    var fnode = AMcreateElementXHTML("font");
+    fnode.setAttribute("face",mathfontfamily);
+    fnode.appendChild(node);
+    return fnode;
+  }
+  return node;
+}
+
+function AMstrarr2docFrag(arr, linebreaks) {
+  var newFrag=document.createDocumentFragment();
+  var expr = false;
+  for (var i=0; i<arr.length; i++) {
+    if (expr) newFrag.appendChild(AMparseMath(arr[i]));
+    else {
+      var arri = (linebreaks ? arr[i].split("\n\n") : [arr[i]]);
+      newFrag.appendChild(AMcreateElementXHTML("span").
+      appendChild(document.createTextNode(arri[0])));
+      for (var j=1; j<arri.length; j++) {
+        newFrag.appendChild(AMcreateElementXHTML("p"));
+        newFrag.appendChild(AMcreateElementXHTML("span").
+        appendChild(document.createTextNode(arri[j])));
+      }
+    }
+    expr = !expr;
+  }
+  return newFrag;
+}
+
+function AMprocessNodeR(n, linebreaks) {
+  var mtch, str, arr, frg, i;
+  if (n.childNodes.length == 0) {
+   if ((n.nodeType!=8 || linebreaks) &&
+    n.parentNode.nodeName!="form" && n.parentNode.nodeName!="FORM" &&
+    n.parentNode.nodeName!="textarea" && n.parentNode.nodeName!="TEXTAREA" &&
+    n.parentNode.nodeName!="pre" && n.parentNode.nodeName!="PRE") {
+    str = n.nodeValue;
+    if (!(str == null)) {
+      str = str.replace(/\r\n\r\n/g,"\n\n");
+      str = str.replace(/\x20+/g," ");
+      str = str.replace(/\s*\r\n/g," ");
+// DELIMITERS:
+      mtch = (str.indexOf("\$")==-1 ? false : true);
+      str = str.replace(/([^\\])\$/g,"$1 \$");
+      str = str.replace(/^\$/," \$");	// in case \$ at start of string
+      arr = str.split(" \$");
+      for (i=0; i<arr.length; i++)
+	arr[i]=arr[i].replace(/\\\$/g,"\$");
+      if (arr.length>1 || mtch) {
+        if (checkForMathML) {
+          checkForMathML = false;
+          var nd = AMisMathMLavailable();
+          AMnoMathML = nd != null;
+          if (AMnoMathML && notifyIfNoMathML)
+            if (alertIfNoMathML)
+              alert("To view the ASCIIMathML notation use Internet Explorer 6 +\nMathPlayer (free from www.dessci.com)\n\
+                or Firefox/Mozilla/Netscape");
+            else AMbody.insertBefore(nd,AMbody.childNodes[0]);
+        }
+        if (!AMnoMathML) {
+          frg = AMstrarr2docFrag(arr,n.nodeType==8);
+          var len = frg.childNodes.length;
+          n.parentNode.replaceChild(frg,n);
+          return len-1;
+        } else return 0;
+      }
+    }
+   } else return 0;
+  } else if (n.nodeName!="math") {
+    for (i=0; i<n.childNodes.length; i++)
+      i += AMprocessNodeR(n.childNodes[i], linebreaks);
+  }
+  return 0;
+}
+
+function AMprocessNode(n, linebreaks, spanclassAM) {
+  var frag,st;
+  if (spanclassAM!=null) {
+    frag = document.getElementsByTagName("span")
+    for (var i=0;i<frag.length;i++)
+      if (frag[i].className == "AM")
+        AMprocessNodeR(frag[i],linebreaks);
+  } else {
+    try {
+      st = n.innerHTML;
+    } catch(err) {}
+// DELIMITERS:
+    if (st==null || st.indexOf("\$")!=-1)
+      AMprocessNodeR(n,linebreaks);
+  }
+  if (isIE) { //needed to match size and font of formula to surrounding text
+    frag = document.getElementsByTagName('math');
+    for (var i=0;i<frag.length;i++) frag[i].update()
+  }
+}
+
+var AMbody;
+var AMnoMathML = false, AMtranslated = false;
+
+function translate(spanclassAM) {
+  if (!AMtranslated) { // run this only once
+    AMtranslated = true;
+    AMinitSymbols();
+    AMbody = document.getElementsByTagName("body")[0];
+    AMprocessNode(AMbody, false, spanclassAM);
+  }
+}
+
+if (isIE) { // avoid adding MathPlayer info explicitly to each webpage
+  document.write("<object id=\"mathplayer\"\
+  classid=\"clsid:32F66A20-7614-11D4-BD11-00104BD3F987\"></object>");
+  document.write("<?import namespace=\"m\" implementation=\"#mathplayer\"?>");
+}
+
+// GO1.1 Generic onload by Brothercake
+// http://www.brothercake.com/
+//onload function (replaces the onload="translate()" in the <body> tag)
+function generic()
+{
+  translate();
+};
+//setup onload function
+if(typeof window.addEventListener != 'undefined')
+{
+  //.. gecko, safari, konqueror and standard
+  window.addEventListener('load', generic, false);
+}
+else if(typeof document.addEventListener != 'undefined')
+{
+  //.. opera 7
+  document.addEventListener('load', generic, false);
+}
+else if(typeof window.attachEvent != 'undefined')
+{
+  //.. win/ie
+  window.attachEvent('onload', generic);
+}
+//** remove this condition to degrade older browsers
+else
+{
+  //.. mac/ie5 and anything else that gets this far
+  //if there's an existing onload function
+  if(typeof window.onload == 'function')
+  {
+    //store it
+    var existing = onload;
+    //add new onload handler
+    window.onload = function()
+    {
+      //call existing onload function
+      existing();
+      //call generic onload function
+      generic();
+    };
+  }
+  else
+  {
+    //setup onload function
+    window.onload = generic;
+  }
+}
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>Pat extractor : an utility to transform PAT tuples to plain root trees</h1>
+<span id="author">Sébastien Brochet &lt;s.brochet@ipnl.in2p3.fr&gt;, Sébastien Viret &lt;s.viret@ipnl.in2p3.fr&gt;</span><br />
+<span id="revdate">02 April 2013</span>
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_presentation">Presentation</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><code>PatExtractor</code> is an advanced CMSSW EDAnalyzer which transforms PAT tuples (usually produced with PF2PAT) to plain root trees, using modules called <code>extractors</code>. Each <code>extractor</code> is idenpendant, and only <code>extracts</code> informations about one type of object (<code>muons</code>, <code>electrons</code>, <code>tracks</code>, &#8230;).</p></div>
+<div class="paragraph"><p>On top of that, there are <code>analysis</code>. An <code>analysis</code> is a simple module that is ran after all <code>extractors</code>, whom purpose is left to the end user. Usually, it&#8217;s for performing one step of the analysis (typically the second step). An <code>analysis</code> has access to all the <code>extractors</code> data, and can produce, for exemple, a tree.</p></div>
+<div class="paragraph"><p><code>PatExtractor</code> uses an advanced plugin system for managing analysis. You don&#8217;t have to modify the source of <code>PatExtractor</code> in order to add your own analysis. Just register your new plugin in the <code>PatExtractorFactory</code> and you&#8217;re done.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_get_the_code">Get the code</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><code>PatExtractor</code> is not hosted on CMSSW CVS repository, but on <code>git</code>. To retrieve it, you simply need to clone the repository on your existing CMSSW directory :</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.7
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>src<span style="color: #990000">&gt;</span> mkdir Extractors
+src<span style="color: #990000">&gt;</span> cd Extractors
+Extractors<span style="color: #990000">&gt;</span> git clone git<span style="color: #990000">:</span>//ipnl<span style="color: #990000">.</span>madalynn<span style="color: #990000">.</span>eu/MttAnalysis<span style="color: #990000">.</span>git
+Extractors<span style="color: #990000">&gt;</span> cd <span style="color: #990000">..</span>
+src<span style="color: #990000">&gt;</span> scram b -j<span style="color: #993399">8</span></tt></pre></div></div>
+<div class="paragraph"><p>You also need to checkout a bunch of packages. Please read the <code>README</code> document for a list of packages.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_operating_mode">Operating mode</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>There are two differents operating mode available in <code>PatExtractor</code> :</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+The first mode is the default one, and called <code>extractors + analysis</code> mode. As its name indicate, in this mode the <code>extractors</code> <em>and</em> the <code>analysis</code> are ran, one by one. Input files are expected to be PAT tuples, and <code>analysis</code> have access to the whole CMSSW framework.
+</p>
+</li>
+<li>
+<p>
+The second mode is called <code>analysis</code> mode. In this mode, no <code>extractors</code> are ran, because the input files are expected to be <code>extracted</code> files. Only the <code>analyses</code> are ran, and have access only to the data previously <code>extracted</code> by the <code>extractors</code>.
+</p>
+</li>
+</ol></div>
+<div class="exampleblock">
+<div class="content">
+<div class="paragraph"><p>Supposed you want to run the same analysis twice on the same dataset. Here&#8217;s the best way to do :</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+First, run <code>PatExtractor</code> in <code>extractors + analysis</code> mode. In input, specify the PAT dataset as you would do in CMSSW python configuration (with the <code>PoolSource</code> module). This will produce an <code>extracted</code> output file.
+</p>
+</li>
+<li>
+<p>
+Next, run <code>PatExtractor</code> in <code>analysis</code> mode only. In input, specify the previously <code>extracted</code> root file (using the <code>inputRootFile</code> python attribute, and <em>not the <code>PoolSource</code> module</em>). Don&#8217;t forget to switch the flag <code>fillTree</code> to <code>false</code>!. This way, no <code>extractors</code> will be ran, with a noticable gain of time.
+</p>
+</li>
+</ul></div>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img alt="Caution" src="data:image/png;base64,
+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" />
+</td>
+<td class="content">
+<div class="paragraph"><p>When using <code>analysis</code> mode, you <em>have</em> to add the following things to your python configuration</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.7
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>process<span style="color: #990000">.</span>maxEvents <span style="color: #990000">=</span> cms<span style="color: #990000">.</span>untracked<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">PSet</span></span><span style="color: #990000">(</span>
+    input <span style="color: #990000">=</span> cms<span style="color: #990000">.</span>untracked<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int32</span></span><span style="color: #990000">(</span><span style="color: #993399">1</span><span style="color: #990000">)</span>
+<span style="color: #990000">)</span>
+
+process<span style="color: #990000">.</span>source <span style="color: #990000">=</span> cms<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">Source</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"EmptySource"</span><span style="color: #990000">)</span></tt></pre></div></div>
+</td>
+</tr></table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="extractors">Extractors</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>There are currently 10 <code>extractors</code> available :</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>EventExtractor</code>: extracts informations related to the event, like the event id, run number, lumi section, the number of true interactions, &#8230;
+</p>
+</li>
+<li>
+<p>
+<code>ElectronExtractor</code>, <code>MuonExtractor</code>, <code>PhotonExtractor</code>: extract informations about <code>electrons</code>, <code>muons</code> and <code>photons</code>.
+</p>
+</li>
+<li>
+<p>
+<code>JetMETExtractor</code>: extracts informations about jets and MET.
+</p>
+</li>
+<li>
+<p>
+<code>MCExtractor</code>: extracts informations about the generated events.
+</p>
+</li>
+<li>
+<p>
+<code>HLTExtractor</code> extracts informations about HLT
+</p>
+</li>
+<li>
+<p>
+<code>PFpartExtractor</code>: extracts informations about PF particles
+</p>
+</li>
+<li>
+<p>
+<code>TrackExtractor</code>, <code>VertexExtractor</code>: extracts informations about tracks and vertices.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>Below are more informations about specific extractors. If an <code>extractor</code> is not listed, there&#8217;s nothing special about its behaviour.</p></div>
+<div class="sect2">
+<h3 id="_eventextractor">EventExtractor</h3>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">Technical details</div>
+<div class="ulist"><ul>
+<li>
+<p>
+Output tree:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>event</code>
+</p>
+</li>
+</ul></div>
+</li>
+<li>
+<p>
+<code>extractor</code> name:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>event</code>
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_electronextractor_muonextractor">ElectronExtractor, MuonExtractor</h3>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">Technical details</div>
+<div class="ulist"><ul>
+<li>
+<p>
+Output trees:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>electron_PF</code>, <code>muon_PF</code>
+</p>
+</li>
+<li>
+<p>
+<code>electron_loose_PF</code>, <code>muon_loose_PF</code>
+</p>
+</li>
+</ul></div>
+</li>
+<li>
+<p>
+<code>extractor</code> names:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>electrons</code>, <code>muons</code>
+</p>
+</li>
+<li>
+<p>
+<code>electrons_loose</code>, <code>muons_loose</code>
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+</div></div>
+<div class="paragraph"><p>These <code>extractors</code> are ran twice, once on $isolated$ leptons collection, and once on $full$ leptons collection.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img alt="Caution" src="data:image/png;base64,
+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" />
+</td>
+<td class="content">
+<div class="paragraph"><p>Beware: there wil be $duplicated$ between the isolated and non-isolated collection. Be sure to perform a cleaning.</p></div>
+</td>
+</tr></table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_jetmetextractor">JetMETExtractor</h3>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">Technical details</div>
+<div class="ulist"><ul>
+<li>
+<p>
+Output trees:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>jet_PF</code>, <code>MET_PF</code>
+</p>
+</li>
+</ul></div>
+</li>
+<li>
+<p>
+<code>extractor</code> name:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>JetMET</code>
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+</div></div>
+<div class="paragraph"><p>This <code>extractor</code> must be configured in the CMSSW python configuration file. It expects to read a <code>cms.PSet</code> named <code>jet_PF</code> for jets extracting configuration, and another <code>cms.PSet</code> named <code>met_PF</code> for MET extraction. Possible options are listed below.</p></div>
+<div class="sidebarblock" id="jetmet_python">
+<div class="content">
+<div class="title">Python configuration</div>
+<div class="ulist"><ul>
+<li>
+<p>
+Jets extraction:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>input (cms.InputTag)</code>: the input tag of the jet collection to extract
+</p>
+</li>
+<li>
+<p>
+<code>redoJetCorrection (cms.untracked.bool, false)</code>: Should this <code>extractor</code> redo the jet energy corrections. If <code>true</code>, a valid global tag must be set.
+</p>
+</li>
+<li>
+<p>
+<code>jetCorrectorLabel (cms.string)</code>: the corrector label to use if <code>redoJetCorrection</code> is <code>true</code>. Use something like <code>ak5PFchsL1FastL2L3Residual</code> for data and <code>ak5PFchsL1FastL2L3</code> for MC.
+</p>
+</li>
+<li>
+<p>
+<code>doJER (cms.untracked.bool, true)</code>: if <code>true</code>, the jet resolution is smeared. Automatically set to <code>false</code> when running on data.
+</p>
+</li>
+<li>
+<p>
+<code>jerSign (cms.untracked.int32, 0)</code>: for JER systematic evaluation. Set to 1 for 1-sigma up variation, or set to -1 for 1-sigma down variation.
+</p>
+</li>
+<li>
+<p>
+<code>jesSign (cms.untracked.int32, 0)</code>: for JES systematic evaluation. Set to 1 for 1-sigma up variation, or set to -1 for 1-sigma down variation.
+</p>
+</li>
+</ul></div>
+</li>
+<li>
+<p>
+MET extraction:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>input (cms.InputTag)</code>: the input tag of the MET collection to extract
+</p>
+</li>
+<li>
+<p>
+<code>redoMetPhiCorrection (cms.untracked.bool, false)</code>: if <code>true</code>, perform the MET phi correction. Useful if the jet energy corrections are redone and you still want the MET phi correction.
+</p>
+</li>
+<li>
+<p>
+<code>redoMetTypeICorrection (cms.untracked.bool, false)</code>: if <code>true</code>, recompute Type-I correction (JEC propagation to MET). Automatically <code>true</code> if <code>redoJetCorrection</code> is <code>true</code>.
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_mcextractor">MCExtractor</h3>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">Technical details</div>
+<div class="ulist"><ul>
+<li>
+<p>
+Output tree:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>MC</code>
+</p>
+</li>
+</ul></div>
+</li>
+<li>
+<p>
+<code>extractor</code> name:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>MC</code>
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+</div></div>
+<div class="paragraph"><p>This module extracts generator particles informations <em>with status 3 only</em>, and is only compatible with <code>MADGRAPH</code> samples. It&#8217;s useful if you want to perform a matching between jets and partons.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_hltextractor">HLTExtractor</h3>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">Technical details</div>
+<div class="ulist"><ul>
+<li>
+<p>
+Output tree:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>HLT</code>
+</p>
+</li>
+</ul></div>
+</li>
+<li>
+<p>
+<code>extractor</code> name:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>HLT</code>
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+</div></div>
+<div class="paragraph"><p>This module extracts HLT informations from the event, and store <em>only triggers which fired</em>. Furthermore, it also provides a way to flag events which pass a pre-selected trigger (this allow the user to select only events passing a dedicated trigger).</p></div>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">Python configuration</div>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>triggersXML (cms.untracked.string, "")</code>: A <code>string</code> containing the content of a <code>XML</code> document describing the triggers to flag
+</p>
+</li>
+</ul></div>
+</div></div>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">XML document structure</div>
+<div class="paragraph"><p>The <code>XML</code> document must follow the following structure (it&#8217;s a real document used for a $t\bar{t}$ analysis) :</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.7
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">&lt;?xml</span></span> <span style="color: #009900">version</span><span style="color: #990000">=</span><span style="color: #FF0000">"1.0"</span> <span style="color: #009900">encoding</span><span style="color: #990000">=</span><span style="color: #FF0000">"UTF-8"</span><span style="font-weight: bold"><span style="color: #000080">?&gt;</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;triggers&gt;</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;runs</span></span> <span style="color: #009900">from</span><span style="color: #990000">=</span><span style="color: #FF0000">"0"</span> <span style="color: #009900">to</span><span style="color: #990000">=</span><span style="color: #FF0000">"193621"</span><span style="font-weight: bold"><span style="color: #0000FF">&gt;</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">&lt;path&gt;</span></span>
+      <span style="font-weight: bold"><span style="color: #0000FF">&lt;name&gt;</span></span>HLT_IsoMu17_eta2p1_TriCentralPFJet30_v.*<span style="font-weight: bold"><span style="color: #0000FF">&lt;/name&gt;</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">&lt;/path&gt;</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;/runs&gt;</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;runs</span></span> <span style="color: #009900">from</span><span style="color: #990000">=</span><span style="color: #FF0000">"193834"</span> <span style="color: #009900">to</span><span style="color: #990000">=</span><span style="color: #FF0000">"194225"</span><span style="font-weight: bold"><span style="color: #0000FF">&gt;</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">&lt;path&gt;</span></span>
+      <span style="font-weight: bold"><span style="color: #0000FF">&lt;name&gt;</span></span>HLT_IsoMu17_eta2p1_TriCentralPFNoPUJet30_v.*<span style="font-weight: bold"><span style="color: #0000FF">&lt;/name&gt;</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">&lt;/path&gt;</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;/runs&gt;</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;runs</span></span> <span style="color: #009900">from</span><span style="color: #990000">=</span><span style="color: #FF0000">"194270"</span> <span style="color: #009900">to</span><span style="color: #990000">=</span><span style="color: #FF0000">"199608"</span><span style="font-weight: bold"><span style="color: #0000FF">&gt;</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">&lt;path&gt;</span></span>
+      <span style="font-weight: bold"><span style="color: #0000FF">&lt;name&gt;</span></span>HLT_IsoMu17_eta2p1_TriCentralPFNoPUJet30_30_20_v.*<span style="font-weight: bold"><span style="color: #0000FF">&lt;/name&gt;</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">&lt;/path&gt;</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;/runs&gt;</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;runs</span></span> <span style="color: #009900">from</span><span style="color: #990000">=</span><span style="color: #FF0000">"199698"</span> <span style="color: #009900">to</span><span style="color: #990000">=</span><span style="color: #FF0000">"500000"</span><span style="font-weight: bold"><span style="color: #0000FF">&gt;</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">&lt;path&gt;</span></span>
+      <span style="font-weight: bold"><span style="color: #0000FF">&lt;name&gt;</span></span>HLT_IsoMu17_eta2p1_TriCentralPFNoPUJet45_35_25_v.*<span style="font-weight: bold"><span style="color: #0000FF">&lt;/name&gt;</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">&lt;/path&gt;</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;/runs&gt;</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;/triggers&gt;</span></span></tt></pre></div></div>
+<div class="paragraph"><p>Run ranges are inclusive (ie, $r \leq min~or~r \geq max$). Path name must be a valid regex.</p></div>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img alt="Note" src="data:image/png;base64,
+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" />
+</td>
+<td class="content">No event will be thrown if trigger are not matched. Only a flag will be set.</td>
+</tr></table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_pfpartextractor">PFpartExtractor</h3>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">Technical details</div>
+<div class="ulist"><ul>
+<li>
+<p>
+Output tree:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>PFpart</code>
+</p>
+</li>
+</ul></div>
+</li>
+<li>
+<p>
+<code>extractor</code> name:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>PFpart</code>
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_trackextractor">TrackExtractor</h3>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">Technical details</div>
+<div class="ulist"><ul>
+<li>
+<p>
+Output tree:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>track</code>
+</p>
+</li>
+</ul></div>
+</li>
+<li>
+<p>
+<code>extractor</code> name:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>track</code>
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_vertexextractor">VertexExtractor</h3>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">Technical details</div>
+<div class="ulist"><ul>
+<li>
+<p>
+Output tree:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>event</code>
+</p>
+</li>
+</ul></div>
+</li>
+<li>
+<p>
+<code>extractor</code> name:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>event</code>
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+</div></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_python_configuration">Python configuration</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The default python configuration of <code>PatExtractor</code> can be found in the file <code>python/PAT_extractor_cfi.py</code>. Below is a description of all options :</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>extractedRootFile (cms.string)</code>: the output file produced by <code>PatExtractor</code>, where all the extracted trees and analysis objects are stored.
+</p>
+</li>
+<li>
+<p>
+<code>fillTree (cms.untracked.bool, true)</code>: Allow to set the mode of <code>PatExtractor</code>. If <code>true</code>, mode "extractors + analysis" is set, otherwise, mode "analysis" is set. See &lt;&gt; for more details.
+</p>
+</li>
+<li>
+<p>
+<code>inputRootFile (cms.string)</code>: when running in <code>analysis</code> mode, indicates the input file to use.
+</p>
+</li>
+<li>
+<p>
+<code>isMC (cms.untracked.bool, true)</code>: Indicates whether or not input file is MC.
+</p>
+</li>
+<li>
+<p>
+<code>doHLT (cms.untracked.bool, false)</code>: If <code>true</code>, run <code>HLTExtractor</code>
+</p>
+</li>
+<li>
+<p>
+<code>doMC (cms.untracked.bool, false)</code>: If <code>true</code>, run <code>MCExtractor</code>
+</p>
+</li>
+<li>
+<p>
+<code>doPhoton (cms.untracked.bool, false)</code>: If <code>true</code>, run <code>PhotonExtractor</code>
+</p>
+</li>
+<li>
+<p>
+<code>photon_tag (cms.InputTag, selectedPatPhotons)</code>: The input tag of the photons collection
+</p>
+</li>
+<li>
+<p>
+<code>doElectron (cms.untracked.bool, false)</code>: If <code>true</code>, run <code>ElectronExtractor</code>
+</p>
+</li>
+<li>
+<p>
+<code>electron_tag (cms.InputTag, selectedPatElectronsPFlow)</code>: The input tag of the electrons collection
+</p>
+</li>
+<li>
+<p>
+<code>doMuon (cms.untracked.bool, false)</code>: If <code>true</code>, run <code>MuonExtractor</code>
+</p>
+</li>
+<li>
+<p>
+<code>muon_tag (cms.InputTag, selectedPatMuonsPFlow)</code>: The input tag of the muons collection
+</p>
+</li>
+<li>
+<p>
+<code>doJet (cms.untracked.bool, false)</code>: If <code>true</code>, run the jet part of <code>JetMETExtractor</code>
+</p>
+</li>
+<li>
+<p>
+<code>jet_PF (cms.PSet)</code>: See <a href="#jetmet_python">here</a> for more details
+</p>
+</li>
+<li>
+<p>
+<code>doMET (cms.untracked.bool, false)</code>: If <code>true</code>, run the MET part of <code>JetMETExtractor</code>
+</p>
+</li>
+<li>
+<p>
+<code>MET_PF (cms.PSet)</code>: See <a href="#jetmet_python">here</a> for more details
+</p>
+</li>
+<li>
+<p>
+<code>doVertex (cms.untracked.bool, false)</code>: If <code>true</code>, run <code>VertexExtractor</code>
+</p>
+</li>
+<li>
+<p>
+<code>vtx_tag (cms.InputTag, offlinePrimaryVertices)</code>: The input tag of the vertices collection
+</p>
+</li>
+<li>
+<p>
+<code>doTrack (cms.untracked.bool, false)</code>: If <code>true</code>, run <code>TrackExtractor</code>
+</p>
+</li>
+<li>
+<p>
+<code>trk_tag (cms.InputTag, generalTracks)</code>: The input tag of the tracks collection
+</p>
+</li>
+<li>
+<p>
+<code>doPF (cms.untracked.bool, false)</code>: If <code>true</code>, run <code>PFpartExtractor</code>
+</p>
+</li>
+<li>
+<p>
+<code>pf_tag (cms.InputTag, particleFlow)</code>: The input tag of the PF particles collection
+</p>
+</li>
+<li>
+<p>
+<code>n_events (cms.untracked.int32, 10000)</code>: If operates in <code>analysis</code> mode, the number of events to process.
+</p>
+</li>
+<li>
+<p>
+<code>plugins (cms.PSet)</code>: The list of plugins (<code>analysis</code>) to run. The expected format is <code>pluginname = cms.PSet($parameters$)</code>.
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_adding_your_own_analysis">Adding your own analysis</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Adding your own analysis in <code>PatExtractors</code> is easy. Here&#8217;s a list of steps to follow:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+Each new <code>analysis</code> (or plugin) must be a class inheriting from <code>patextractor::Plugin</code> (you can find declaration in <code>interface/ExtractorPlugin.h</code>).
+</p>
+</li>
+<li>
+<p>
+<code>patextractor::Plugin</code> has one pure virtual function that you must override in your class: <code>virtual void analyze(const edm::Event&amp;, const edm::EventSetup&amp;, PatExtractor&amp;)</code>. It&#8217;s the function that will be called for each events.
+</p>
+</li>
+<li>
+<p>
+You now need to register your plugin in the <code>PatExtractorPluginFactory</code>, using the <code>DEFINE_EDM_PLUGIN($factory$, $class$, $name$)</code> macro.
+</p>
+</li>
+<li>
+<p>
+Finally, you need to add your plugin to the python configuration.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>Let&#8217;s see an example :</p></div>
+<div class="exampleblock">
+<div class="title">Example 1. Plugin skeleton</div>
+<div class="content">
+<div class="paragraph"><p><code>MyAnalysis.h</code></p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.7
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;Extractors/PatExtractor/interface/ExtractorPlugin.h&gt;</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="color: #008080">MyAnalysis</span><span style="color: #990000">:</span> patextractor<span style="color: #990000">::</span>Plugin <span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">public</span></span><span style="color: #990000">:</span>
+    <span style="font-weight: bold"><span style="color: #000000">MyAnalysis</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">const</span></span> edm<span style="color: #990000">::</span>ParameterSet<span style="color: #990000">&amp;</span> iConfig<span style="color: #990000">);</span>
+
+    <span style="font-weight: bold"><span style="color: #0000FF">virtual</span></span> <span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">analyze</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">const</span></span> edm<span style="color: #990000">::</span>EventSetup<span style="color: #990000">&amp;</span> iSetup<span style="color: #990000">,</span> PatExtractor<span style="color: #990000">&amp;</span> extractor<span style="color: #990000">);</span>
+<span style="color: #FF0000">}</span><span style="color: #990000">;</span></tt></pre></div></div>
+<div class="paragraph"><p><code>MyAnalysis.cpp</code></p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.7
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">"MyAnalysis.h"</span>
+
+MyAnalysis<span style="color: #990000">::</span><span style="font-weight: bold"><span style="color: #000000">MyAnalysis</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">const</span></span> edm<span style="color: #990000">::</span>ParameterSet<span style="color: #990000">&amp;</span> iConfig<span style="color: #990000">):</span> <span style="font-weight: bold"><span style="color: #000000">Plugin</span></span><span style="color: #990000">(</span>iConfig<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-style: italic"><span style="color: #9A1900">// Initialize the analysis parameters using the ParameterSet iConfig</span></span>
+  <span style="color: #009900">int</span> an_option <span style="color: #990000">=</span> iConfig<span style="color: #990000">.</span>getUntrackedParameter<span style="color: #990000">&lt;</span><span style="color: #009900">int</span><span style="color: #990000">&gt;(</span><span style="color: #FF0000">"an_option"</span><span style="color: #990000">,</span> <span style="color: #993399">0</span><span style="color: #990000">);</span>
+<span style="color: #FF0000">}</span>
+
+MyAnalysis<span style="color: #990000">::</span><span style="font-weight: bold"><span style="color: #000000">analysis</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">const</span></span> edm<span style="color: #990000">::</span>EventSetup<span style="color: #990000">&amp;</span> iSetup<span style="color: #990000">,</span> PatExtractor<span style="color: #990000">&amp;</span> extractor<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-style: italic"><span style="color: #9A1900">// Do the analysis</span></span>
+<span style="color: #FF0000">}</span>
+
+<span style="font-style: italic"><span style="color: #9A1900">// Register the plugin inside the factory</span></span>
+<span style="font-weight: bold"><span style="color: #000000">DEFINE_EDM_PLUGIN</span></span><span style="color: #990000">(</span>PatExtractorPluginFactory<span style="color: #990000">,</span> MyAnalysis<span style="color: #990000">,</span> <span style="color: #FF0000">"MyAnalysis"</span><span style="color: #990000">);</span></tt></pre></div></div>
+<div class="paragraph"><p>In the example above, we created a new analysis called $MyAnalysis$, and we registered it inside the <code>PatExtractorPluginFactory</code>. We now just need to add into the python configuration file that we want to use this analysis.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.7
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">import</span></span> FWCore<span style="color: #990000">.</span>ParameterSet<span style="color: #990000">.</span>Config as cms
+
+<span style="font-style: italic"><span style="color: #9A1900"># Create process</span></span>
+process <span style="color: #990000">=</span> cms<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">Process</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"PATextractor"</span><span style="color: #990000">)</span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># Load various configurations</span></span>
+process<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">load</span></span><span style="color: #990000">(</span><span style="color: #FF0000">'Configuration/StandardSequences/Services_cff'</span><span style="color: #990000">)</span>
+process<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">load</span></span><span style="color: #990000">(</span><span style="color: #FF0000">'Configuration/StandardSequences/GeometryIdeal_cff'</span><span style="color: #990000">)</span>
+process<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">load</span></span><span style="color: #990000">(</span><span style="color: #FF0000">'Configuration/StandardSequences/MagneticField_38T_cff'</span><span style="color: #990000">)</span>
+process<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">load</span></span><span style="color: #990000">(</span><span style="color: #FF0000">'Configuration/StandardSequences/EndOfProcess_cff'</span><span style="color: #990000">)</span>
+process<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">load</span></span><span style="color: #990000">(</span><span style="color: #FF0000">'Configuration/StandardSequences/FrontierConditions_GlobalTag_cff'</span><span style="color: #990000">)</span>
+process<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">load</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"FWCore.MessageLogger.MessageLogger_cfi"</span><span style="color: #990000">)</span>
+process<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">load</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Extractors.PatExtractor.PAT_extractor_cff"</span><span style="color: #990000">)</span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># Set the number of events we want to process</span></span>
+process<span style="color: #990000">.</span>maxEvents <span style="color: #990000">=</span> cms<span style="color: #990000">.</span>untracked<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">PSet</span></span><span style="color: #990000">(</span>
+    input <span style="color: #990000">=</span> cms<span style="color: #990000">.</span>untracked<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int32</span></span><span style="color: #990000">(</span><span style="color: #993399">10</span><span style="color: #990000">)</span>
+    <span style="color: #990000">)</span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># Input PAT file to extract</span></span>
+process<span style="color: #990000">.</span>source <span style="color: #990000">=</span> cms<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">Source</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"PoolSource"</span><span style="color: #990000">,</span>
+    fileNames <span style="color: #990000">=</span> cms<span style="color: #990000">.</span>untracked<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">vstring</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"myfilename.root"</span><span style="color: #990000">),</span>
+    duplicateCheckMode <span style="color: #990000">=</span> cms<span style="color: #990000">.</span>untracked<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">string</span></span><span style="color: #990000">(</span> <span style="color: #FF0000">'noDuplicateCheck'</span> <span style="color: #990000">)</span>
+    <span style="color: #990000">)</span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># Run on MC</span></span>
+process<span style="color: #990000">.</span>PATextraction<span style="color: #990000">.</span>isMC <span style="color: #990000">=</span> True
+process<span style="color: #990000">.</span>PATextraction<span style="color: #990000">.</span>doMC <span style="color: #990000">=</span> True
+
+<span style="font-style: italic"><span style="color: #9A1900"># Set the output file name</span></span>
+process<span style="color: #990000">.</span>PATextraction<span style="color: #990000">.</span>extractedRootFile <span style="color: #990000">=</span> cms<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">string</span></span><span style="color: #990000">(</span><span style="color: #FF0000">'extracted_mc.root'</span><span style="color: #990000">)</span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># Turn on some extractors</span></span>
+process<span style="color: #990000">.</span>PATextraction<span style="color: #990000">.</span>doMuon     <span style="color: #990000">=</span> True
+process<span style="color: #990000">.</span>PATextraction<span style="color: #990000">.</span>doElectron <span style="color: #990000">=</span> True
+process<span style="color: #990000">.</span>PATextraction<span style="color: #990000">.</span>doJet      <span style="color: #990000">=</span> True
+
+<span style="font-style: italic"><span style="color: #9A1900"># And finally, loads our analysis</span></span>
+process<span style="color: #990000">.</span>PATextraction<span style="color: #990000">.</span>plugins <span style="color: #990000">=</span> cms<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">PSet</span></span><span style="color: #990000">(</span> <span style="font-style: italic"><span style="color: #9A1900"># <img alt="1" src="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
+VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
+gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
+YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
+dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
+ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" /></span></span>
+    MyAnalysis <span style="color: #990000">=</span> cms<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">PSet</span></span><span style="color: #990000">(</span>
+      an_option <span style="color: #990000">=</span> cms<span style="color: #990000">.</span>untracked<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int32</span></span><span style="color: #990000">(</span><span style="color: #993399">42</span><span style="color: #990000">)</span>
+      <span style="color: #990000">)</span>
+    <span style="color: #990000">)</span></tt></pre></div></div>
+<div class="colist arabic"><table>
+<tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
+VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
+gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
+YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
+dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
+ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" /></td><td>
+this tells <code>PatExtractor</code> to load a plugin named <em>MyAnalysis</em> (case sensitive!). The associated <code>cms.PSet()</code> will be given to argement to the class constructor. It contains only one option, <code>an_option</code>, an integer with value 42.
+</td></tr>
+</table></div>
+</div></div>
+<div class="sect2">
+<h3 id="_accessing_code_extractors_code_inside_your_code_analysis_code">Accessing <code>extractors</code> inside your <code>analysis</code></h3>
+<div class="paragraph"><p>In order to access <code>extractors</code> inside your analysis, you have to use the <code>extractor</code> reference passed inside the <code>analyze</code> function, and more precisely the method</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.7
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>std<span style="color: #990000">::</span><span style="color: #008080">shared_ptr&lt;SuperBaseExtractor&gt;</span> PatExtractor<span style="color: #990000">::</span><span style="font-weight: bold"><span style="color: #000000">getExtractor</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">const</span></span> std<span style="color: #990000">::</span>string<span style="color: #990000">&amp;</span> name<span style="color: #990000">);</span></tt></pre></div></div>
+<div class="paragraph"><p>This method takes at first argument the name of the <code>extractor</code> you want to access (see section <a href="#extractors">extractors</a> for the list of all <code>extractors</code> name), and return a pointer to the extractor.</p></div>
+<div class="paragraph"><p>For a list of methods of each <code>extractor</code>, please refer to the class declaration inside the header file (in <code>interface/</code>)</p></div>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2013-04-04 16:23:12 CEST
+</div>
+</div>
+</body>
+</html>
