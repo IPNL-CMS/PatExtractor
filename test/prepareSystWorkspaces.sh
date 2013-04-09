@@ -9,7 +9,7 @@ cp Electron_scale_factors.json JECup/
 cp Muon_ID_iso_Efficiencies_Run_2012ABCD_53X.pkl JECup/
 cp createOutputListForMC.py JECup/
 
-sed -i 's/jec = cms.string("nominal")/jec = cms.string("up")/' JECup/Extractor_MTT_common.py
+sed -i 's/jesSign = 0/jesSign = 1/' JECup/Extractor_MTT_common.py
 sed -i 's/dataset_name = dataset\[1\]/dataset_name = dataset\[1\] + "_JECup"/' JECup/createAndRunMCCrab.py
 
 sed -i '54,69s/^/#/' JECup/createAndRunMCCrab.py
@@ -22,7 +22,7 @@ cp Electron_scale_factors.json JECdown/
 cp Muon_ID_iso_Efficiencies_Run_2012ABCD_53X.pkl JECdown/
 cp createOutputListForMC.py JECdown/
 
-sed -i 's/jec = cms.string("nominal")/jec = cms.string("down")/' JECdown/Extractor_MTT_common.py
+sed -i 's/jesSign = 0/jesSign = -1/' JECdown/Extractor_MTT_common.py
 sed -i 's/dataset_name = dataset\[1\]/dataset_name = dataset\[1\] + "_JECdown"/' JECdown/createAndRunMCCrab.py
 
 sed -i '54,69s/^/#/' JECdown/createAndRunMCCrab.py
