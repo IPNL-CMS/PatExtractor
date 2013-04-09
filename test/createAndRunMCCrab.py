@@ -8,6 +8,8 @@ parser.add_option("", "--create-cfg", action="store_true", dest="create_cfg", de
 parser.add_option("", "--run", action="store_true", dest="run", default=False, help="run crab")
 parser.add_option("", "--status", action="store_true", dest="status", default=False, help="run crab -status")
 parser.add_option("", "--get", action="store_true", dest="get", default=False, help="run crab -get")
+parser.add_option("", "--resubmit", action="store_true", dest="resubmit", default=False, help="run crab -resubmit bad")
+parser.add_option("", "--submit", action="store_true", dest="submit", default=False, help="run crab -submit all")
 (options, args) = parser.parse_args()
 
 if options.run:
@@ -161,3 +163,11 @@ for dataset in datasets:
   if options.get:
     cmd = "multicrab -get -c %s" % (ui_working_dir)
     os.system(cmd)
+
+  if options.resubmit:
+    cmd = "multicrab -resubmit bad -c %s" % (ui_working_dir)
+    os.system(cmd)
+
+  if options.submit:
+    cmd = "multicrab -submit all -c %s" % (ui_working_dir)
+    os.system(cmd) 
