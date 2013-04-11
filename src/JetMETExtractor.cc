@@ -9,6 +9,8 @@
 #include <CondFormats/JetMETObjects/interface/JetCorrectorParameters.h>
 #include <JetMETCorrections/Objects/interface/JetCorrectionsRecord.h>
 
+#include <FWCore/ParameterSet/interface/FileInPath.h>
+
 #define DEBUG false
 
 JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met_name, const edm::ParameterSet& config)
@@ -45,6 +47,11 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
 
   mCorrectSysShiftMet = metConfig.getUntrackedParameter<bool>("redoMetPhiCorrection", false);
   mRedoTypeI  = metConfig.getUntrackedParameter<bool>("redoMetTypeICorrection", false);
+
+  mJecFilename = jetConfig.getUntrackedParameter<std::string>("jes_uncertainties_file", "");
+  if (mJESSign != 0 && mJecFilename.length() > 0) {
+    mJecFilename = edm::FileInPath(mJecFilename).fullPath();
+  }
 
 #if DEBUG
   std::cout << "##########" << std::endl;
@@ -212,10 +219,16 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
 
   if (mJESSign != 0) {
     if (! jecUncertainty.get()) {
-      edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
-      iSetup.get<JetCorrectionsRecord>().get("AK5PFchs",JetCorParColl);
-      JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
-      jecUncertainty.reset(new JetCorrectionUncertainty(JetCorPar));
+      if (mJecFilename.length() > 0) {
+        std::cout << "Reading JES uncertainties from '" << mJecFilename << "'" << std::endl;
+        jecUncertainty.reset(new JetCorrectionUncertainty(mJecFilename));
+      } else {
+        std::cout << "Reading JES uncertainties from Global Tag" << std::endl;
+        edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
+        iSetup.get<JetCorrectionsRecord>().get("AK5PFchs",JetCorParColl);
+        JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
+        jecUncertainty.reset(new JetCorrectionUncertainty(JetCorPar));
+      }
     }
   }
 

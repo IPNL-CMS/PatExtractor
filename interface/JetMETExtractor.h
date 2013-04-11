@@ -177,6 +177,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     ScaleFactorCollection m_scaleFactors;
 
     std::shared_ptr<JetCorrectionUncertainty> jecUncertainty;
+    std::string mJecFilename;
 };
 
 #endif 
