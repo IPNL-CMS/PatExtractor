@@ -74,12 +74,14 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
   m_tree_Mtt->Branch("nGoodMuons"         , &m_mtt_NGoodMuons         , "nGoodMuons/I");
   m_tree_Mtt->Branch("nLooseGoodMuons"    , &m_mtt_NLooseGoodMuons    , "nLooseGoodMuons/I");
   m_tree_Mtt->Branch("muonPt"             , &m_mtt_MuonPt             , "muonPt[nGoodMuons]/F");
+  m_tree_Mtt->Branch("muonEta"            , &m_mtt_MuonEta            , "muonEta[nGoodMuons]/F");
   m_tree_Mtt->Branch("2DDrMin"            , &m_mtt_2DDrMin            , "2DDrMin[nGoodMuons]/F");
   m_tree_Mtt->Branch("2DpTrel"            , &m_mtt_2DpTrel            , "2DpTrel[nGoodMuons]/F");
   m_tree_Mtt->Branch("muRelIso"           , &m_mtt_MuRelIso           , "muRelIso[nGoodMuons]/F");
 
   m_tree_Mtt->Branch("nGoodElectrons"     , &m_mtt_NGoodElectrons     , "nGoodElectrons/I");
   m_tree_Mtt->Branch("electronPt"         , &m_mtt_ElectronPt         , "electronPt[nGoodElectrons]/F");
+  m_tree_Mtt->Branch("electronEta"        , &m_mtt_ElectronEta        , "electronEta[nGoodElectrons]/F");
   m_tree_Mtt->Branch("elRelIso"           , &m_mtt_ElRelIso           , "elRelIso[nGoodElectrons]/F");
   m_tree_Mtt->Branch("hyperTight1MC"      , &m_mtt_HyperTight1MC      , "hyperTight1MC[nGoodElectrons]/I");
 
@@ -118,8 +120,15 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
 
   m_tree_Mtt->Branch("mLepW_AfterChi2"        , &m_mLepW_AfterChi2       , "mLepW_AfterChi2/F");
   m_tree_Mtt->Branch("mHadW_AfterChi2"        , &m_mHadW_AfterChi2       , "mHadW_AfterChi2/F");
+
   m_tree_Mtt->Branch("mLepTop_AfterChi2"      , &m_mLepTop_AfterChi2     , "mLepTop_AfterChi2/F");
+  m_tree_Mtt->Branch("lepTopPt_AfterChi2"     , &m_lepTopPt_AfterChi2    , "lepTopPt_AfterChi2/F");
+  m_tree_Mtt->Branch("lepTopEta_AfterChi2"    , &m_lepTopEta_AfterChi2   , "lepTopEta_AfterChi2/F");
+
   m_tree_Mtt->Branch("mHadTop_AfterChi2"      , &m_mHadTop_AfterChi2     , "mHadTop_AfterChi2/F");
+  m_tree_Mtt->Branch("hadTopPt_AfterChi2"     , &m_hadTopPt_AfterChi2    , "hadTopPt_AfterChi2/F");
+  m_tree_Mtt->Branch("hadTopEta_AfterChi2"    , &m_hadTopEta_AfterChi2   , "hadTopEta_AfterChi2/F");
+
   m_tree_Mtt->Branch("mtt_AfterChi2"          , &m_mtt_AfterChi2         , "mtt_AfterChi2/F");
 
   //m_tree_Mtt->Branch("mLepTop_AfterChi2andKF" , &m_mLepTop_AfterChi2andKF, "mLepTop_AfterChi2andKF/F");
@@ -280,6 +289,7 @@ int mtt_analysis::MuonSel()
     /* Isolation cut is done in P2PAT. No need to check that */
 
     m_mtt_MuonPt[m_mtt_NGoodMuons]   = muP->Pt();
+    m_mtt_MuonEta[m_mtt_NGoodMuons]  = muP->Eta();
     m_mtt_MuRelIso[m_mtt_NGoodMuons] = m_muon->getDeltaBetaCorrectedRelativeIsolation(i);
 
     ++m_mtt_NGoodMuons;
@@ -376,6 +386,7 @@ int mtt_analysis::ElectronSel()
       continue;
 
     m_mtt_ElectronPt[m_mtt_NGoodElectrons] = eP->Pt();
+    m_mtt_ElectronEta[m_mtt_NGoodElectrons] = eP->Eta();
     m_mtt_ElRelIso[m_mtt_NGoodElectrons]   = m_electron->getRhoCorrectedRelativeIsolation(i);
 
     m_mtt_NGoodElectrons++;
@@ -827,8 +838,18 @@ void mtt_analysis::loopOverCombinations()
      */
     m_mLepW_AfterChi2   = (measuredNeutrino + measuredLepton).M();
     m_mHadW_AfterChi2   = (measuredHadronicFirstJet + measuredHadronicSecondJet).M();
-    m_mLepTop_AfterChi2 = (measuredLepton + measuredNeutrino + measuredLeptonicB).M();
-    m_mHadTop_AfterChi2 = (measuredHadronicFirstJet + measuredHadronicSecondJet + measuredHadronicB).M();
+
+    TLorentzVector lepTop = (measuredLepton + measuredNeutrino + measuredLeptonicB);
+    m_mLepTop_AfterChi2 = lepTop.M();
+    m_lepTopPt_AfterChi2 = lepTop.Pt();
+    m_lepTopEta_AfterChi2 = lepTop.Eta();
+
+    TLorentzVector hadTop = (measuredHadronicFirstJet + measuredHadronicSecondJet + measuredHadronicB);
+
+    m_mHadTop_AfterChi2 = hadTop.M();
+    m_hadTopPt_AfterChi2 = hadTop.Pt();
+    m_hadTopEta_AfterChi2 = hadTop.Eta();
+
     m_mtt_AfterChi2     = (measuredLepton + measuredNeutrino + measuredLeptonicB + measuredHadronicB + measuredHadronicFirstJet + measuredHadronicSecondJet).M();
 
     /*

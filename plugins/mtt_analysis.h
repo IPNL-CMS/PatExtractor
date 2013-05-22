@@ -188,6 +188,11 @@ namespace patextractor {
       float m_mHadW_AfterChi2;
       float m_mLepW_AfterChi2;
 
+      float m_lepTopPt_AfterChi2;
+      float m_lepTopEta_AfterChi2;
+      float m_hadTopPt_AfterChi2;
+      float m_hadTopEta_AfterChi2;
+
       // Indexes of selected particles for mtt computation
       int m_selectedLeptonIndex;
       int m_selectedLeptonicBIndex;
@@ -200,12 +205,14 @@ namespace patextractor {
       int m_mtt_NGoodMuons;
       int m_mtt_NLooseGoodMuons;
       float m_mtt_MuonPt[20];
+      float m_mtt_MuonEta[20];
       float m_mtt_MuRelIso[20];
       float m_mtt_2DDrMin[20];
       float m_mtt_2DpTrel[20];
 
       int m_mtt_NGoodElectrons;
       float m_mtt_ElectronPt[20];
+      float m_mtt_ElectronEta[20];
       float m_mtt_ElRelIso[20];
       int m_mtt_HyperTight1MC[20];
 
