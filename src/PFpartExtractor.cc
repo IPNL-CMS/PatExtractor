@@ -75,13 +75,13 @@ void PFpartExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
 
   new((*m_pf_lorentzvector)[m_pf_size]) TLorentzVector(part.px(),part.py(),part.pz(),part.energy());
   if ( !part.trackRef() ) {
-    m_pf_vx[index]              = 0;
-    m_pf_vy[index]              = 0;
-    m_pf_vz[index]              = 0;
+    m_pf_vx[m_pf_size]              = 0;
+    m_pf_vy[m_pf_size]              = 0;
+    m_pf_vz[m_pf_size]              = 0;
   } else {
-    m_pf_vx[index]              = part.trackRef()->vx();
-    m_pf_vy[index]              = part.trackRef()->vy();
-    m_pf_vz[index]              = part.trackRef()->vz();
+    m_pf_vx[m_pf_size]              = part.trackRef()->vx();
+    m_pf_vy[m_pf_size]              = part.trackRef()->vy();
+    m_pf_vz[m_pf_size]              = part.trackRef()->vz();
   }
   m_pf_charge[m_pf_size]          = part.charge();
   m_pf_pdgid[m_pf_size]           = part.pdgId();
