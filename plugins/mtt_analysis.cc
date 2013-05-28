@@ -70,6 +70,7 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
   m_tree_Mtt->Branch("MC_leptonicWMass"   , &m_MC_leptonicWMass       , "MC_leptonicWMass/F");
   m_tree_Mtt->Branch("MC_hadronicTopMass" , &m_MC_hadronicTopMass     , "MC_hadronicTopMass/F");
   m_tree_Mtt->Branch("MC_leptonicTopMass" , &m_MC_leptonicTopMass     , "MC_leptonicTopMass/F");
+  m_tree_Mtt->Branch("MC_pt_tt"           , &m_MC_pt_tt               , "MC_pt_tt/F");
 
   m_tree_Mtt->Branch("nGoodMuons"         , &m_mtt_NGoodMuons         , "nGoodMuons/I");
   m_tree_Mtt->Branch("nLooseGoodMuons"    , &m_mtt_NLooseGoodMuons    , "nLooseGoodMuons/I");
@@ -129,6 +130,7 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
   m_tree_Mtt->Branch("hadTopPt_AfterChi2"     , &m_hadTopPt_AfterChi2    , "hadTopPt_AfterChi2/F");
   m_tree_Mtt->Branch("hadTopEta_AfterChi2"    , &m_hadTopEta_AfterChi2   , "hadTopEta_AfterChi2/F");
 
+  m_tree_Mtt->Branch("pt_tt_AfterChi2"        , &m_pt_tt_AfterChi2       , "pt_tt_AfterChi2/F");
   m_tree_Mtt->Branch("mtt_AfterChi2"          , &m_mtt_AfterChi2         , "mtt_AfterChi2/F");
 
   //m_tree_Mtt->Branch("mLepTop_AfterChi2andKF" , &m_mLepTop_AfterChi2andKF, "mLepTop_AfterChi2andKF/F");
@@ -152,6 +154,12 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
 
   // Neutrino Pz calculation study
   m_tree_Mtt->Branch("is_neutrino_pz_corrected", &m_is_neutrino_pz_corrected, "is_neutrino_pz_corrected/O");
+
+  // cuts
+  m_tree_Mtt->Branch("pass_vertex_cut", &m_pass_vertex_cut, "pass_vertex_cut/I");
+  m_tree_Mtt->Branch("pass_met_cut", &m_pass_met_cut, "pass_met_cut/I");
+  m_tree_Mtt->Branch("pass_lepton_cut", &m_pass_lepton_cut, "pass_lepton_cut/I");
+  m_tree_Mtt->Branch("pass_jet_cut", &m_pass_jet_cut, "pass_jet_cut/I");
 
   m_MAIN_doSemiMu = cmsswSettings.getParameter<bool>("do_semimu");
 
@@ -613,11 +621,14 @@ int mtt_analysis::Make2DCut(TVector3 lept3P, float cutDR, float cutPtrel)
 }
 */
 
-#define CHECK_RES_AND_RETURN(res) \
+#define CHECK_RES_AND_RETURN(res, var) \
   if (res != 1) { \
+    var = 0; \
     m_mtt_isSel = res; \
     fillTree(); \
     return; \
+  } else { \
+    var = 1; \
   }
 
 #define   MTT_TRIGGER_NOT_FOUND   1000
@@ -657,20 +668,20 @@ void mtt_analysis::analyze(const edm::EventSetup& iSetup, PatExtractor& extracto
   m_nPU = m_event->nPU();
 
   int res = VertexSel();
-  CHECK_RES_AND_RETURN(res);
+  CHECK_RES_AND_RETURN(res, m_pass_vertex_cut);
 
   res = METSel();
-  CHECK_RES_AND_RETURN(res);
+  CHECK_RES_AND_RETURN(res, m_pass_met_cut);
 
   if (m_MAIN_doSemiMu) {
     res  = MuonSel();
   } else {
     res = ElectronSel();
   }
-  CHECK_RES_AND_RETURN(res);
+  CHECK_RES_AND_RETURN(res, m_pass_lepton_cut);
 
   res = JetSel();
-  CHECK_RES_AND_RETURN(res);
+  CHECK_RES_AND_RETURN(res, m_pass_jet_cut);
 
   m_mtt_isSel = 1;
 
@@ -851,6 +862,7 @@ void mtt_analysis::loopOverCombinations()
     m_hadTopEta_AfterChi2 = hadTop.Eta();
 
     m_mtt_AfterChi2     = (measuredLepton + measuredNeutrino + measuredLeptonicB + measuredHadronicB + measuredHadronicFirstJet + measuredHadronicSecondJet).M();
+    m_pt_tt_AfterChi2   = (hadTop + lepTop).Pt();
 
     /*
        std::cout << "Mt lepton: " << m_mLepTop_AfterChi2 << std::endl;
@@ -1162,8 +1174,12 @@ void mtt_analysis::MCidentification()
   // Compute masses
   m_MC_hadronicWMass = (*m_MC->getP4(m_firstJetIndex) + *m_MC->getP4(m_secondJetIndex)).M();
   m_MC_hadronicTopMass = (*m_MC->getP4(m_firstJetIndex) + *m_MC->getP4(m_secondJetIndex) + *m_MC->getP4(m_hadronicBIndex)).M();
+
   m_MC_leptonicWMass = (*m_MC->getP4(m_neutrinoIndex) + *m_MC->getP4(m_leptonIndex)).M();
   m_MC_leptonicTopMass = (*m_MC->getP4(m_neutrinoIndex) + *m_MC->getP4(m_leptonIndex) + *m_MC->getP4(m_leptonicBIndex)).M();
+
+  m_MC_pt_tt = (Top[0] + Top[1]).Pt();
+
 }
 
 int mtt_analysis::match_MC(int idxJetbH, int idxJetbL, int idxJet1,	int idxJet2,
@@ -1207,6 +1223,11 @@ void mtt_analysis::fillTree()
 
 void mtt_analysis::reset()
 {
+  m_pass_vertex_cut = -1;
+  m_pass_met_cut = -1;
+  m_pass_lepton_cut = -1;
+  m_pass_jet_cut = -1;
+
   m_mtt_isSel = 0;
   m_mtt_IsBestSolMatched = -1;
   m_mtt_OneMatchedCombi = 0;

@@ -148,6 +148,7 @@ namespace patextractor {
       float m_MC_leptonicWMass;
       float m_MC_hadronicTopMass;
       float m_MC_leptonicTopMass;
+      float m_MC_pt_tt;
 
       /// Number of lepton/neutrino from Top->W and quark b from Top
       int nEle;
@@ -183,6 +184,7 @@ namespace patextractor {
         float m_mHadTop_AfterChi2andKF;*/
 
       float m_mtt_AfterChi2;
+      float m_pt_tt_AfterChi2;
       float m_mLepTop_AfterChi2;
       float m_mHadTop_AfterChi2;
       float m_mHadW_AfterChi2;
@@ -293,6 +295,12 @@ namespace patextractor {
       float m_weight_error_high;
 
       bool m_is_neutrino_pz_corrected;
+
+      // Cut ; -1 event drop before arriving to this cut ; 0 cut failed, 1 cut passed
+      int m_pass_vertex_cut;
+      int m_pass_met_cut;
+      int m_pass_lepton_cut;
+      int m_pass_jet_cut;
   };
 
 }
