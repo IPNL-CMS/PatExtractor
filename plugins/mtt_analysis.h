@@ -60,6 +60,7 @@ namespace patextractor {
       int METSel();
 
       void loopOverCombinations();
+      int patIndexToExtractorIndex(int patIndex) const;
 
       //makes the 2D cut for a given lepton
       //int Make2DCut(TVector3 lept3P, float cutDR, float cutPtrel);
@@ -149,6 +150,8 @@ namespace patextractor {
       float m_MC_hadronicTopMass;
       float m_MC_leptonicTopMass;
       float m_MC_pt_tt;
+      float m_MC_eta_tt;
+      float m_MC_beta_tt;
 
       /// Number of lepton/neutrino from Top->W and quark b from Top
       int nEle;
@@ -158,10 +161,7 @@ namespace patextractor {
       int nNuMu;
       int nNuTau;
       int nQuarkb;
-      int nW;
       int nTop;
-      std::vector<int> idxW;
-      std::vector<int> idxTop;
       std::vector<TLorentzVector> Top;
 
       std::vector<int> m_selJetsIds;
@@ -184,7 +184,9 @@ namespace patextractor {
         float m_mHadTop_AfterChi2andKF;*/
 
       float m_mtt_AfterChi2;
+      float m_eta_tt_AfterChi2;
       float m_pt_tt_AfterChi2;
+      float m_beta_tt_AfterChi2;
       float m_mLepTop_AfterChi2;
       float m_mHadTop_AfterChi2;
       float m_mHadW_AfterChi2;

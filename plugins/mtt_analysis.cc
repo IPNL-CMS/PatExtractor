@@ -71,6 +71,8 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
   m_tree_Mtt->Branch("MC_hadronicTopMass" , &m_MC_hadronicTopMass     , "MC_hadronicTopMass/F");
   m_tree_Mtt->Branch("MC_leptonicTopMass" , &m_MC_leptonicTopMass     , "MC_leptonicTopMass/F");
   m_tree_Mtt->Branch("MC_pt_tt"           , &m_MC_pt_tt               , "MC_pt_tt/F");
+  m_tree_Mtt->Branch("MC_eta_tt"          , &m_MC_eta_tt              , "MC_eta_tt/F");
+  m_tree_Mtt->Branch("MC_beta_tt"         , &m_MC_beta_tt             , "MC_beta_tt/F");
 
   m_tree_Mtt->Branch("nGoodMuons"         , &m_mtt_NGoodMuons         , "nGoodMuons/I");
   m_tree_Mtt->Branch("nLooseGoodMuons"    , &m_mtt_NLooseGoodMuons    , "nLooseGoodMuons/I");
@@ -131,6 +133,8 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
   m_tree_Mtt->Branch("hadTopEta_AfterChi2"    , &m_hadTopEta_AfterChi2   , "hadTopEta_AfterChi2/F");
 
   m_tree_Mtt->Branch("pt_tt_AfterChi2"        , &m_pt_tt_AfterChi2       , "pt_tt_AfterChi2/F");
+  m_tree_Mtt->Branch("eta_tt_AfterChi2"       , &m_eta_tt_AfterChi2      , "eta_tt_AfterChi2/F");
+  m_tree_Mtt->Branch("beta_tt_AfterChi2"      , &m_beta_tt_AfterChi2     , "eta_tt_AfterChi2/F");
   m_tree_Mtt->Branch("mtt_AfterChi2"          , &m_mtt_AfterChi2         , "mtt_AfterChi2/F");
 
   //m_tree_Mtt->Branch("mLepTop_AfterChi2andKF" , &m_mLepTop_AfterChi2andKF, "mLepTop_AfterChi2andKF/F");
@@ -856,13 +860,15 @@ void mtt_analysis::loopOverCombinations()
     m_lepTopEta_AfterChi2 = lepTop.Eta();
 
     TLorentzVector hadTop = (measuredHadronicFirstJet + measuredHadronicSecondJet + measuredHadronicB);
-
     m_mHadTop_AfterChi2 = hadTop.M();
     m_hadTopPt_AfterChi2 = hadTop.Pt();
     m_hadTopEta_AfterChi2 = hadTop.Eta();
 
-    m_mtt_AfterChi2     = (measuredLepton + measuredNeutrino + measuredLeptonicB + measuredHadronicB + measuredHadronicFirstJet + measuredHadronicSecondJet).M();
-    m_pt_tt_AfterChi2   = (hadTop + lepTop).Pt();
+    TLorentzVector res = (lepTop + hadTop);
+    m_mtt_AfterChi2     = res.M();
+    m_pt_tt_AfterChi2   = res.Pt();
+    m_eta_tt_AfterChi2   = res.Eta();
+    m_beta_tt_AfterChi2  = fabs(res.Pz() / res.E());
 
     /*
        std::cout << "Mt lepton: " << m_mLepTop_AfterChi2 << std::endl;
@@ -926,6 +932,16 @@ void mtt_analysis::loopOverCombinations()
 
 #define ID_W (24)
 
+int mtt_analysis::patIndexToExtractorIndex(int patIndex) const {
+
+  for (int i = 0; i < m_MC->getSize() ; i++) {
+    if (m_MC->getPatIndex(i) == patIndex)
+      return i;
+  }
+
+  return -1;
+}
+
 void mtt_analysis::MCidentification()
 {
   nEle    = 0;
@@ -935,12 +951,7 @@ void mtt_analysis::MCidentification()
   nNuMu   = 0;
   nNuTau  = 0;
   nQuarkb = 0;
-  nW      = 0;
   nTop    = 0;
-  bool sameW   = false;
-  bool sameTop = false;
-  idxW.clear();
-  idxTop.clear();
   Top.clear();
 
   int n_MC = m_MC->getSize();
@@ -950,120 +961,107 @@ void mtt_analysis::MCidentification()
 
   for (int i = 0; i < n_MC ; ++i)
   {
-    sameW = false;
-    sameTop = false;
-    if (fabs(m_MC->getType(m_MC->getMom1Index(m_MC->getMom1Index(i)))) == 6)
+
+    int motherIndex = patIndexToExtractorIndex(m_MC->getMom1Index(i));
+    int grandMotherIndex = -1;
+    if (motherIndex != -1)
+      grandMotherIndex = patIndexToExtractorIndex(m_MC->getMom1Index(motherIndex));
+
+    if (motherIndex == -1 || grandMotherIndex == -1)
+      continue;
+
+    if (abs(m_MC->getType(i)) == ID_T) {
+      TLorentzVector TL_Top(m_MC->getPx(i),
+          m_MC->getPy(i),
+          m_MC->getPz(i),
+          m_MC->getE(i));
+
+      Top.push_back(TL_Top);
+      nTop++;
+
+      continue;
+    }
+
+    if (abs(m_MC->getType(motherIndex)) == ID_T || abs(m_MC->getType(grandMotherIndex) == ID_T))
     {
-      if (fabs(m_MC->getType(m_MC->getMom1Index(i))) == 24)
-      {
-        /// Count the number of leptons and neutrinos from Top->W
-        if (fabs(m_MC->getType(i)) == 11) ++nEle;   //Electron from WTop
-        if (fabs(m_MC->getType(i)) == 13) ++nMu;    //Muon	   from WTop
-        if (fabs(m_MC->getType(i)) == 15) ++nTau;   //Tau	   from WTop
-        if (fabs(m_MC->getType(i)) == 12) ++nNuEle; //NuEle    from WTop
-        if (fabs(m_MC->getType(i)) == 14) ++nNuMu;  //NuMu	   from WTop
-        if (fabs(m_MC->getType(i)) == 16) ++nNuTau; //NuTau    from WTop
+      // Skip W
+      if (abs(m_MC->getType(motherIndex)) == ID_W)
+        continue;
 
-        /// Count the number of W (with no double counting) from Top
-        for (unsigned int j = 0; j < idxW.size(); j++)
-        {
-          if (idxW.size() != 0 && idxW[j] == m_MC->getMom1Index(i))
-          {
-            sameW = true;
-            break;
-          }
-        }
-        idxW.push_back(m_MC->getMom1Index(i));
-        if (!sameW)
-        {
-          nW++;
-        }
-
-        /// Get Top info (with no double counting)
-        for (unsigned int k = 0; k < idxTop.size(); k++)
-        {
-          if (idxTop.size() != 0 && idxTop[k] == m_MC->getMom1Index(m_MC->getMom1Index(i)))
-          {
-            sameTop = true;
-            break;
-          }
-        }
-        idxTop.push_back(m_MC->getMom1Index(m_MC->getMom1Index(i)));
-        if (!sameTop)
-        {
-          TLorentzVector TL_Top(m_MC->getPx(m_MC->getMom1Index(m_MC->getMom1Index(i))),
-              m_MC->getPy(m_MC->getMom1Index(m_MC->getMom1Index(i))),
-              m_MC->getPz(m_MC->getMom1Index(m_MC->getMom1Index(i))),
-              m_MC->getE(m_MC->getMom1Index(m_MC->getMom1Index(i))));
-
-
-          Top.push_back(TL_Top);
-          nTop++;
-        }
-      }
+      /// Count the number of leptons and neutrinos from Top->W
+      if (fabs(m_MC->getType(i)) == 11) ++nEle;   //Electron from WTop
+      if (fabs(m_MC->getType(i)) == 13) ++nMu;    //Muon	   from WTop
+      if (fabs(m_MC->getType(i)) == 15) ++nTau;   //Tau	   from WTop
+      if (fabs(m_MC->getType(i)) == 12) ++nNuEle; //NuEle    from WTop
+      if (fabs(m_MC->getType(i)) == 14) ++nNuMu;  //NuMu	   from WTop
+      if (fabs(m_MC->getType(i)) == 16) ++nNuTau; //NuTau    from WTop
     }
 
     /// Count the number of b quark from Top
-    if (fabs(m_MC->getType(i)) == 5 && fabs(m_MC->getType(m_MC->getMom1Index(i))) == 6)
+    if (abs(m_MC->getType(i)) == ID_B && abs(m_MC->getType(motherIndex)) == ID_T)
     {
       nQuarkb++; //Quark b from Top
     }
   }
 
-  if (nEle == 1 && nNuEle == 1 && nMu == 0 && nNuMu == 0 && nTau == 0 && nNuTau == 0 && nQuarkb > 1 && nW == 2 && nTop == 2)
+  if (nEle == 1 && nNuEle == 1 && nMu == 0 && nNuMu == 0 && nTau == 0 && nNuTau == 0 && nQuarkb > 1 && nTop == 2)
   {
     m_MC_channel = 1;
   }
 
-  if (nEle == 0 && nNuEle == 0 && nMu == 1 && nNuMu == 1 && nTau == 0 && nNuTau == 0 && nQuarkb > 1 && nW == 2 && nTop == 2)
+  if (nEle == 0 && nNuEle == 0 && nMu == 1 && nNuMu == 1 && nTau == 0 && nNuTau == 0 && nQuarkb > 1 && nTop == 2)
   {
     m_MC_channel = 2;
   }
 
-  if (nEle == 0 && nNuEle == 0 && nMu == 0 && nNuMu == 0 && nTau == 1 && nNuTau == 1 && nQuarkb > 1 && nW == 2 && nTop == 2)
+  if (nEle == 0 && nNuEle == 0 && nMu == 0 && nNuMu == 0 && nTau == 1 && nNuTau == 1 && nQuarkb > 1 && nTop == 2)
   {
     m_MC_channel = 3;
   }
 
-  if (nEle == 0 && nNuEle == 0 && nMu == 0 && nNuMu == 0 && nTau == 0 && nNuTau == 0 && nQuarkb > 1 && nW == 2 && nTop == 2)
+  if (nEle == 0 && nNuEle == 0 && nMu == 0 && nNuMu == 0 && nTau == 0 && nNuTau == 0 && nQuarkb > 1 && nTop == 2)
   {
     m_MC_channel = 4;
   }
 
-  if (nEle == 2 && nNuEle == 2 && nMu == 0 && nNuMu == 0 && nTau == 0 && nNuTau == 0 && nQuarkb > 1 && nW == 2 && nTop == 2)
+  if (nEle == 2 && nNuEle == 2 && nMu == 0 && nNuMu == 0 && nTau == 0 && nNuTau == 0 && nQuarkb > 1 && nTop == 2)
   {
     m_MC_channel = 5;
   }
 
-  if (nEle == 0 && nNuEle == 0 && nMu == 2 && nNuMu == 2 && nTau == 0 && nNuTau == 0 && nQuarkb > 1 && nW == 2 && nTop == 2)
+  if (nEle == 0 && nNuEle == 0 && nMu == 2 && nNuMu == 2 && nTau == 0 && nNuTau == 0 && nQuarkb > 1 && nTop == 2)
   {
     m_MC_channel = 6;
   }
 
-  if (nEle == 0 && nNuEle == 0 && nMu == 0 && nNuMu == 0 && nTau == 2 && nNuTau == 2 && nQuarkb > 1 && nW == 2 && nTop == 2)
+  if (nEle == 0 && nNuEle == 0 && nMu == 0 && nNuMu == 0 && nTau == 2 && nNuTau == 2 && nQuarkb > 1 && nTop == 2)
   {
     m_MC_channel = 7;
   }
 
-  if (nEle == 1 && nNuEle == 1 && nMu == 1 && nNuMu == 1 && nTau == 0 && nNuTau == 0 && nQuarkb == 2 && nW == 2 && nTop == 2)
+  if (nEle == 1 && nNuEle == 1 && nMu == 1 && nNuMu == 1 && nTau == 0 && nNuTau == 0 && nQuarkb == 2 && nTop == 2)
   {
     m_MC_channel = 8 ;
   }
 
-  if (nEle == 1 && nNuEle == 1 && nMu == 0 && nNuMu == 0 && nTau == 1 && nNuTau == 1 && nQuarkb == 2 && nW == 2 && nTop == 2)
+  if (nEle == 1 && nNuEle == 1 && nMu == 0 && nNuMu == 0 && nTau == 1 && nNuTau == 1 && nQuarkb == 2 && nTop == 2)
   {
     m_MC_channel = 9 ;
   }
 
-  if (nEle == 0 && nNuEle == 0 && nMu == 1 && nNuMu == 1 && nTau == 1 && nNuTau == 1 && nQuarkb == 2 && nW == 2 && nTop == 2)
+  if (nEle == 0 && nNuEle == 0 && nMu == 1 && nNuMu == 1 && nTau == 1 && nNuTau == 1 && nQuarkb == 2 && nTop == 2)
   {
     m_MC_channel = 10;
   }
 
-  if (Top.size() >= 2) {
-    m_MC_mtt = (Top[0] + Top[1]).M();
-  } else {
-    m_MC_mtt = -1;
+  if (nTop == 2) {
+
+    TLorentzVector mc_resonance = Top[0] + Top[1];
+
+    m_MC_mtt = mc_resonance.M();
+    m_MC_pt_tt = mc_resonance.Pt();
+    m_MC_eta_tt = mc_resonance.Eta();
+    m_MC_beta_tt = fabs(mc_resonance.Pz() / mc_resonance.E());
   }
 
   if (m_MC_channel != 1 && m_MC_channel != 2) {
@@ -1074,20 +1072,25 @@ void mtt_analysis::MCidentification()
   if (false) {
     std::cout << "New event" << std::endl;
     for (int i = 0; i < n_MC; i++) {
-      std::cout << "\tType: " << m_MC->getType(i) << std::endl;
+      std::cout << "\t[" << i << "] Type: " << m_MC->getType(i) << std::endl;
     }
   }
 
   bool keepEvent = true;
   for (int i = 0; i < n_MC; i++) {
-    if (m_MC->getMom1Index(i) == -1 || m_MC->getMom1Index(m_MC->getMom1Index(i)) == -1)
+    
+    int motherIndex = patIndexToExtractorIndex(m_MC->getMom1Index(i));
+    int grandMotherIndex = -1;
+    if (motherIndex != -1)
+      grandMotherIndex = patIndexToExtractorIndex(m_MC->getMom1Index(motherIndex));
+
+    if (motherIndex == -1 || grandMotherIndex == -1)
       continue;
 
     // Look only event coming (directly / indirectly) from a top
-    if (fabs(m_MC->getType(m_MC->getMom1Index(i))) == ID_T ||
-        fabs(m_MC->getType(m_MC->getMom1Index(m_MC->getMom1Index(i)))) == ID_T)  {
+    if (abs(m_MC->getType(motherIndex)) == ID_T || abs(m_MC->getType(grandMotherIndex)) == ID_T)  {
 
-      int type = (int) fabs(m_MC->getType(i));
+      int type = abs(m_MC->getType(i));
       // W? Continue
       if (type == ID_W)
         continue;
@@ -1124,7 +1127,12 @@ void mtt_analysis::MCidentification()
           }
           m_neutrinoIndex = i;
 
-          m_leptonicTopIndex = m_MC->getMom1Index(m_MC->getMom1Index(i));
+          // In some case, Madgraph does not output a W in the LHE
+          if (abs(m_MC->getType(grandMotherIndex)) == ID_T)
+            m_leptonicTopIndex = grandMotherIndex;
+          else
+            m_leptonicTopIndex = motherIndex;
+
           break;
 
         case ID_B:
@@ -1166,20 +1174,32 @@ void mtt_analysis::MCidentification()
   }
 
   // Reorder B jet indexes
-  if (m_MC->getMom1Index(m_leptonicBIndex) != m_leptonicTopIndex) {
+  if (patIndexToExtractorIndex(m_MC->getMom1Index(m_leptonicBIndex)) != m_leptonicTopIndex) {
     // Wrong combinaison, swap
     std::swap(m_leptonicBIndex, m_hadronicBIndex);
   }
 
+  if (false) {
+    std::cout << "Lepton index: " << m_leptonIndex << std::endl;
+    std::cout << "Neutrino index: " << m_neutrinoIndex << std::endl;
+    std::cout << "Leptonic B index: " << m_leptonicBIndex << std::endl;
+    std::cout << "Hadronic B index: " << m_hadronicBIndex << std::endl;
+    std::cout << "First jet index: " << m_firstJetIndex << std::endl;
+    std::cout << "Second jet index: " << m_secondJetIndex << std::endl;
+  }
+
   // Compute masses
-  m_MC_hadronicWMass = (*m_MC->getP4(m_firstJetIndex) + *m_MC->getP4(m_secondJetIndex)).M();
-  m_MC_hadronicTopMass = (*m_MC->getP4(m_firstJetIndex) + *m_MC->getP4(m_secondJetIndex) + *m_MC->getP4(m_hadronicBIndex)).M();
+  TLorentzVector mc_hadr_W = *m_MC->getP4(m_firstJetIndex) + *m_MC->getP4(m_secondJetIndex);
+  m_MC_hadronicWMass = mc_hadr_W.M();
 
-  m_MC_leptonicWMass = (*m_MC->getP4(m_neutrinoIndex) + *m_MC->getP4(m_leptonIndex)).M();
-  m_MC_leptonicTopMass = (*m_MC->getP4(m_neutrinoIndex) + *m_MC->getP4(m_leptonIndex) + *m_MC->getP4(m_leptonicBIndex)).M();
+  TLorentzVector mc_hadr_top = mc_hadr_W + *m_MC->getP4(m_hadronicBIndex);
+  m_MC_hadronicTopMass = mc_hadr_top.M();
 
-  m_MC_pt_tt = (Top[0] + Top[1]).Pt();
+  TLorentzVector mc_lept_W = *m_MC->getP4(m_neutrinoIndex) + *m_MC->getP4(m_leptonIndex);
+  m_MC_leptonicWMass = mc_lept_W.M();
 
+  TLorentzVector mc_lept_top = mc_lept_W + *m_MC->getP4(m_leptonicBIndex);
+  m_MC_leptonicTopMass = mc_lept_top.M();
 }
 
 int mtt_analysis::match_MC(int idxJetbH, int idxJetbL, int idxJet1,	int idxJet2,
@@ -1239,9 +1259,17 @@ void mtt_analysis::reset()
   //m_mHadTop_AfterChi2andKF = -1.;
 
   m_mtt_AfterChi2     = -1.;
+  m_pt_tt_AfterChi2   = -1.;
+  m_eta_tt_AfterChi2  = -1.;
+  m_beta_tt_AfterChi2 = -1.;
   m_mLepTop_AfterChi2 = -1.;
   m_mHadTop_AfterChi2 = -1.;
   m_mHadW_AfterChi2   = -1.;
+
+  m_lepTopPt_AfterChi2  = -1;
+  m_lepTopEta_AfterChi2 = -1;
+  m_hadTopPt_AfterChi2  = -1;
+  m_hadTopEta_AfterChi2 = -1;
 
   m_selectedLeptonIndex               = -1;
   m_selectedLeptonicBIndex            = -1;
@@ -1304,6 +1332,9 @@ void mtt_analysis::reset()
   
   m_trigger_passed = false;
 
+  m_MC_pt_tt         = -1;
+  m_MC_eta_tt        = -1;
+  m_MC_beta_tt       = -1;
   m_MC_hadronicWMass = -1;
   m_MC_leptonicWMass = -1;
   m_MC_hadronicTopMass = -1;
