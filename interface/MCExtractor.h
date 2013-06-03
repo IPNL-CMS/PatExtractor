@@ -55,6 +55,8 @@ class MCExtractor: public SuperBaseExtractor
     return static_cast<TLorentzVector*>((*m_MC_lorentzvector)[index]);
   }
 
+  int getPatIndex(int index) const { return m_MC_index[index]; }
+
 
  private:
   
