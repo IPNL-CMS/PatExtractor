@@ -953,6 +953,7 @@ void mtt_analysis::MCidentification()
   nQuarkb = 0;
   nTop    = 0;
   Top.clear();
+  std::vector<int> topIndexes;
 
   int n_MC = m_MC->getSize();
 
@@ -962,15 +963,12 @@ void mtt_analysis::MCidentification()
   for (int i = 0; i < n_MC ; ++i)
   {
 
-    int motherIndex = patIndexToExtractorIndex(m_MC->getMom1Index(i));
-    int grandMotherIndex = -1;
-    if (motherIndex != -1)
-      grandMotherIndex = patIndexToExtractorIndex(m_MC->getMom1Index(motherIndex));
-
-    if (motherIndex == -1 || grandMotherIndex == -1)
-      continue;
-
     if (abs(m_MC->getType(i)) == ID_T) {
+
+      if (std::find(topIndexes.begin(), topIndexes.end(), i) != topIndexes.end())
+        continue;
+
+      topIndexes.push_back(i);
       TLorentzVector TL_Top(m_MC->getPx(i),
           m_MC->getPy(i),
           m_MC->getPz(i),
@@ -982,7 +980,16 @@ void mtt_analysis::MCidentification()
       continue;
     }
 
-    if (abs(m_MC->getType(motherIndex)) == ID_T || abs(m_MC->getType(grandMotherIndex) == ID_T))
+
+    int motherIndex = patIndexToExtractorIndex(m_MC->getMom1Index(i));
+    int grandMotherIndex = -1;
+    if (motherIndex != -1)
+      grandMotherIndex = patIndexToExtractorIndex(m_MC->getMom1Index(motherIndex));
+
+    if (motherIndex == -1)
+      continue;
+
+    if (abs(m_MC->getType(motherIndex)) == ID_T || (grandMotherIndex != -1 && abs(m_MC->getType(grandMotherIndex) == ID_T)))
     {
       // Skip W
       if (abs(m_MC->getType(motherIndex)) == ID_W)
