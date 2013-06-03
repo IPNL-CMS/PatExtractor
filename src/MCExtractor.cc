@@ -130,7 +130,7 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
     int iMo1 = -1;
     int iMo2 = -1;
 
-    if (st==3)
+    if (st == 3)
     {
 
       // MC@NLO use different status code
@@ -139,14 +139,14 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
       if (p.px() == 0 && p.py() == 0)
         continue;
 
-      if (n_mot>0)
+      if (n_mot > 0)
       {
         id_r = (p.mother(0))->pdgId();
         px_r = (p.mother(0))->px();
         py_r = (p.mother(0))->py();
         pz_r = (p.mother(0))->pz();
 
-        for(int j=0; j<m_n_MCs; ++j) 
+        for(int j = 0; j < m_n_MCs; ++j) 
         {
           const reco::Candidate &p2 = (*genParticles)[j];
 
@@ -197,7 +197,7 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
       m_MC_vz[ipart]         = p.vz();
       m_MC_eta[ipart]        = p.eta();
       m_MC_phi[ipart]        = p.phi();
-      new((*m_MC_lorentzvector)[i]) TLorentzVector(p.px(),p.py(),p.pz(),p.energy());
+      new((*m_MC_lorentzvector)[ipart]) TLorentzVector(p.px(),p.py(),p.pz(),p.energy());
 
       if (n_mot==0) m_MC_generation[ipart] = 0;
 
