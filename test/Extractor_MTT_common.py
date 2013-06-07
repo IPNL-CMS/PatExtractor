@@ -105,7 +105,7 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
   # JES systematics:
   # Use -1 for 1-sigma down, 0 for nominal correction, and 1 for 1-sigma up
   process.PATextraction.jet_PF.jesSign = 0
-  process.PATextraction.jet_PF.jes_uncertainties_file = cms.untracked.string("Extractors/PatExtractor/data/START53_V20_Uncertainty_AK5PFchs.txt")
+  process.PATextraction.jet_PF.jes_uncertainties_file = cms.untracked.string("Extractors/PatExtractor/data/START53_V23_Uncertainty_AK5PFchs.txt")
 
   process.PATextraction.MET_PF.redoMetPhiCorrection   = True
   process.PATextraction.MET_PF.redoMetTypeICorrection = False # Automatically true if redoJetCorrection is True
