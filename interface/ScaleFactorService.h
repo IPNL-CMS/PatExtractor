@@ -14,6 +14,8 @@
 
 #include <Extractors/PatExtractor/interface/ScaleFactor.h>
 
+#include <FWCore/Utilities/interface/Exception.h>
+
 class ScaleFactorService {
   private:
     typedef std::map<
@@ -37,8 +39,12 @@ class ScaleFactorService {
       if ( mBTagPerfInit)
         return;
 
-      iSetup.get<BTagPerformanceRecord>().get("MUJETSWPBTAGCSVM", mBTagPerf);
-      mBTagPerfInit = true;
+      try {
+	iSetup.get<BTagPerformanceRecord>().get("MUJETSWPBTAGCSVM", mBTagPerf);
+	mBTagPerfInit =  mBTagPerf.isValid();
+      } catch (const cms::Exception& ex) {
+        mBTagPerfInit = false;
+      }
     }
 
     ScaleFactor getElectronScaleFactor(double pt, double eta) {
