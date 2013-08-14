@@ -600,14 +600,15 @@ void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met,
 
 
 //from JetMETCorrections/Type1MET/python/pfMETsysShiftCorrections_cfi, check updates
+//updated to MET systematic shift corrections to 2012 ABCD ReReco data + new Summer'13 JEC
 double JetMETExtractor::getSysShifCorrFactorX(const int Nvtx){
-  if (m_isMC) return -(+0.1166 + 0.0200*Nvtx);
-  else        return -(+0.2661 + 0.3217*Nvtx);
+  if (m_isMC) return -(+1.62861e-01 - 2.38517e-02*Nvtx);
+  else        return -(+4.83642e-02 + 2.48870e-01*Nvtx);
 }
 
 double JetMETExtractor::getSysShifCorrFactorY(const int Nvtx){
-  if (m_isMC) return -(+0.2764 - 0.1280*Nvtx);
-  else        return -(-0.2251 - 0.1747*Nvtx);
+  if (m_isMC) return -(+3.60860e-01 - 1.30335e-01*Nvtx);
+  else        return -(-1.50135e-01 - 8.27917e-02*Nvtx);
 }
 
 void JetMETExtractor::correctMETWithSysShift(const edm::Event& event, pat::MET& met) {
