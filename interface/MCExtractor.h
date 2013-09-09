@@ -30,8 +30,8 @@ class MCExtractor: public SuperBaseExtractor
 
  public:
 
-  MCExtractor(const std::string& name, bool doTree);
-  MCExtractor(const std::string& name, TFile *a_file);
+  MCExtractor(const std::string& name, bool doTree, bool doJpsi = false);
+  MCExtractor(const std::string& name, TFile *a_file, bool doJpsi = false);
   virtual ~MCExtractor();
 
   virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor);
@@ -57,7 +57,6 @@ class MCExtractor: public SuperBaseExtractor
 
   int getPatIndex(int index) const { return m_MC_index[index]; }
 
-
  private:
   
   TTree* m_tree_MC;
@@ -81,6 +80,12 @@ class MCExtractor: public SuperBaseExtractor
   float	m_MC_vz[m_MCs_MAX];
   float	m_MC_eta[m_MCs_MAX];
   float	m_MC_phi[m_MCs_MAX];
+  
+  bool _doJpsi;
+  bool m_MC_JPsiFromTop[m_MCs_MAX];
+  bool m_MC_JPsiFromAntiTop[m_MCs_MAX];
+  bool m_MC_LeptonFromTop[m_MCs_MAX];
+  bool m_MC_LeptonFromAntiTop[m_MCs_MAX];
 
   void constructGeneration(int gene, int npart);
 };

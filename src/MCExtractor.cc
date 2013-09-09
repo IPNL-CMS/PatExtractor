@@ -1,8 +1,9 @@
 #include "../interface/MCExtractor.h"
 
 
-MCExtractor::MCExtractor(const std::string& name, bool doTree)
+MCExtractor::MCExtractor(const std::string& name, bool doTree, bool doJpsi)
 {
+  _doJpsi = doJpsi; 
   // Set everything to 0
 
   m_OK = false;
@@ -31,12 +32,19 @@ MCExtractor::MCExtractor(const std::string& name, bool doTree)
     m_tree_MC->Branch("MC_vy",  &m_MC_vy,   "MC_vy[n_MCs]/F");  
     m_tree_MC->Branch("MC_vz",  &m_MC_vz,   "MC_vz[n_MCs]/F");
     m_tree_MC->Branch("MC_eta", &m_MC_eta,  "MC_eta[n_MCs]/F");  
-    m_tree_MC->Branch("MC_phi", &m_MC_phi,  "MC_phi[n_MCs]/F");  
+    m_tree_MC->Branch("MC_phi", &m_MC_phi,  "MC_phi[n_MCs]/F"); 
+    if (_doJpsi) {
+      m_tree_MC->Branch("MC_JPsiFromTop",  &m_MC_JPsiFromTop,  "m_MC_JPsiFromTop[n_MCs]/B");  
+      m_tree_MC->Branch("MC_JPsiFromAntiTop",  &m_MC_JPsiFromAntiTop,  "m_MC_JPsiFromAntiTop[n_MCs]/B");  
+      m_tree_MC->Branch("MC_LeptonFromTop",  &m_MC_LeptonFromTop,  "m_MC_LeptonFromTop[n_MCs]/B");  
+      m_tree_MC->Branch("MC_LeptonFromAntiTop",  &m_MC_LeptonFromAntiTop,  "m_MC_LeptonFromAntiTop[n_MCs]/B");
+    }
   }
 }
 
-MCExtractor::MCExtractor(const std::string& name, TFile *a_file)
+MCExtractor::MCExtractor(const std::string& name, TFile *a_file, bool doJpsi)
 {
+  _doJpsi = doJpsi; 
   std::cout << "MCExtractor object is retrieved" << std::endl;
 
   // Tree definition
@@ -86,6 +94,16 @@ MCExtractor::MCExtractor(const std::string& name, TFile *a_file)
     m_tree_MC->SetBranchAddress("MC_eta", &m_MC_eta);
   if (m_tree_MC->FindBranch("MC_phi")) 
     m_tree_MC->SetBranchAddress("MC_phi", &m_MC_phi);
+  if (_doJpsi) {
+    if (m_tree_MC->FindBranch("MC_JPsiFromTop")) 
+      m_tree_MC->SetBranchAddress("MC_JPsiFromTop", &m_MC_JPsiFromTop);
+    if (m_tree_MC->FindBranch("MC_JPsiFromAntiTop")) 
+      m_tree_MC->SetBranchAddress("MC_JPsiFromAntiTop", &m_MC_JPsiFromAntiTop);
+    if (m_tree_MC->FindBranch("MC_LeptonFromTop")) 
+      m_tree_MC->SetBranchAddress("MC_LeptonFromTop", &m_MC_LeptonFromTop);
+    if (m_tree_MC->FindBranch("MC_LeptonFromAntiTop")) 
+      m_tree_MC->SetBranchAddress("MC_LeptonFromAntiTop", &m_MC_LeptonFromAntiTop);
+  }
 }
 
 
@@ -118,6 +136,9 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
 
   int ipart = 0;
 
+  const reco::GenParticle* mothertmp;
+  const reco::GenParticle* motherleptontmp;
+
   for(int i=0; i < m_n_MCs; ++i) 
   {
     const reco::Candidate & p = (*genParticles)[i];
@@ -130,7 +151,7 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
     int iMo1 = -1;
     int iMo2 = -1;
 
-    if (st == 3)
+    if (st == 3 || ( _doJpsi && id == 443 && p.numberOfDaughters() == 2 && fabs(p.daughter(0)->pdgId()) ==  13 && fabs(p.daughter(1)->pdgId()) ==  13))
     {
 
       // MC@NLO use different status code
@@ -197,7 +218,50 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
       m_MC_vz[ipart]         = p.vz();
       m_MC_eta[ipart]        = p.eta();
       m_MC_phi[ipart]        = p.phi();
-      new((*m_MC_lorentzvector)[ipart]) TLorentzVector(p.px(),p.py(),p.pz(),p.energy());
+      new((*m_MC_lorentzvector)[i]) TLorentzVector(p.px(),p.py(),p.pz(),p.energy());
+
+      if (_doJpsi && id==443) {
+        mothertmp = &(*genParticles)[i];
+        for (int ifrag=0; ifrag<10; ifrag++) {
+          if (mothertmp->mother() == 0) break;
+          mothertmp = (reco::GenParticle*) mothertmp->mother();
+          if (fabs(mothertmp->pdgId())==92 || fabs(mothertmp->pdgId())==91) break;
+        }
+        for (int imb=0; imb<100; imb++) {
+          if (mothertmp->mother(imb) != 0 && fabs(mothertmp->mother(imb)->pdgId())==5) {
+            mothertmp = (reco::GenParticle*) mothertmp->mother(imb);
+            break;
+          } 
+        }
+        if (fabs(mothertmp->pdgId()) == 5) {
+          for (int ib=0; ib<10; ib++) {
+            if (mothertmp->mother() !=0 && (fabs(mothertmp->mother()->pdgId())==5 || fabs(mothertmp->mother()->pdgId())==21)) mothertmp = (reco::GenParticle*) mothertmp->mother();
+            else break;
+          }
+          if(mothertmp->mother() !=0) mothertmp = (reco::GenParticle*) mothertmp->mother();
+          if (mothertmp->pdgId()==6)  m_MC_JPsiFromTop[ipart] = true;
+          if (mothertmp->pdgId()==-6) m_MC_JPsiFromAntiTop[ipart] = true;
+        }	
+        //std::cout << "JPsiFromTop = " << m_MC_JPsiFromTop[ipart] << "JPsiFromAntiTop = " << m_MC_JPsiFromAntiTop[ipart] << std::endl;
+      }	
+      if (_doJpsi && (fabs(id)==11 || fabs(id) ==13)) {
+        motherleptontmp = &(*genParticles)[i];
+        for (int i=0; i<10; i++) {
+          if (motherleptontmp->mother() == 0) break;
+          motherleptontmp = (reco::GenParticle*) motherleptontmp->mother();
+          if (motherleptontmp->pdgId()==6) {
+            m_MC_LeptonFromTop[ipart] = true;
+            break;
+          }
+          if (motherleptontmp->pdgId()==-6) {
+            m_MC_LeptonFromAntiTop[ipart] = true;
+            break;
+          }
+        }
+        //std::cout << "LeptonFromTop = " << m_MC_LeptonFromTop[ipart] << "LeptonFromAntiTop = " << m_MC_LeptonFromAntiTop[ipart] << std::endl;
+        if (m_MC_LeptonFromTop[ipart]==false && m_MC_LeptonFromAntiTop[ipart]==false) std::cout << "cas suspect" << std::endl;
+      }
+
 
       if (n_mot==0) m_MC_generation[ipart] = 0;
 
@@ -209,9 +273,7 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
   m_n_MCs = ipart;
 
   for(int i=1; i<6; ++i) 
-  {    
     MCExtractor::constructGeneration(i, m_n_MCs);
-  }
 
   fillTree();
 }
@@ -248,6 +310,12 @@ void MCExtractor::reset()
     m_MC_vz[i] = 0.;
     m_MC_eta[i] = 0.;
     m_MC_phi[i] = 0.; 
+    if (_doJpsi) {
+      m_MC_JPsiFromTop[i] = false;
+      m_MC_JPsiFromAntiTop[i] = false;
+      m_MC_LeptonFromTop[i] = false;
+      m_MC_LeptonFromAntiTop[i] = false;
+    }
   }
   m_MC_lorentzvector->Clear();
 }

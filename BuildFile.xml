@@ -44,6 +44,10 @@
 <use   name="EGamma/EGammaAnalysisTools" />
 <use   name="RecoBTag/PerformanceDB" />
 <use   name="RecoBTag/Records" />
+<use   name="PhysicsTools/CandUtils" />
+<use   name="RecoVertex/KinematicFit"/>
+<use   name="RecoVertex/KinematicFitPrimitives"/>
+<use   name="RecoVertex/KalmanVertexFit"/>
 
 <lib   name="MathMore"/>
 
