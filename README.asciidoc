@@ -2,7 +2,7 @@
 Pat extractor : an utility to transform PAT tuples to plain root trees
 ======================================================================
 Sébastien Brochet <s.brochet@ipnl.in2p3.fr>, Sébastien Viret <s.viret@ipnl.in2p3.fr>
-02 April 2013
+For CMSSW 5.3.x, September 17, 2013
 :toc2:
 :data-uri:
 :latexmath:
@@ -33,7 +33,10 @@ Extractors> cd ..
 src> scram b -j8
 ----
 
-You also need to checkout a bunch of packages. Please read the +README+ document for a list of packages.
+Setup a working area
+~~~~~~~~~~~~~~~~~~~~
+
+In order to have PatExtractor working, you need to first correctly setup the package +PatTopProduction+. You can follow the documentation from the +README+ file here: https://github.com/IPNL-CMS/PatTopProduction/blob/master/README.md
 
 Operating mode
 --------------
