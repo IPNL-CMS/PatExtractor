@@ -194,8 +194,11 @@ namespace patextractor {
 
       float m_lepTopPt_AfterChi2;
       float m_lepTopEta_AfterChi2;
+      TLorentzVector* m_lepTopP4_AfterChi2;
+
       float m_hadTopPt_AfterChi2;
       float m_hadTopEta_AfterChi2;
+      TLorentzVector* m_hadTopP4_AfterChi2;
 
       // Indexes of selected particles for mtt computation
       int m_selectedLeptonIndex;

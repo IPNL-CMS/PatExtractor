@@ -45,6 +45,10 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
   jetEnergyResolutionScaleFactors_  (cmsswSettings.getParameter<std::vector<double> >("jetEnergyResolutionScaleFactors")),
   jetEnergyResolutionEtaBinning_    (cmsswSettings.getParameter<std::vector<double> >("jetEnergyResolutionEtaBinning"))
 {
+ 
+  m_lepTopP4_AfterChi2 = new TLorentzVector(0., 0., 0., 0.);
+  m_hadTopP4_AfterChi2 = new TLorentzVector(0., 0., 0., 0.);
+
   reset();
 
   /// Tree definition
@@ -93,18 +97,12 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
   m_tree_Mtt->Branch("2ndjetpt"           , &m_mtt_2ndjetpt           , "2ndjetpt/F");
   m_tree_Mtt->Branch("3rdjetpt"           , &m_mtt_3rdjetpt           , "3rdjetpt/F");
   m_tree_Mtt->Branch("4thjetpt"           , &m_mtt_4thjetpt           , "4thjetpt/F");
+
   m_tree_Mtt->Branch("nJets"              , &m_mtt_NJets              , "nJets/I");
   m_tree_Mtt->Branch("jetEta"             , &m_mtt_JetEta             , "jetEta[nJets]/F");
   m_tree_Mtt->Branch("jetPt"              , &m_mtt_JetPt              , "jetPt[nJets]/F");
 
-  //m_tree_Mtt->Branch("nBtaggedJets_TCHEL" , &m_mtt_NBtaggedJets_TCHEL    , "nBtaggedJets_TCHEL/I");
-  //m_tree_Mtt->Branch("nBtaggedJets_TCHEM" , &m_mtt_NBtaggedJets_TCHEM    , "nBtaggedJets_TCHEM/I");
-  //m_tree_Mtt->Branch("nBtaggedJets_TCHET" , &m_mtt_NBtaggedJets_TCHET    , "nBtaggedJets_TCHET/I");
-  //m_tree_Mtt->Branch("nBtaggedJets_TCHPL" , &m_mtt_NBtaggedJets_TCHPL    , "nBtaggedJets_TCHPL/I");
-  //m_tree_Mtt->Branch("nBtaggedJets_TCHPM" , &m_mtt_NBtaggedJets_TCHPM    , "nBtaggedJets_TCHPM/I");
   m_tree_Mtt->Branch("nBtaggedJets_TCHPT" , &m_mtt_NBtaggedJets_TCHPT    , "nBtaggedJets_TCHPT/I");
-  //m_tree_Mtt->Branch("nBtaggedJets_SSVHEM", &m_mtt_NBtaggedJets_SSVHEM   , "nBtaggedJets_SSVHEM/I");
-  //m_tree_Mtt->Branch("nBtaggedJets_SSVHPT", &m_mtt_NBtaggedJets_SSVHPT   , "nBtaggedJets_SSVHPT/I");
   m_tree_Mtt->Branch("nBtaggedJets_CSVL" ,  &m_mtt_NBtaggedJets_CSVL    , "nBtaggedJets_CSVL/I");
   m_tree_Mtt->Branch("nBtaggedJets_CSVM" ,  &m_mtt_NBtaggedJets_CSVM    , "nBtaggedJets_CSVM/I");
   m_tree_Mtt->Branch("nBtaggedJets_CSVT" ,  &m_mtt_NBtaggedJets_CSVT    , "nBtaggedJets_CSVT/I");
@@ -115,7 +113,6 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
   m_tree_Mtt->Branch("oneMatchedCombi"    , &m_mtt_OneMatchedCombi       , "oneMatchedCombi/I");
   m_tree_Mtt->Branch("bestSolChi2"        , &m_mtt_BestSolChi2           , "bestSolChi2/F");
   m_tree_Mtt->Branch("isBestSolMatched"   , &m_mtt_IsBestSolMatched      , "isBestSolMatched/I");
-  //m_tree_Mtt->Branch("KFChi2"             , &m_mtt_KFChi2                , "KFChi2/F");
 
   m_tree_Mtt->Branch("numComb"            , &m_mtt_NumComb                , "numComb/I");
   m_tree_Mtt->Branch("solChi2"            , &m_mtt_SolChi2                , "solChi2[numComb]/F");
@@ -127,19 +124,17 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
   m_tree_Mtt->Branch("mLepTop_AfterChi2"      , &m_mLepTop_AfterChi2     , "mLepTop_AfterChi2/F");
   m_tree_Mtt->Branch("lepTopPt_AfterChi2"     , &m_lepTopPt_AfterChi2    , "lepTopPt_AfterChi2/F");
   m_tree_Mtt->Branch("lepTopEta_AfterChi2"    , &m_lepTopEta_AfterChi2   , "lepTopEta_AfterChi2/F");
+  m_tree_Mtt->Branch("lepTopP4_AfterChi2"     , &m_lepTopP4_AfterChi2);
 
   m_tree_Mtt->Branch("mHadTop_AfterChi2"      , &m_mHadTop_AfterChi2     , "mHadTop_AfterChi2/F");
   m_tree_Mtt->Branch("hadTopPt_AfterChi2"     , &m_hadTopPt_AfterChi2    , "hadTopPt_AfterChi2/F");
   m_tree_Mtt->Branch("hadTopEta_AfterChi2"    , &m_hadTopEta_AfterChi2   , "hadTopEta_AfterChi2/F");
+  m_tree_Mtt->Branch("hadTopP4_AfterChi2"     , &m_hadTopP4_AfterChi2);
 
   m_tree_Mtt->Branch("pt_tt_AfterChi2"        , &m_pt_tt_AfterChi2       , "pt_tt_AfterChi2/F");
   m_tree_Mtt->Branch("eta_tt_AfterChi2"       , &m_eta_tt_AfterChi2      , "eta_tt_AfterChi2/F");
   m_tree_Mtt->Branch("beta_tt_AfterChi2"      , &m_beta_tt_AfterChi2     , "eta_tt_AfterChi2/F");
   m_tree_Mtt->Branch("mtt_AfterChi2"          , &m_mtt_AfterChi2         , "mtt_AfterChi2/F");
-
-  //m_tree_Mtt->Branch("mLepTop_AfterChi2andKF" , &m_mLepTop_AfterChi2andKF, "mLepTop_AfterChi2andKF/F");
-  //m_tree_Mtt->Branch("mHadTop_AfterChi2andKF" , &m_mHadTop_AfterChi2andKF, "mHadTop_AfterChi2andKF/F");
-  //m_tree_Mtt->Branch("mtt_AfterChi2andKF"     , &m_mtt_AfterChi2andKF    , "mtt_AfterChi2andKF/F");
 
   // Index of selected particles inside respective collection for mtt computation
   m_tree_Mtt->Branch("selectedLeptonIndex"        , &m_selectedLeptonIndex       , "selectedLeptonIndex/I");
@@ -208,6 +203,9 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
 mtt_analysis::~mtt_analysis()
 {
   delete m_KinFit;
+
+  delete m_lepTopP4_AfterChi2;
+  delete m_hadTopP4_AfterChi2;
 }
 
 
@@ -503,16 +501,8 @@ int mtt_analysis::JetSel()
 
       if ((m_jetMet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVT)
         ++m_mtt_NBtaggedJets_CSVT;
-//      if ((m_jetMet->getJetBTagProb_TCHP(i)) > m_JET_btag_TCHPL_min)
-//        ++m_mtt_NBtaggedJets_TCHPL;
-//      if ((m_jetMet->getJetBTagProb_TCHP(i)) > m_JET_btag_TCHPM_min)
-//        ++m_mtt_NBtaggedJets_TCHPM;
       if ((m_jetMet->getJetBTagProb_TCHP(i)) > m_JET_btag_TCHPT)
         ++m_mtt_NBtaggedJets_TCHPT;
-//      if ((m_jetMet->getJetBTagProb_SSVHE(i)) > m_JET_btag_SSVHEM_min)
-//        ++m_mtt_NBtaggedJets_SSVHEM;
-//      if ((m_jetMet->getJetBTagProb_SSVHP(i)) > m_JET_btag_SSVHPT_min)
-//        ++m_mtt_NBtaggedJets_SSVHPT;
     }
 
     if (m_mtt_NJets == 1) m_mtt_1stjetpt = m_mtt_JetPt[m_mtt_NJets - 1];
@@ -582,49 +572,6 @@ int mtt_analysis::JetSel()
   return 1;
 }
 
-
-
-/*
-int mtt_analysis::Make2DCut(TVector3 lept3P, float cutDR, float cutPtrel)
-{
-  pass2Dcut   = 0;
-  minjetpt2D  = 30.;
-  DrMin       = std::numeric_limits<float>::infinity();
-  pTRel       = std::numeric_limits<float>::infinity();
-  costheta    = std::numeric_limits<float>::infinity();
-
-  int n_jet = m_jetMet->getSize();
-
-  if (!n_jet)
-    return 0;
-
-  //loop over the jets to calculate variables for 2D cut
-
-  for (int ij = 0; ij < n_jet; ij++)
-  {
-    TLorentzVector *jetP2D = m_jetMet->getJetLorentzVector(ij);
-
-    if (fabs(jetP2D->Pt()) < minjetpt2D)
-      continue;
-
-    //get the 3-momentum
-
-    jet3P2D = jetP2D->Vect();
-    if ((jet3P2D.DeltaR(lept3P)) < DrMin)
-    {
-      DrMin = jet3P2D.DeltaR(lept3P);
-      costheta = ((lept3P.Px() * jetP2D->Px() + lept3P.Py() * jetP2D->Py() + lept3P.Pz() * jetP2D->Pz()) / (lept3P.Mag() * jetP2D->P()));
-      pTRel = lept3P.Mag() * sqrt(1. - pow(costheta, 2));
-    }
-  }
-
-  if (DrMin > cutDR || pTRel > cutPtrel)
-    pass2Dcut = 1;
-
-  return pass2Dcut;
-}
-*/
-
 #define CHECK_RES_AND_RETURN(res, var) \
   if (res != 1) { \
     var = 0; \
@@ -648,7 +595,6 @@ void mtt_analysis::analyze(const edm::EventSetup& iSetup, PatExtractor& extracto
   m_refLept  = nullptr;
 
   m_vertex   = std::static_pointer_cast<VertexExtractor>(extractor.getExtractor("vertex"));
-  //m_MET      = std::static_pointer_cast<METExtractor>(extractor->getExtractor("MET"));
   
   m_muon     = std::static_pointer_cast<MuonExtractor>(extractor.getExtractor("muons"));
   m_muon_loose = std::static_pointer_cast<MuonExtractor>(extractor.getExtractor("muons_loose"));
@@ -854,17 +800,17 @@ void mtt_analysis::loopOverCombinations()
     m_mLepW_AfterChi2   = (measuredNeutrino + measuredLepton).M();
     m_mHadW_AfterChi2   = (measuredHadronicFirstJet + measuredHadronicSecondJet).M();
 
-    TLorentzVector lepTop = (measuredLepton + measuredNeutrino + measuredLeptonicB);
-    m_mLepTop_AfterChi2 = lepTop.M();
-    m_lepTopPt_AfterChi2 = lepTop.Pt();
-    m_lepTopEta_AfterChi2 = lepTop.Eta();
+    *m_lepTopP4_AfterChi2 = (measuredLepton + measuredNeutrino + measuredLeptonicB);
+    m_mLepTop_AfterChi2 = m_lepTopP4_AfterChi2->M();
+    m_lepTopPt_AfterChi2 = m_lepTopP4_AfterChi2->Pt();
+    m_lepTopEta_AfterChi2 = m_lepTopP4_AfterChi2->Eta();
 
-    TLorentzVector hadTop = (measuredHadronicFirstJet + measuredHadronicSecondJet + measuredHadronicB);
-    m_mHadTop_AfterChi2 = hadTop.M();
-    m_hadTopPt_AfterChi2 = hadTop.Pt();
-    m_hadTopEta_AfterChi2 = hadTop.Eta();
+    *m_hadTopP4_AfterChi2 = (measuredHadronicFirstJet + measuredHadronicSecondJet + measuredHadronicB);
+    m_mHadTop_AfterChi2 = m_hadTopP4_AfterChi2->M();
+    m_hadTopPt_AfterChi2 = m_hadTopP4_AfterChi2->Pt();
+    m_hadTopEta_AfterChi2 = m_hadTopP4_AfterChi2->Eta();
 
-    TLorentzVector res = (lepTop + hadTop);
+    TLorentzVector res = (*m_lepTopP4_AfterChi2 + *m_hadTopP4_AfterChi2);
     m_mtt_AfterChi2     = res.M();
     m_pt_tt_AfterChi2   = res.Pt();
     m_eta_tt_AfterChi2   = res.Eta();
@@ -1277,6 +1223,9 @@ void mtt_analysis::reset()
   m_lepTopEta_AfterChi2 = -1;
   m_hadTopPt_AfterChi2  = -1;
   m_hadTopEta_AfterChi2 = -1;
+
+  m_lepTopP4_AfterChi2->SetPxPyPzE(0., 0., 0., 0.);
+  m_hadTopP4_AfterChi2->SetPxPyPzE(0., 0., 0., 0.);
 
   m_selectedLeptonIndex               = -1;
   m_selectedLeptonicBIndex            = -1;
