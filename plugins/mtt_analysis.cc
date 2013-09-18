@@ -49,6 +49,18 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
   m_lepTopP4_AfterChi2 = new TLorentzVector(0., 0., 0., 0.);
   m_hadTopP4_AfterChi2 = new TLorentzVector(0., 0., 0., 0.);
 
+  m_MC_lepton_p4 = new TLorentzVector(0., 0., 0., 0.);
+  m_MC_neutrino_p4 = new TLorentzVector(0., 0., 0., 0.);
+
+  m_MC_leptonic_B_p4 = new TLorentzVector(0., 0., 0., 0.);
+  m_MC_hadronic_B_p4 = new TLorentzVector(0., 0., 0., 0.);
+
+  m_MC_lightJet1_p4 = new TLorentzVector(0., 0., 0., 0.);
+  m_MC_lightJet2_p4 = new TLorentzVector(0., 0., 0., 0.);
+
+  m_MC_Top1_p4 = new TLorentzVector(0., 0., 0., 0.);
+  m_MC_Top2_p4 = new TLorentzVector(0., 0., 0., 0.);
+
   reset();
 
   /// Tree definition
@@ -77,6 +89,16 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
   m_tree_Mtt->Branch("MC_pt_tt"           , &m_MC_pt_tt               , "MC_pt_tt/F");
   m_tree_Mtt->Branch("MC_eta_tt"          , &m_MC_eta_tt              , "MC_eta_tt/F");
   m_tree_Mtt->Branch("MC_beta_tt"         , &m_MC_beta_tt             , "MC_beta_tt/F");
+
+  // Easy access
+  m_tree_Mtt->Branch("MC_lepton_p4"       , &m_MC_lepton_p4);
+  m_tree_Mtt->Branch("MC_neutrino_p4"     , &m_MC_neutrino_p4);
+  m_tree_Mtt->Branch("MC_leptonic_B_p4"   , &m_MC_leptonic_B_p4);
+  m_tree_Mtt->Branch("MC_hadronic_B_p4"   , &m_MC_hadronic_B_p4);
+  m_tree_Mtt->Branch("MC_lightJet1_B_p4"  , &m_MC_lightJet1_p4);
+  m_tree_Mtt->Branch("MC_lightJet2_B_p4"  , &m_MC_lightJet2_p4);
+  m_tree_Mtt->Branch("MC_Top1_p4"         , &m_MC_Top1_p4);
+  m_tree_Mtt->Branch("MC_Top2_p4"         , &m_MC_Top2_p4);
 
   m_tree_Mtt->Branch("nGoodMuons"         , &m_mtt_NGoodMuons         , "nGoodMuons/I");
   m_tree_Mtt->Branch("nLooseGoodMuons"    , &m_mtt_NLooseGoodMuons    , "nLooseGoodMuons/I");
@@ -110,8 +132,9 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
   m_tree_Mtt->Branch("MET"                , &m_mtt_MET                   , "MET/F");
 
   m_tree_Mtt->Branch("isSel"              , &m_mtt_isSel                 , "isSel/I");
-  m_tree_Mtt->Branch("oneMatchedCombi"    , &m_mtt_OneMatchedCombi       , "oneMatchedCombi/I");
+  //m_tree_Mtt->Branch("oneMatchedCombi"    , &m_mtt_OneMatchedCombi       , "oneMatchedCombi/I");
   m_tree_Mtt->Branch("bestSolChi2"        , &m_mtt_BestSolChi2           , "bestSolChi2/F");
+  m_tree_Mtt->Branch("eventIsAssociable"  , &m_mtt_eventIsAssociable     , "eventIsAssociable/O");
   m_tree_Mtt->Branch("isBestSolMatched"   , &m_mtt_IsBestSolMatched      , "isBestSolMatched/I");
 
   m_tree_Mtt->Branch("numComb"            , &m_mtt_NumComb                , "numComb/I");
@@ -718,11 +741,6 @@ void mtt_analysis::loopOverCombinations()
           c_j3 = m_selJetsIds[j3];
           c_j4 = m_selJetsIds[j4];
 
-          /// Try to find a matching solution (no lept for the moment)
-
-          if (m_isMC)
-            m_mtt_OneMatchedCombi = match_MC(c_j1, c_j2, c_j3, c_j4, 0);
-
           // This call corrects MET pz
           bool res = m_KinFit->ReadObjects(*m_jetMet->getJetLorentzVector(c_j3),
               *m_jetMet->getJetLorentzVector(c_j4),
@@ -840,7 +858,7 @@ void mtt_analysis::loopOverCombinations()
   }
 
   if (m_isMC)
-    m_mtt_IsBestSolMatched = match_MC(bestj1, bestj2, bestj3, bestj4, 0);
+    checkIfSolutionIsCorrect();
 
   //m_mtt_KFChi2 = fitchi2;
 
@@ -1015,6 +1033,9 @@ void mtt_analysis::MCidentification()
     m_MC_pt_tt = mc_resonance.Pt();
     m_MC_eta_tt = mc_resonance.Eta();
     m_MC_beta_tt = fabs(mc_resonance.Pz() / mc_resonance.E());
+
+    *m_MC_Top1_p4 = Top[0];
+    *m_MC_Top2_p4 = Top[1];
   }
 
   if (m_MC_channel != 1 && m_MC_channel != 2) {
@@ -1141,6 +1162,16 @@ void mtt_analysis::MCidentification()
     std::cout << "Second jet index: " << m_secondJetIndex << std::endl;
   }
 
+  // First, check if the event is associable. It is if each parton from the
+  // tt system (lepton, b jets & light jets) have a associated RECO object
+
+  // Only check jets
+  m_mtt_eventIsAssociable =
+    hasRecoPartner(m_leptonicBIndex) &&
+    hasRecoPartner(m_hadronicBIndex) &&
+    hasRecoPartner(m_firstJetIndex) &&
+    hasRecoPartner(m_secondJetIndex);
+
   // Compute masses
   TLorentzVector mc_hadr_W = *m_MC->getP4(m_firstJetIndex) + *m_MC->getP4(m_secondJetIndex);
   m_MC_hadronicWMass = mc_hadr_W.M();
@@ -1153,37 +1184,55 @@ void mtt_analysis::MCidentification()
 
   TLorentzVector mc_lept_top = mc_lept_W + *m_MC->getP4(m_leptonicBIndex);
   m_MC_leptonicTopMass = mc_lept_top.M();
+
+  // Store ref to various P4
+  *m_MC_lepton_p4 = *m_MC->getP4(m_leptonIndex);
+  *m_MC_neutrino_p4 = *m_MC->getP4(m_neutrinoIndex);
+
+  *m_MC_leptonic_B_p4 = *m_MC->getP4(m_leptonicBIndex);
+  *m_MC_hadronic_B_p4 = *m_MC->getP4(m_hadronicBIndex);
+
+  *m_MC_lightJet1_p4 = *m_MC->getP4(m_firstJetIndex);
+  *m_MC_lightJet2_p4 = *m_MC->getP4(m_secondJetIndex);
 }
 
-int mtt_analysis::match_MC(int idxJetbH, int idxJetbL, int idxJet1,	int idxJet2,
-    int idxLepton)
-{
-  if (
-      /// Ask if Jet b hadronique  come from a b and top
-      fabs(m_MC->getType(m_jetMet->getJetMCIndex(idxJetbH))) == 5 &&
-      fabs(m_MC->getType(m_MC->getMom1Index(m_jetMet->getJetMCIndex(idxJetbH)))) == 6 &&
+bool mtt_analysis::hasRecoPartner(int mcIndex) const {
 
-      /// Ask if Jet b leptonique  come from a b and top
-      fabs(m_MC->getType(m_jetMet->getJetMCIndex(idxJetbL))) == 5 &&
-      fabs(m_MC->getType(m_MC->getMom1Index(m_jetMet->getJetMCIndex(idxJetbL)))) == 6 &&
+  // Loop over all jets, and check if one has a gen particle
+  // equals to mcIndex
 
-      /// Ask if jet 1,2 come from light quark and W and top
-      fabs(m_MC->getType(m_jetMet->getJetMCIndex(idxJet1))) < 5 &&
-      fabs(m_MC->getType(m_MC->getMom1Index(m_jetMet->getJetMCIndex(idxJet1)))) == 24 &&
-      fabs(m_MC->getType(m_MC->getMom1Index(m_MC->getMom1Index(m_jetMet->getJetMCIndex(idxJet1))))) == 6 &&
-      fabs(m_MC->getType(m_jetMet->getJetMCIndex(idxJet2))) < 5 &&
-      fabs(m_MC->getType(m_MC->getMom1Index(m_jetMet->getJetMCIndex(idxJet2)))) == 24 &&
-      fabs(m_MC->getType(m_MC->getMom1Index(m_MC->getMom1Index(m_jetMet->getJetMCIndex(idxJet2))))) == 6
-     )
-  {
-    return 1;
+  for (uint32_t i = 0; i < m_jetMet->getSize() ; i++) {
+    if (m_jetMet->getJetMCIndex(i) == mcIndex)
+      return true;
   }
-  else
-  {
-    return 0;
-  }
+
+  return false;
 }
 
+void mtt_analysis::checkIfSolutionIsCorrect() {
+
+  m_mtt_IsBestSolMatched = (
+
+      // Check leptonic B
+      m_jetMet->getJetMCIndex(m_selectedLeptonicBIndex) == m_leptonicBIndex &&
+
+      // Check hadronic B
+      m_jetMet->getJetMCIndex(m_selectedHadronicBIndex) == m_hadronicBIndex &&
+
+      // Check light jets
+      (
+       (
+        m_jetMet->getJetMCIndex(m_selectedHadronicFirstJetIndex) == m_firstJetIndex &&
+        m_jetMet->getJetMCIndex(m_selectedHadronicSecondJetIndex) == m_secondJetIndex
+       )
+       ||
+       (
+        m_jetMet->getJetMCIndex(m_selectedHadronicFirstJetIndex) == m_secondJetIndex &&
+        m_jetMet->getJetMCIndex(m_selectedHadronicSecondJetIndex) == m_firstJetIndex
+       )
+      )
+      );
+}
 
 void mtt_analysis::fillTree()
 {
@@ -1203,6 +1252,7 @@ void mtt_analysis::reset()
 
   m_mtt_isSel = 0;
   m_mtt_IsBestSolMatched = -1;
+  m_mtt_eventIsAssociable = false;
   m_mtt_OneMatchedCombi = 0;
   m_mtt_BestSolChi2 = -1.;
   //m_mtt_KFChi2 = -1.;
@@ -1226,6 +1276,18 @@ void mtt_analysis::reset()
 
   m_lepTopP4_AfterChi2->SetPxPyPzE(0., 0., 0., 0.);
   m_hadTopP4_AfterChi2->SetPxPyPzE(0., 0., 0., 0.);
+
+  m_MC_lepton_p4->SetPxPyPzE(0., 0., 0., 0.);
+  m_MC_neutrino_p4->SetPxPyPzE(0., 0., 0., 0.);
+
+  m_MC_leptonic_B_p4->SetPxPyPzE(0., 0., 0., 0.);
+  m_MC_hadronic_B_p4->SetPxPyPzE(0., 0., 0., 0.);
+
+  m_MC_lightJet1_p4->SetPxPyPzE(0., 0., 0., 0.);
+  m_MC_lightJet2_p4->SetPxPyPzE(0., 0., 0., 0.);
+
+  m_MC_Top1_p4->SetPxPyPzE(0., 0., 0., 0.);
+  m_MC_Top2_p4->SetPxPyPzE(0., 0., 0., 0.);
 
   m_selectedLeptonIndex               = -1;
   m_selectedLeptonicBIndex            = -1;

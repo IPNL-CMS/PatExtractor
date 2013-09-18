@@ -57,6 +57,9 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
       return jet.genParton();
     }
 
+    /** Set the index of the gen particle matched with this jet.
+     * The index is relative to MCExtractor array
+     */
     virtual void setGenParticleIndex(int genParticleIndex, int index) {
       m_jet_MCIndex[index] = genParticleIndex;
     }
@@ -88,7 +91,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     //float getJetBTagProb_SSVHP(int jetidx) {return m_jet_btag_SSVHP[jetidx];}
     //float getJetBTagProb_TCHE(int jetidx) {return m_jet_btag_TCHE[jetidx];}
 
-    int getJetMCIndex(int jetidx){return m_jet_MCIndex[jetidx];}
+    int getJetMCIndex(int jetidx) {return m_jet_MCIndex[jetidx];}
 
     /**
      * This method is need for inline JEC. We need to be able to change jet pt on-the-fly

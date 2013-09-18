@@ -22,6 +22,7 @@
 
 #include <TTree.h>
 #include <TLorentzVector.h>
+#include <TRef.h>
 
 class AnalysisSettings;
 class EventExtractor;
@@ -61,13 +62,8 @@ namespace patextractor {
 
       void loopOverCombinations();
       int patIndexToExtractorIndex(int patIndex) const;
-
-      //makes the 2D cut for a given lepton
-      //int Make2DCut(TVector3 lept3P, float cutDR, float cutPtrel);
-
-      /// MC event channel identification
-      int match_MC(int idxJetbH, int idxJetbL, int idxJet1, int idxJet2, int idxLepton);
-
+      bool hasRecoPartner(int mcIndex) const;
+      void checkIfSolutionIsCorrect();
       void MCidentification();
       void reset();
       void fillTree();
@@ -153,6 +149,18 @@ namespace patextractor {
       float m_MC_eta_tt;
       float m_MC_beta_tt;
 
+      TLorentzVector* m_MC_lepton_p4;
+      TLorentzVector* m_MC_neutrino_p4;
+
+      TLorentzVector* m_MC_leptonic_B_p4;
+      TLorentzVector* m_MC_hadronic_B_p4;
+
+      TLorentzVector* m_MC_lightJet1_p4;
+      TLorentzVector* m_MC_lightJet2_p4;
+
+      TLorentzVector* m_MC_Top1_p4;
+      TLorentzVector* m_MC_Top2_p4;
+
       /// Number of lepton/neutrino from Top->W and quark b from Top
       int nEle;
       int nMu;
@@ -171,6 +179,7 @@ namespace patextractor {
       //Reco stuff
 
       int m_mtt_isSel;
+      bool m_mtt_eventIsAssociable; // If true, each parton from the event has a reco object associated.
       int m_mtt_IsBestSolMatched;
       int m_mtt_OneMatchedCombi;
 
