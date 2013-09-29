@@ -63,6 +63,7 @@ namespace patextractor {
       void loopOverCombinations();
       int patIndexToExtractorIndex(int patIndex) const;
       bool hasRecoPartner(int mcIndex) const;
+      bool jetComesFromTTDecay(int mcIndex) const;
       void checkIfSolutionIsCorrect();
       void MCidentification();
       void reset();
@@ -180,7 +181,8 @@ namespace patextractor {
 
       int m_mtt_isSel;
       bool m_mtt_eventIsAssociable; // If true, each parton from the event has a reco object associated.
-      int m_mtt_IsBestSolMatched;
+      bool m_mtt_recoJetsAssociated;
+      bool m_mtt_recoJetsAssociatedWellPlaced;
       int m_mtt_OneMatchedCombi;
 
       int m_mtt_NumComb;

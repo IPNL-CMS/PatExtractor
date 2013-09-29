@@ -134,8 +134,14 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
   m_tree_Mtt->Branch("isSel"              , &m_mtt_isSel                 , "isSel/I");
   //m_tree_Mtt->Branch("oneMatchedCombi"    , &m_mtt_OneMatchedCombi       , "oneMatchedCombi/I");
   m_tree_Mtt->Branch("bestSolChi2"        , &m_mtt_BestSolChi2           , "bestSolChi2/F");
+
   m_tree_Mtt->Branch("eventIsAssociable"  , &m_mtt_eventIsAssociable     , "eventIsAssociable/O");
-  m_tree_Mtt->Branch("isBestSolMatched"   , &m_mtt_IsBestSolMatched      , "isBestSolMatched/I");
+
+  // If true, it means that we have selected the correct four reco jets (ie, reco jets coming from tt decay)
+  m_tree_Mtt->Branch("recoJetsAssociated" , &m_mtt_recoJetsAssociated    , "recoJetsAssociated/O");
+  // If true, it means that we have selected the correct four reco jets (ie, reco jets coming from tt decay)
+  // and each jets is correctly positionned.
+  m_tree_Mtt->Branch("recoJetsAssociatedWellPlaced", &m_mtt_recoJetsAssociatedWellPlaced, "recoJetsAssociatedWellPlaced/O");
 
   m_tree_Mtt->Branch("numComb"            , &m_mtt_NumComb                , "numComb/I");
   m_tree_Mtt->Branch("solChi2"            , &m_mtt_SolChi2                , "solChi2[numComb]/F");
@@ -953,12 +959,15 @@ void mtt_analysis::MCidentification()
     if (motherIndex == -1)
       continue;
 
+    if (false) {
+      std::cout << "Type: " << m_MC->getType(i) << std::endl;
+      std::cout << "Mother type: " << m_MC->getType(motherIndex) << std::endl;
+      if (grandMotherIndex != -1)
+        std::cout << "Grandmother type: " << m_MC->getType(grandMotherIndex) << std::endl;
+    }
+
     if (abs(m_MC->getType(motherIndex)) == ID_T || (grandMotherIndex != -1 && abs(m_MC->getType(grandMotherIndex) == ID_T)))
     {
-      // Skip W
-      if (abs(m_MC->getType(motherIndex)) == ID_W)
-        continue;
-
       /// Count the number of leptons and neutrinos from Top->W
       if (fabs(m_MC->getType(i)) == 11) ++nEle;   //Electron from WTop
       if (fabs(m_MC->getType(i)) == 13) ++nMu;    //Muon	   from WTop
@@ -1199,19 +1208,45 @@ void mtt_analysis::MCidentification()
 bool mtt_analysis::hasRecoPartner(int mcIndex) const {
 
   // Loop over all jets, and check if one has a gen particle
-  // equals to mcIndex
+  // equals to mcIndex. Check also that the matched reco jet
+  // pass our jet selection
 
   for (uint32_t i = 0; i < m_jetMet->getSize() ; i++) {
-    if (m_jetMet->getJetMCIndex(i) == mcIndex)
+    if (m_jetMet->getJetMCIndex(i) == mcIndex) {
+
+      if (fabs(m_jetMet->getJetLorentzVector(i)->Pt()) < m_JET_Pt_min)
+        continue;
+
+      if (fabs(m_jetMet->getJetLorentzVector(i)->Eta()) > m_JET_Eta_max)
+        continue;
+
       return true;
+    }
   }
 
   return false;
 }
 
+bool mtt_analysis::jetComesFromTTDecay(int mcIndex) const {
+  return
+    mcIndex == m_leptonicBIndex ||
+    mcIndex == m_hadronicBIndex ||
+    mcIndex == m_firstJetIndex ||
+    mcIndex == m_secondJetIndex;
+}
+
 void mtt_analysis::checkIfSolutionIsCorrect() {
 
-  m_mtt_IsBestSolMatched = (
+  // Check if the four select jets come from tt decay.
+  // Position is not important, as long as we have the four
+  m_mtt_recoJetsAssociated = (
+      jetComesFromTTDecay(m_jetMet->getJetMCIndex(m_selectedLeptonicBIndex)) &&
+      jetComesFromTTDecay(m_jetMet->getJetMCIndex(m_selectedHadronicBIndex)) &&
+      jetComesFromTTDecay(m_jetMet->getJetMCIndex(m_selectedHadronicFirstJetIndex)) &&
+      jetComesFromTTDecay(m_jetMet->getJetMCIndex(m_selectedHadronicSecondJetIndex))      
+      );
+
+  m_mtt_recoJetsAssociatedWellPlaced = (
 
       // Check leptonic B
       m_jetMet->getJetMCIndex(m_selectedLeptonicBIndex) == m_leptonicBIndex &&
@@ -1251,8 +1286,10 @@ void mtt_analysis::reset()
   m_pass_jet_cut = -1;
 
   m_mtt_isSel = 0;
-  m_mtt_IsBestSolMatched = -1;
   m_mtt_eventIsAssociable = false;
+  m_mtt_recoJetsAssociated = false;
+  m_mtt_recoJetsAssociatedWellPlaced = false;
+
   m_mtt_OneMatchedCombi = 0;
   m_mtt_BestSolChi2 = -1.;
   //m_mtt_KFChi2 = -1.;
