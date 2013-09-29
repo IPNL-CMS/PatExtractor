@@ -501,7 +501,7 @@ int mtt_analysis::JetSel()
 
   for (int i = 0; i < n_jet; i++)
   {
-    TLorentzVector *jetP = m_jetMet->getJetLorentzVector(i);
+    TLorentzVector *jetP = m_jetMet->getP4(i);
 
     if (fabs(jetP->Pt()) < m_JET_Pt_min) continue;
     if (fabs(jetP->Eta()) >  m_JET_Eta_max) continue;
@@ -748,12 +748,12 @@ void mtt_analysis::loopOverCombinations()
           c_j4 = m_selJetsIds[j4];
 
           // This call corrects MET pz
-          bool res = m_KinFit->ReadObjects(*m_jetMet->getJetLorentzVector(c_j3),
-              *m_jetMet->getJetLorentzVector(c_j4),
-              *m_jetMet->getJetLorentzVector(c_j1),
+          bool res = m_KinFit->ReadObjects(*m_jetMet->getP4(c_j3),
+              *m_jetMet->getP4(c_j4),
+              *m_jetMet->getP4(c_j1),
               *m_refLept,
               *m_jetMet->getMETLorentzVector(0),
-              *m_jetMet->getJetLorentzVector(c_j2),
+              *m_jetMet->getP4(c_j2),
               m_MAIN_doSemiMu
               );
 
@@ -801,12 +801,12 @@ void mtt_analysis::loopOverCombinations()
   {
     
     // Put selected object inside KinFit. This will correct MET and everything we need
-    m_KinFit->ReadObjects(*m_jetMet->getJetLorentzVector(bestj3),
-        *m_jetMet->getJetLorentzVector(bestj4),
-        *m_jetMet->getJetLorentzVector(bestj1),
+    m_KinFit->ReadObjects(*m_jetMet->getP4(bestj3),
+        *m_jetMet->getP4(bestj4),
+        *m_jetMet->getP4(bestj1),
         *m_refLept,
         *m_jetMet->getMETLorentzVector(0),
-        *m_jetMet->getJetLorentzVector(bestj2),
+        *m_jetMet->getP4(bestj2),
         m_MAIN_doSemiMu,
         &m_is_neutrino_pz_corrected
         );
@@ -847,12 +847,12 @@ void mtt_analysis::loopOverCombinations()
        */
     /*
 
-    m_KinFit->ReadObjects(*m_jetMet->getJetLorentzVector(bestj3),
-        *m_jetMet->getJetLorentzVector(bestj4),
-        *m_jetMet->getJetLorentzVector(bestj1),
+    m_KinFit->ReadObjects(*m_jetMet->getP4(bestj3),
+        *m_jetMet->getP4(bestj4),
+        *m_jetMet->getP4(bestj1),
         *m_refLept,
         *m_jetMet->getMETLorentzVector(0),
-        *m_jetMet->getJetLorentzVector(bestj2),
+        *m_jetMet->getP4(bestj2),
         m_MAIN_doSemiMu
         );
 
@@ -1214,10 +1214,10 @@ bool mtt_analysis::hasRecoPartner(int mcIndex) const {
   for (uint32_t i = 0; i < m_jetMet->getSize() ; i++) {
     if (m_jetMet->getJetMCIndex(i) == mcIndex) {
 
-      if (fabs(m_jetMet->getJetLorentzVector(i)->Pt()) < m_JET_Pt_min)
+      if (fabs(m_jetMet->getP4(i)->Pt()) < m_JET_Pt_min)
         continue;
 
-      if (fabs(m_jetMet->getJetLorentzVector(i)->Eta()) > m_JET_Eta_max)
+      if (fabs(m_jetMet->getP4(i)->Eta()) > m_JET_Eta_max)
         continue;
 
       return true;

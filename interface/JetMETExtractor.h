@@ -83,7 +83,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
       return p4;
     }
 
-    TLorentzVector *getJetLorentzVector(int jetidx) {return (TLorentzVector*)m_jet_lorentzvector->At(jetidx);}
+    TLorentzVector *getP4(int jetidx) {return (TLorentzVector*)m_jet_lorentzvector->At(jetidx);}
 
     float getJetBTagProb_CSV(int jetidx) const { return m_jet_btag_CSV[jetidx]; }
     float getJetBTagProb_TCHP(int jetidx) const { return m_jet_btag_TCHP[jetidx]; }
