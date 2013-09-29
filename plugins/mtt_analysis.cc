@@ -91,14 +91,14 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
   m_tree_Mtt->Branch("MC_beta_tt"         , &m_MC_beta_tt             , "MC_beta_tt/F");
 
   // Easy access
-  m_tree_Mtt->Branch("MC_lepton_p4"       , &m_MC_lepton_p4);
-  m_tree_Mtt->Branch("MC_neutrino_p4"     , &m_MC_neutrino_p4);
-  m_tree_Mtt->Branch("MC_leptonic_B_p4"   , &m_MC_leptonic_B_p4);
-  m_tree_Mtt->Branch("MC_hadronic_B_p4"   , &m_MC_hadronic_B_p4);
-  m_tree_Mtt->Branch("MC_lightJet1_B_p4"  , &m_MC_lightJet1_p4);
-  m_tree_Mtt->Branch("MC_lightJet2_B_p4"  , &m_MC_lightJet2_p4);
-  m_tree_Mtt->Branch("MC_Top1_p4"         , &m_MC_Top1_p4);
-  m_tree_Mtt->Branch("MC_Top2_p4"         , &m_MC_Top2_p4);
+  m_tree_Mtt->Branch("MC_lepton_p4."      , &m_MC_lepton_p4);
+  m_tree_Mtt->Branch("MC_neutrino_p4."    , &m_MC_neutrino_p4);
+  m_tree_Mtt->Branch("MC_leptonic_B_p4."  , &m_MC_leptonic_B_p4);
+  m_tree_Mtt->Branch("MC_hadronic_B_p4."  , &m_MC_hadronic_B_p4);
+  m_tree_Mtt->Branch("MC_lightJet1_B_p4." , &m_MC_lightJet1_p4);
+  m_tree_Mtt->Branch("MC_lightJet2_B_p4." , &m_MC_lightJet2_p4);
+  m_tree_Mtt->Branch("MC_Top1_p4."        , &m_MC_Top1_p4);
+  m_tree_Mtt->Branch("MC_Top2_p4."        , &m_MC_Top2_p4);
 
   m_tree_Mtt->Branch("nGoodMuons"         , &m_mtt_NGoodMuons         , "nGoodMuons/I");
   m_tree_Mtt->Branch("nLooseGoodMuons"    , &m_mtt_NLooseGoodMuons    , "nLooseGoodMuons/I");
@@ -153,12 +153,12 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
   m_tree_Mtt->Branch("mLepTop_AfterChi2"      , &m_mLepTop_AfterChi2     , "mLepTop_AfterChi2/F");
   m_tree_Mtt->Branch("lepTopPt_AfterChi2"     , &m_lepTopPt_AfterChi2    , "lepTopPt_AfterChi2/F");
   m_tree_Mtt->Branch("lepTopEta_AfterChi2"    , &m_lepTopEta_AfterChi2   , "lepTopEta_AfterChi2/F");
-  m_tree_Mtt->Branch("lepTopP4_AfterChi2"     , &m_lepTopP4_AfterChi2);
+  m_tree_Mtt->Branch("lepTopP4_AfterChi2."    , &m_lepTopP4_AfterChi2);
 
   m_tree_Mtt->Branch("mHadTop_AfterChi2"      , &m_mHadTop_AfterChi2     , "mHadTop_AfterChi2/F");
   m_tree_Mtt->Branch("hadTopPt_AfterChi2"     , &m_hadTopPt_AfterChi2    , "hadTopPt_AfterChi2/F");
   m_tree_Mtt->Branch("hadTopEta_AfterChi2"    , &m_hadTopEta_AfterChi2   , "hadTopEta_AfterChi2/F");
-  m_tree_Mtt->Branch("hadTopP4_AfterChi2"     , &m_hadTopP4_AfterChi2);
+  m_tree_Mtt->Branch("hadTopP4_AfterChi2."    , &m_hadTopP4_AfterChi2);
 
   m_tree_Mtt->Branch("pt_tt_AfterChi2"        , &m_pt_tt_AfterChi2       , "pt_tt_AfterChi2/F");
   m_tree_Mtt->Branch("eta_tt_AfterChi2"       , &m_eta_tt_AfterChi2      , "eta_tt_AfterChi2/F");
