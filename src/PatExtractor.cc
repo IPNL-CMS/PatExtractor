@@ -8,6 +8,7 @@ PatExtractor::PatExtractor(const edm::ParameterSet& config) :
   do_fill_       (config.getUntrackedParameter<bool>("fillTree", true)),
   do_HLT_        (config.getUntrackedParameter<bool>("doHLT", false)),
   do_MC_         (config.getUntrackedParameter<bool>("doMC", false)),
+  do_MCjpsi_     (config.getUntrackedParameter<bool>("doMCjpsi", false)),
   do_Photon_     (config.getUntrackedParameter<bool>("doPhoton", false)),
   do_Electron_   (config.getUntrackedParameter<bool>("doElectron", false)),
 
@@ -238,7 +239,7 @@ void PatExtractor::initialize(const edm::ParameterSet& config)
   addExtractor("event", new EventExtractor("event"));
 
   if (do_MC_)
-    addExtractor("MC", new MCExtractor("MC", do_MC_));
+    addExtractor("MC", new MCExtractor("MC", do_MC_, do_MCjpsi_));
 
   if (do_HLT_)
     addExtractor("HLT", new HLTExtractor("HLT", do_HLT_, config));
