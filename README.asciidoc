@@ -28,7 +28,7 @@ Get the code
 ----
 src> mkdir Extractors
 src> cd Extractors
-Extractors> git clone git://ipnl.madalynn.eu/MttAnalysis.git
+Extractors> git clone https://github.com/IPNL-CMS/PatExtractor.git
 Extractors> cd ..
 src> scram b -j8
 ----
