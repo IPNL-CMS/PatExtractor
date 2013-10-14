@@ -53,10 +53,10 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
 ##
                                
    # Add HLT information
-   doHLT         = cms.untracked.bool(False),
+   doHLT         = cms.untracked.bool(True),
                                
    # Add MC information
-   doMC          = cms.untracked.bool(False),
+   doMC          = cms.untracked.bool(True),
    MC_tag        = cms.InputTag( "" ),
    doMCjpsi      = cms.untracked.bool(False),
                              
@@ -73,7 +73,7 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
    muon_tag      = cms.InputTag( "selectedPatMuonsPFlow" ),
 
    # Add Jet information
-   doJet         = cms.untracked.bool(False),
+   doJet         = cms.untracked.bool(True),
    jet_PF        = cms.PSet(
        input              = cms.InputTag("selectedPatJetsPFlow"),
 
@@ -86,7 +86,7 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
    ),
 
    # Add MET information
-   doMET         = cms.untracked.bool(False),
+   doMET         = cms.untracked.bool(True),
    MET_PF        = cms.PSet(
        input                  = cms.InputTag("patMETsPFlow"),
 
@@ -95,15 +95,15 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
    ),
 
    # Add PV information
-   doVertex      = cms.untracked.bool(False),
+   doVertex      = cms.untracked.bool(True),
    vtx_tag       = cms.InputTag( "offlinePrimaryVertices" ),
 
    # Add Track information
-   doTrack       = cms.untracked.bool(False),
+   doTrack       = cms.untracked.bool(True),
    trk_tag       = cms.InputTag( "generalTracks" ),
 
    # Add Track information
-   doPF          = cms.untracked.bool(False),
+   doPF          = cms.untracked.bool(True),
    pf_tag        = cms.InputTag( "particleFlow" ),
 
 ##
