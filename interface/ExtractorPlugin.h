@@ -20,6 +20,8 @@ namespace patextractor {
       virtual void analyze(const edm::Event&, const edm::EventSetup&, PatExtractor&) = 0;
       virtual void analyze(const edm::EventSetup&, PatExtractor&) {};
 
+      virtual void endJob() {};
+
     protected:
       bool m_isMC;
   };

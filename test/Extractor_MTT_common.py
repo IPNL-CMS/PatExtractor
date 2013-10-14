@@ -42,7 +42,7 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
   #Input PAT file to extract
   process.source = cms.Source("PoolSource",
       fileNames = cms.untracked.vstring(
-        ),                           
+        ),
       duplicateCheckMode = cms.untracked.string( 'noDuplicateCheck' )
       )
 
@@ -89,14 +89,14 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
   process.PATextraction.doMtt      = True
 
   # Jets correction : needs a valid global tags, or an external DB where JEC are stored
-  process.PATextraction.jet_PF.redoJetCorrection = True
+  process.PATextraction.jet_PF.redoJetCorrection = False
 
   if isMC:
     process.PATextraction.jet_PF.jetCorrectorLabel = "ak5PFchsL1FastL2L3"
   else:
     process.PATextraction.jet_PF.jetCorrectorLabel = "ak5PFchsL1FastL2L3Residual"
 
-  process.PATextraction.jet_PF.doJER = True # Disable automatically on data
+  process.PATextraction.jet_PF.doJER = False # Disable automatically on data
 
   # JER systematics:
   # Use -1 for 1-sigma down, 0 for nominal correction, and 1 for 1-sigma up
@@ -107,7 +107,7 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
   process.PATextraction.jet_PF.jesSign = 0
   process.PATextraction.jet_PF.jes_uncertainties_file = cms.untracked.string("Extractors/PatExtractor/data/START53_V23_Uncertainty_AK5PFchs.txt")
 
-  process.PATextraction.MET_PF.redoMetPhiCorrection   = True
+  process.PATextraction.MET_PF.redoMetPhiCorrection   = False
   process.PATextraction.MET_PF.redoMetTypeICorrection = False # Automatically true if redoJetCorrection is True
 
   from Extractor_MTT_ScaleFactors import loadMuonScaleFactor, loadBTagScaleFactors, loadElectronScaleFactor
@@ -187,6 +187,13 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
           use_ht_frac = cms.bool(False)
           ),
 
+        mva = cms.PSet(
+          weights = cms.string("Extractors/PatExtractor/data/ttbar_BDT.weights.xml")
+          ),
+
+        use_mva = cms.bool(True),
+        use_chi2 = cms.bool(True),
+
         # Scale factors
         muon_scale_factors = loadMuonScaleFactor("Muon_ID_iso_Efficiencies_Run_2012ABCD_53X.pkl"),
         electron_scale_factors = loadElectronScaleFactor("Electron_scale_factors.json"),
@@ -194,7 +201,7 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
 
         # ------------------------------------------------
         # settings for the KinFitter
-        # ------------------------------------------------    
+        # ------------------------------------------------
         maxNrIter = cms.uint32(500),
         maxDeltaS = cms.double(5e-05),
         maxF      = cms.double(0.0001),

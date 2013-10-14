@@ -150,6 +150,13 @@ void PatExtractor::endJob() {
 
   std::cout << "Total # of events for this job   = "<< nevent_tot     << std::endl;
 
+
+  m_outfile->cd();
+
+  for (auto& plugin: m_plugins) {
+    plugin->endJob();
+  }
+
   if (do_fill_) 
   {
     m_outfile->Write();

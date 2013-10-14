@@ -23,6 +23,7 @@
 #include <TTree.h>
 #include <TLorentzVector.h>
 #include <TRef.h>
+#include <TH1.h>
 
 class AnalysisSettings;
 class EventExtractor;
@@ -40,6 +41,10 @@ namespace edm {
   class EventSetup;
 }
 
+namespace TMVA {
+  class Reader;
+}
+
 namespace patextractor {
 
   class mtt_analysis: public Plugin {
@@ -50,6 +55,8 @@ namespace patextractor {
       // TTbar selection
       virtual void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup, PatExtractor& extractor);
       virtual void analyze(const edm::EventSetup& iSetup, PatExtractor& extractor);
+      virtual void endJob() {
+      }
 
     private:
 
@@ -65,15 +72,41 @@ namespace patextractor {
       bool hasRecoPartner(int mcIndex) const;
       bool jetComesFromTTDecay(int mcIndex) const;
       void checkIfSolutionIsCorrect();
+      bool isSolutionMatched(uint32_t leptonicBIndex, uint32_t hadronicBIndex, uint32_t hadronicFirstJetIndex, uint32_t hadronicSecondJetIndex);
       void MCidentification();
       void reset();
       void fillTree();
 
-      bool isBJet(unsigned int index); 
+      bool isBJet(unsigned int index);
 
       bool   m_MAIN_doUseBTag;
       //bool   m_MAIN_doKF;
       bool   m_MAIN_doSemiMu;
+
+      // MVA
+      bool m_useMVA;
+      std::string m_MVAWeightFilename;
+      std::shared_ptr<TMVA::Reader> m_MVAReader;
+
+      bool m_useChi2;
+
+      float m_mva_lightJet1p2_Pt;
+      float m_mva_leptonic_B_Pt;
+      float m_mva_leptonic_W_Pt;
+      float m_mva_leptonic_Top_Pt;
+      float m_mva_leptonic_Top_M;
+      float m_mva_hadronic_B_Pt;
+      float m_mva_hadronic_W_Pt;
+      float m_mva_hadronic_W_M;
+      float m_mva_hadronic_Top_Pt;
+      float m_mva_hadronic_Top_M;
+
+      float m_mva_delta_phi_tops;
+      float m_mva_delta_phi_lightjets;
+      float m_mva_delta_phi_W;
+      float m_mva_delta_R_tops;
+      float m_mva_delta_R_lightjets;
+      float m_mva_delta_R_W;
 
       TTree*  m_tree_Mtt;
       KinFit* m_KinFit;
@@ -181,19 +214,23 @@ namespace patextractor {
 
       int m_mtt_isSel;
       bool m_mtt_eventIsAssociable; // If true, each parton from the event has a reco object associated.
-      bool m_mtt_recoJetsAssociated;
-      bool m_mtt_recoJetsAssociatedWellPlaced;
+      bool m_mtt_recoJetsAssociatedWithChi2;
+      bool m_mtt_recoJetsAssociatedWellPlacedWithChi2;
       int m_mtt_OneMatchedCombi;
 
-      int m_mtt_NumComb;
+      int m_mtt_NumComb_chi2;
+      int m_mtt_NumComb_MVA;
       float m_mtt_SolChi2[1000];
+      float m_mtt_SolMVA[1000];
       float m_mtt_BestSolChi2;
+      float m_mtt_BestSolMVA;
       //float m_mtt_KFChi2;
 
       /*float m_mtt_AfterChi2andKF;
         float m_mLepTop_AfterChi2andKF;
         float m_mHadTop_AfterChi2andKF;*/
 
+      // Values after Chi2 selection
       float m_mtt_AfterChi2;
       float m_eta_tt_AfterChi2;
       float m_pt_tt_AfterChi2;
@@ -212,12 +249,53 @@ namespace patextractor {
       TLorentzVector* m_hadTopP4_AfterChi2;
 
       // Indexes of selected particles for mtt computation
-      int m_selectedLeptonIndex;
-      int m_selectedLeptonicBIndex;
-      int m_selectedHadronicBIndex;
-      int m_selectedHadronicFirstJetIndex;
-      int m_selectedHadronicSecondJetIndex;
+      int m_selectedLeptonIndex_AfterChi2;
+      int m_selectedLeptonicBIndex_AfterChi2;
+      int m_selectedHadronicBIndex_AfterChi2;
+      int m_selectedHadronicFirstJetIndex_AfterChi2;
+      int m_selectedHadronicSecondJetIndex_AfterChi2;
 
+      TLorentzVector* m_selectedLeptonP4_AfterChi2;
+      TLorentzVector* m_selectedNeutrinoP4_AfterChi2;
+      TLorentzVector* m_selectedLeptonicBP4_AfterChi2;
+      TLorentzVector* m_selectedHadronicBP4_AfterChi2;
+      TLorentzVector* m_selectedFirstJetP4_AfterChi2;
+      TLorentzVector* m_selectedSecondJetP4_AfterChi2;
+
+      // MVA values
+      bool m_mtt_recoJetsAssociatedWithMVA;
+      bool m_mtt_recoJetsAssociatedWellPlacedWithMVA;
+
+      float m_mtt_AfterMVA;
+      float m_eta_tt_AfterMVA;
+      float m_pt_tt_AfterMVA;
+      float m_beta_tt_AfterMVA;
+      float m_mLepTop_AfterMVA;
+      float m_mHadTop_AfterMVA;
+      float m_mHadW_AfterMVA;
+      float m_mLepW_AfterMVA;
+
+      float m_lepTopPt_AfterMVA;
+      float m_lepTopEta_AfterMVA;
+      TLorentzVector* m_lepTopP4_AfterMVA;
+
+      float m_hadTopPt_AfterMVA;
+      float m_hadTopEta_AfterMVA;
+      TLorentzVector* m_hadTopP4_AfterMVA;
+
+      // Indexes of selected particles for mtt computation, after MVA selection
+      int m_selectedLeptonIndex_AfterMVA;
+      int m_selectedLeptonicBIndex_AfterMVA;
+      int m_selectedHadronicBIndex_AfterMVA;
+      int m_selectedHadronicFirstJetIndex_AfterMVA;
+      int m_selectedHadronicSecondJetIndex_AfterMVA;
+
+      TLorentzVector* m_selectedLeptonP4_AfterMVA;
+      TLorentzVector* m_selectedNeutrinoP4_AfterMVA;
+      TLorentzVector* m_selectedLeptonicBP4_AfterMVA;
+      TLorentzVector* m_selectedHadronicBP4_AfterMVA;
+      TLorentzVector* m_selectedFirstJetP4_AfterMVA;
+      TLorentzVector* m_selectedSecondJetP4_AfterMVA;
 
 
       int m_mtt_NGoodMuons;
