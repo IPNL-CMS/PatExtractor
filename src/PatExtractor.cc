@@ -264,7 +264,7 @@ void PatExtractor::initialize(const edm::ParameterSet& config)
     addExtractor("electrons", new ElectronExtractor("electron_PF", electron_tag_, do_Electron_));
 
   if (do_Muon_)
-    addExtractor("muons", new MuonExtractor("muon_PF", muon_tag_, vtx_tag_, do_Muon_));
+    addExtractor("muons", new MuonExtractor("muon_PF", muon_tag_, vtx_tag_, do_Muon_, ScaleFactorService::TIGHT));
 
   if (do_Jet_ || do_MET_)
     addExtractor("JetMET", new JetMETExtractor("jet_PF", "MET_PF", config));
@@ -277,7 +277,7 @@ void PatExtractor::initialize(const edm::ParameterSet& config)
     addExtractor("electrons_loose", new ElectronExtractor("electron_loose_PF", edm::InputTag("selectedPatElectronsLoosePFlow"), true));
 
   if (do_Muon_)
-    addExtractor("muons_loose", new MuonExtractor("muon_loose_PF", edm::InputTag("selectedPatMuonsLoosePFlow"), vtx_tag_, true));
+    addExtractor("muons_loose", new MuonExtractor("muon_loose_PF", edm::InputTag("selectedPatMuonsLoosePFlow"), vtx_tag_, true, ScaleFactorService::LOOSE));
 
   for (auto& extractor: m_extractors) {
     extractor->setIsMC(is_MC_);

@@ -2,18 +2,20 @@
 
 #include <DataFormats/VertexReco/interface/Vertex.h>
 
-MuonExtractor::MuonExtractor(const std::string& name, const edm::InputTag& tag, const edm::InputTag& vertexTag, bool doTree)
+MuonExtractor::MuonExtractor(const std::string& name, const edm::InputTag& tag, const edm::InputTag& vertexTag, bool doTree, ScaleFactorService::WorkingPoint isolationWp)
   : BaseExtractor(name)
 {
   m_OK = false;
   m_vertexTag = vertexTag;
+  m_isolationWp = isolationWp;
 
   // Set everything to 0
  
   setPF((tag.label()).find("PFlow")); 
 
   m_muo_lorentzvector = new TClonesArray("TLorentzVector");
-  m_scaleFactors.setWriteMode();
+  m_scaleFactorsTight.setWriteMode();
+  m_scaleFactorsLoose.setWriteMode();
 
   reset();
 
@@ -60,7 +62,8 @@ MuonExtractor::MuonExtractor(const std::string& name, const edm::InputTag& tag, 
     m_tree_muon->Branch("muon_relIsolation",                   &m_muo_relIsolation, "muon_relIsolation[n_muons]/F");
     m_tree_muon->Branch("muon_deltaBetaCorrectedRelIsolation", &m_muo_deltaBetaCorrectedRelIsolation, "muon_deltaBetaCorrectedRelIsolation[n_muons]/F");
 
-    m_tree_muon->Branch("muon_scaleFactor", &m_scaleFactors.getBackingArray());
+    m_tree_muon->Branch("muon_scaleFactorTightEff", &m_scaleFactorsTight.getBackingArray());
+    m_tree_muon->Branch("muon_scaleFactorLooseEff", &m_scaleFactorsLoose.getBackingArray());
   }
 
 }
@@ -156,8 +159,11 @@ MuonExtractor::MuonExtractor(const std::string& name, TFile *a_file)
   if (m_tree_muon->FindBranch("muon_deltaBetaCorrectedRelIsolation"))
     m_tree_muon->SetBranchAddress("muon_deltaBetaCorrectedRelIsolation", &m_muo_deltaBetaCorrectedRelIsolation);
 
-  if (m_tree_muon->FindBranch("muon_scaleFactor"))
-    m_tree_muon->SetBranchAddress("muon_scaleFactor", &m_scaleFactors.getBackingArray());
+  if (m_tree_muon->FindBranch("muon_scaleFactorTight"))
+    m_tree_muon->SetBranchAddress("muon_scaleFactorTight", &m_scaleFactorsTight.getBackingArray());
+
+  if (m_tree_muon->FindBranch("muon_scaleFactorLoose"))
+    m_tree_muon->SetBranchAddress("muon_scaleFactorLoose", &m_scaleFactorsLoose.getBackingArray());
 }
 
 MuonExtractor::~MuonExtractor()
@@ -230,8 +236,10 @@ void MuonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iS
     m_muo_deltaBetaCorrectedRelIsolation[index] = (part.chargedHadronIso() + std::max((part.neutralHadronIso() + part.photonIso()) - 0.5 * part.puChargedHadronIso(), 0.0)) / part.pt();
   } 
 
-  if (m_isMC)
-    m_scaleFactors.push_back(m_scaleFactorService->getMuonScaleFactor(part.pt(), part.eta()));
+  if (m_isMC) {
+    m_scaleFactorsTight.push_back(m_scaleFactorService->getMuonScaleFactor(ScaleFactorService::TIGHT, m_isolationWp, part.pt(), part.eta()));
+    m_scaleFactorsLoose.push_back(m_scaleFactorService->getMuonScaleFactor(ScaleFactorService::LOOSE, m_isolationWp, part.pt(), part.eta()));
+  }
 }
 
 
@@ -240,7 +248,8 @@ void MuonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iS
 void MuonExtractor::reset()
 {
   m_size = 0;
-  m_scaleFactors.clear();
+  m_scaleFactorsTight.clear();
+  m_scaleFactorsLoose.clear();
 
   for (int i=0;i<m_muons_MAX;++i) 
   {

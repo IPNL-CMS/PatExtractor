@@ -3,6 +3,8 @@
 #include <map>
 #include <vector>
 
+#include <boost/algorithm/string.hpp>
+
 #include <CondFormats/PhysicsToolsObjects/interface/BinningPointByMap.h>
 
 #include <FWCore/Framework/interface/EventSetup.h>
@@ -17,14 +19,23 @@
 #include <FWCore/Utilities/interface/Exception.h>
 
 class ScaleFactorService {
+  public:
+    enum WorkingPoint {
+      LOOSE,
+      TIGHT
+    };
+
   private:
     typedef std::map<
-      // Eta binning
-      std::pair<double, double>,
+      std::string,
       std::map<
-        // Pt binning
+        // Eta binning
         std::pair<double, double>,
-        ScaleFactor
+        std::map<
+          // Pt binning
+          std::pair<double, double>,
+          ScaleFactor
+        >
       >
     > ScaleFactorMap;
 
@@ -40,19 +51,19 @@ class ScaleFactorService {
         return;
 
       try {
-	iSetup.get<BTagPerformanceRecord>().get("MUJETSWPBTAGCSVM", mBTagPerf);
-	mBTagPerfInit =  mBTagPerf.isValid();
+        iSetup.get<BTagPerformanceRecord>().get("MUJETSWPBTAGCSVM", mBTagPerf);
+        mBTagPerfInit = mBTagPerf.isValid();
       } catch (const cms::Exception& ex) {
         mBTagPerfInit = false;
       }
     }
 
-    ScaleFactor getElectronScaleFactor(double pt, double eta) {
-      return getScaleFactorFromMap(pt, eta, mElectronScaleFactors);
+    ScaleFactor getElectronScaleFactor(WorkingPoint effWp, WorkingPoint isoWp, double pt, double eta) {
+      return getScaleFactorFromMap(effWp, isoWp, pt, eta, mElectronScaleFactors);
     }
 
-    ScaleFactor getMuonScaleFactor(double pt, double eta) const {
-      return getScaleFactorFromMap(pt, eta, mMuonScaleFactors);
+    ScaleFactor getMuonScaleFactor(WorkingPoint effWp, WorkingPoint isoWp, double pt, double eta) const {
+      return getScaleFactorFromMap(effWp,  isoWp, pt, eta, mMuonScaleFactors);
     }
 
     ScaleFactor getBTaggingScaleFactor(double et, double eta) const {
@@ -81,9 +92,13 @@ class ScaleFactorService {
 
 
   private:
-    ScaleFactor getScaleFactorFromMap(double pt, double eta, const ScaleFactorMap& map) const {
+    ScaleFactor getScaleFactorFromMap(WorkingPoint effWp, WorkingPoint isoWp, double pt, double eta, const ScaleFactorMap& map) const {
+      const std::string wpName = nameFromWorkingPoints(effWp, isoWp);
+      if (map.count(wpName) == 0)
+        return ScaleFactor();
+
       eta = fabs(eta);
-      for (const auto& etaBin: map) {
+      for (const auto& etaBin: map.at(wpName)) {
         if (eta >= etaBin.first.first && eta < etaBin.first.second) {
           // Look for pt bin
           for (const auto& ptBin: etaBin.second) {
@@ -97,9 +112,9 @@ class ScaleFactorService {
       return ScaleFactor();
     }
 
-    void parseScaleFactors(const edm::ParameterSet& settings, const std::string& name, ScaleFactorMap& map) {
+    void parseScaleFactors(const edm::ParameterSet& settings, const std::string& setName, ScaleFactorMap& map, const std::string& wpName) {
       uint32_t nEta = 0, nPt = 0;
-      const edm::VParameterSet& sfs = settings.getParameterSetVector(name);
+      const edm::VParameterSet& sfs = settings.getParameterSetVector(setName);
 
       for (const edm::ParameterSet& etaBin: sfs) {
         nEta++;
@@ -112,22 +127,43 @@ class ScaleFactorService {
           auto pt = std::make_pair(ptBinVector[0], ptBinVector[1]);
 
           ScaleFactor sf(ptBin.getParameter<double>("value"), ptBin.getParameter<double>("error_low"), ptBin.getParameter<double>("error_high"));
-          map[eta][pt] = sf;
+          map[wpName][eta][pt] = sf;
         }
       }
 
-      std::cout << "Done. " << nEta << " eta bins and " << nPt << " pt bins loaded." << std::endl;
+      std::cout << "Done. " << nEta << " eta bins and " << nPt << " pt bins loaded for " << wpName << "." << std::endl;
       std::cout << std::endl;
     }
 
     void parseMuonScaleFactors(const edm::ParameterSet& settings) {
       std::cout << "Loading muon scale factors..." << std::endl;
-      parseScaleFactors(settings, "muon_scale_factors", mMuonScaleFactors);
+      const std::vector<std::string>& scaleFactors = settings.getParameter<std::vector<std::string>>("muon_scale_factors");
+      for (const std::string& name: scaleFactors) {
+        std::string wpName = name;
+        boost::replace_all(wpName, "muon_scale_factors_", "");
+        parseScaleFactors(settings, name, mMuonScaleFactors, wpName);
+      }
     }
 
     void parseElectronScaleFactors(const edm::ParameterSet& settings) {
       std::cout << "Loading electron scale factors..." << std::endl;
-      parseScaleFactors(settings, "electron_scale_factors", mElectronScaleFactors);
+      parseScaleFactors(settings, "electron_scale_factors", mElectronScaleFactors, "tighteff_tightiso");
+    }
+
+    std::string workingPointToString(WorkingPoint wp) const {
+      switch (wp) {
+        case LOOSE:
+        return "loose";
+
+        case TIGHT:
+        return "tight";
+      }
+
+      return "";
+    }
+
+    std::string nameFromWorkingPoints(WorkingPoint eff, WorkingPoint iso) const {
+      return workingPointToString(eff) + "eff_" + workingPointToString(iso) + "iso";
     }
 
     ScaleFactorMap mMuonScaleFactors;

@@ -504,7 +504,7 @@ int mtt_analysis::MuonSel()
 
   if (m_isMC) {
     // Get scale factor
-    ScaleFactor sf = m_muon->getScaleFactor(goodmuidx);
+    ScaleFactor sf = m_muon->getScaleFactor(ScaleFactorService::TIGHT, goodmuidx);
     m_weight *= sf.getValue();
     m_weight_error_low += sf.getErrorLow() * sf.getErrorLow();
     m_weight_error_high += sf.getErrorHigh() * sf.getErrorHigh();

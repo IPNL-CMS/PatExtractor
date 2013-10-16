@@ -18,6 +18,7 @@
 #include "../interface/BaseExtractor.h"
 #include "../interface/MCExtractor.h"
 #include <Extractors/PatExtractor/interface/ScaleFactor.h>
+#include <Extractors/PatExtractor/interface/ScaleFactorService.h>
 
 //Include std C++
 #include <iostream>
@@ -33,7 +34,7 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
 
   public:
 
-    MuonExtractor(const std::string& name, const edm::InputTag& tag, const edm::InputTag& vertexTag, bool doTree);
+    MuonExtractor(const std::string& name, const edm::InputTag& tag, const edm::InputTag& vertexTag, bool doTree, ScaleFactorService::WorkingPoint isolationWp);
     MuonExtractor(const std::string& name, TFile *a_file);
     virtual ~MuonExtractor();
 
@@ -106,14 +107,25 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
       return m_muo_deltaBetaCorrectedRelIsolation[index];
     }
 
-    ScaleFactor getScaleFactor(int index) const {
-      return m_scaleFactors.at(index);
+    ScaleFactor getScaleFactor(ScaleFactorService::WorkingPoint wp, int index) const {
+      switch (wp) {
+        case ScaleFactorService::LOOSE:
+          return m_scaleFactorsLoose.at(index);
+          break;
+
+        case ScaleFactorService::TIGHT:
+          return m_scaleFactorsTight.at(index);
+          break;
+      }
+
+      return ScaleFactor();
     }
 
 
   private:
 
     edm::InputTag m_vertexTag;
+    ScaleFactorService::WorkingPoint m_isolationWp;
 
     TTree* m_tree_muon;
 
@@ -154,7 +166,8 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
     float m_muo_pixelLayerWithMeasurement[m_muons_MAX];
     float m_muo_globalTrackNumberOfValidHits[m_muons_MAX];
 
-    ScaleFactorCollection m_scaleFactors;
+    ScaleFactorCollection m_scaleFactorsTight;
+    ScaleFactorCollection m_scaleFactorsLoose;
 };
 
 #endif 

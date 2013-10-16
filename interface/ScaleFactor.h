@@ -6,24 +6,18 @@ class ScaleFactor {
 
   public:
     ScaleFactor():
-      m_value(1), m_error_low(0), m_error_high(0) { 
-        m_array = new std::vector<double>(3);
+      m_value(1), m_error_low(0), m_error_high(0), m_array(nullptr) { 
       };
 
     ScaleFactor(double value, double error):
-      m_value(value), m_error_low(error), m_error_high(error) {
-        m_array = new std::vector<double>(3);
+      m_value(value), m_error_low(error), m_error_high(error), m_array(nullptr) {
       };
 
     ScaleFactor(double value, double error_low, double error_high):
-      m_value(value), m_error_low(error_low), m_error_high(error_high) {
-        m_array = new std::vector<double>(3);
+      m_value(value), m_error_low(error_low), m_error_high(error_high), m_array(nullptr) {
       };
 
-    ScaleFactor(const ScaleFactor& other) {
-
-      m_array = new std::vector<double>(3);
-
+    ScaleFactor(const ScaleFactor& other): m_array(nullptr) {
       m_value = other.m_value;
       m_error_low = other.m_error_low;
       m_error_high = other.m_error_high;
@@ -64,6 +58,8 @@ class ScaleFactor {
     }
 
     std::vector<double>* getBackingArray() const {
+      m_array = new std::vector<double>(3);
+
       (*m_array)[0] = m_value;
       (*m_array)[1] = m_error_low;
       (*m_array)[2] = m_error_high;

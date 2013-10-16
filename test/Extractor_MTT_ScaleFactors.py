@@ -1,35 +1,57 @@
 import FWCore.ParameterSet.Config as cms
 
-def loadMuonScaleFactor(filename):
+def extractScaleFactor(dict, key):
+    s = []
+
+    for pt, sf in dict[key].items():
+        pt_array = pt.split("_", 1)
+
+        pset = {
+                "pt": cms.vdouble(float(pt_array[0]), float(pt_array[1])),
+                "value": cms.double(float(sf["data/mc"]["efficiency_ratio"])),
+                "error_low": cms.double(float(sf["data/mc"]["err_low"])),
+                "error_high": cms.double(float(sf["data/mc"]["err_hi"]))
+                }
+
+        s.append(pset)
+
+    return s
+
+def loadMuonScaleFactor(filenameIso, filenameEff, effWorkingPoint, isoWorkingPoint):
   import pickle
-  f = open(filename)
+  import math
+  fIso = open(filenameIso)
+  fEff = open(filenameEff)
 
-  dict = pickle.load(f)
+  dictIso = pickle.load(fIso)
+  dictEff = pickle.load(fEff)
 
-  suffix = "2012ABCD"
-  etas = [[0, 0.9], [0.9, 1.2], [1.2, 2.1]]
+  etas = [[0, 0.9], [0.9, 1.2], [1.2, 2.1], [2.1, 2.4]]
 
   mainSet = cms.VPSet()
 
   for eta in etas:
     if eta[0] == 0:
-      key = "ptabseta<%.1f_%s" % (eta[1], suffix) 
+      key = "ptabseta<%.1f" % (eta[1])
     else:
-      key = "ptabseta%.1f-%.1f_%s" % (eta[0], eta[1], suffix) 
+      key = "ptabseta%.1f-%.1f" % (eta[0], eta[1])
+
+    etaSetEff = extractScaleFactor(dictEff[effWorkingPoint], key)
+    etaSetIso = extractScaleFactor(dictIso[isoWorkingPoint], key) #"combRelIsoPF04dBeta<012_Tight"
+
+    assert len(etaSetEff) == len(etaSetIso)
 
     etaSet = cms.VPSet()
 
-    for pt, sf in dict["Tight"][key].items():
-      pt_array = pt.split("_", 1)
+    for i in range(0, len(etaSetEff)):
+        pset = cms.PSet(
+                pt = etaSetIso[i]["pt"],
+                value = cms.double(etaSetIso[i]["value"]._value * etaSetEff[i]["value"]._value),
+                error_high = cms.double(math.sqrt( math.pow(etaSetIso[i]["error_high"]._value, 2) + math.pow(etaSetEff[i]["error_high"]._value, 2)  )),
+                error_low = cms.double(math.sqrt( math.pow(etaSetIso[i]["error_low"]._value, 2) + math.pow(etaSetEff[i]["error_low"]._value, 2)  )),
+                )
 
-      pset = cms.PSet(
-          pt = cms.vdouble(float(pt_array[0]), float(pt_array[1])),
-          value = cms.double(float(sf["data/mc"]["efficiency_ratio"])),
-          error_low = cms.double(float(sf["data/mc"]["err_low"])),
-          error_high = cms.double(float(sf["data/mc"]["err_hi"]))
-          )
-
-      etaSet.append(pset)
+        etaSet.append(pset)
 
     mainSet.append(
         cms.PSet(
@@ -38,7 +60,8 @@ def loadMuonScaleFactor(filename):
         )
       )
 
-  f.close()
+  fIso.close()
+  fEff.close()
 
   return mainSet
 
