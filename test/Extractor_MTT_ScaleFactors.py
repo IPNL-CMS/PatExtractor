@@ -65,11 +65,12 @@ def loadMuonScaleFactor(filenameIso, filenameEff, effWorkingPoint, isoWorkingPoi
 
   return mainSet
 
-def loadElectronScaleFactor(filename):
+def loadElectronScaleFactor(filename, workingPoint):
   import json
   with open(filename) as f:
     data = json.load(f)
 
+    data = data[workingPoint]
     etaBins = data["eta"]
     ptBins = data["pt"]
 

@@ -119,7 +119,9 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
   process.PATextraction.muon_scale_factors_looseeff_looseiso = loadMuonScaleFactor("MuonEfficiencies_ISO_Run_2012ReReco_53X.pkl", "MuonEfficiencies_Run2012ReReco_53X.pkl", "Loose", "combRelIsoPF04dBeta<02_Loose")
   process.PATextraction.muon_scale_factors = cms.vstring("muon_scale_factors_looseeff_looseiso", "muon_scale_factors_tighteff_looseiso", "muon_scale_factors_tighteff_tightiso")
 
-  process.PATextraction.electron_scale_factors = loadElectronScaleFactor("Electron_scale_factors.json")
+  process.PATextraction.electron_scale_factors_tighteff_tightiso = loadElectronScaleFactor("Electron_scale_factors.json", "tight")
+  process.PATextraction.electron_scale_factors_looseeff_tightiso = loadElectronScaleFactor("Electron_scale_factors.json", "loose")
+  process.PATextraction.electron_scale_factors = cms.vstring("electron_scale_factors_tighteff_tightiso", "electron_scale_factors_looseeff_tightiso")
 
   # MTT analysis configuration
   process.PATextraction.plugins = cms.PSet(

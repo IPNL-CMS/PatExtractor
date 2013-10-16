@@ -41,8 +41,8 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
     virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Electron& object, int index);
 
     void reset();
-    void fillTree(); 
-    void getInfo(int ievt); 
+    void fillTree();
+    void getInfo(int ievt);
 
     virtual const reco::Candidate* getGenParticle(const pat::Electron& electron) {
       return electron.genLepton();
@@ -115,8 +115,16 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
       return m_ele_SCEta[index];
     }
 
-    ScaleFactor getScaleFactor(int index) const {
-      return m_scaleFactors.at(index);
+    ScaleFactor getScaleFactor(ScaleFactorService::WorkingPoint wp, int index) const {
+      switch (wp) {
+        case ScaleFactorService::LOOSE:
+          return m_scaleFactorsLoose.at(index);
+
+        case ScaleFactorService::TIGHT:
+          return m_scaleFactorsTight.at(index);
+      }
+
+      return ScaleFactor();
     }
 
   private:
@@ -138,12 +146,12 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
     // electron id's
 
     /// old one
-    int   m_ele_eidLoose[m_electrons_MAX]; 
-    int   m_ele_eidRobustHighEnergy[m_electrons_MAX]; 
-    int   m_ele_eidRobustLoose[m_electrons_MAX]; 
-    int   m_ele_eidRobustTight[m_electrons_MAX]; 
-    int   m_ele_eidTight[m_electrons_MAX]; 
-    int   m_ele_eidpf_evspi[m_electrons_MAX]; 
+    int   m_ele_eidLoose[m_electrons_MAX];
+    int   m_ele_eidRobustHighEnergy[m_electrons_MAX];
+    int   m_ele_eidRobustLoose[m_electrons_MAX];
+    int   m_ele_eidRobustTight[m_electrons_MAX];
+    int   m_ele_eidTight[m_electrons_MAX];
+    int   m_ele_eidpf_evspi[m_electrons_MAX];
     int   m_ele_eidpf_evsmu[m_electrons_MAX];
 
     /// new one
@@ -179,8 +187,9 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
     int   m_ele_numberOfMissedInnerLayer[m_electrons_MAX]; // Access the hit pattern counting (in the Tracker) the number of expected crossed layers  before the first trajectory's hit
     int   m_ele_MCIndex[m_electrons_MAX];
 
-    ScaleFactorCollection m_scaleFactors;
+    ScaleFactorCollection m_scaleFactorsTight;
+    ScaleFactorCollection m_scaleFactorsLoose;
 
 };
 
-#endif 
+#endif

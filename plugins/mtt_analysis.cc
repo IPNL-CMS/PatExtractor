@@ -589,7 +589,7 @@ int mtt_analysis::ElectronSel()
 
   if (m_isMC) {
     // Get scale factor
-    ScaleFactor sf = m_electron->getScaleFactor(goodelidx);
+    ScaleFactor sf = m_electron->getScaleFactor(ScaleFactorService::TIGHT, goodelidx);
     m_weight *= sf.getValue();
     m_weight_error_low += sf.getErrorLow() * sf.getErrorLow();
     m_weight_error_high += sf.getErrorHigh() * sf.getErrorHigh();

@@ -131,8 +131,7 @@ class ScaleFactorService {
         }
       }
 
-      std::cout << "Done. " << nEta << " eta bins and " << nPt << " pt bins loaded for " << wpName << "." << std::endl;
-      std::cout << std::endl;
+      std::cout << nEta << " eta bins and " << nPt << " pt bins loaded for " << wpName << " working points." << std::endl;
     }
 
     void parseMuonScaleFactors(const edm::ParameterSet& settings) {
@@ -143,11 +142,18 @@ class ScaleFactorService {
         boost::replace_all(wpName, "muon_scale_factors_", "");
         parseScaleFactors(settings, name, mMuonScaleFactors, wpName);
       }
+      std::cout << std::endl;
     }
 
     void parseElectronScaleFactors(const edm::ParameterSet& settings) {
       std::cout << "Loading electron scale factors..." << std::endl;
-      parseScaleFactors(settings, "electron_scale_factors", mElectronScaleFactors, "tighteff_tightiso");
+      const std::vector<std::string>& scaleFactors = settings.getParameter<std::vector<std::string>>("electron_scale_factors");
+      for (const std::string& name: scaleFactors) {
+        std::string wpName = name;
+        boost::replace_all(wpName, "electron_scale_factors_", "");
+        parseScaleFactors(settings, name, mElectronScaleFactors, wpName);
+      }
+      std::cout << std::endl;
     }
 
     std::string workingPointToString(WorkingPoint wp) const {
