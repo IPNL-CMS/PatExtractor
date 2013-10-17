@@ -95,7 +95,7 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
    ),
 
    # Add PV information
-   doVertex      = cms.untracked.bool(Flase),
+   doVertex      = cms.untracked.bool(False),
    vtx_tag       = cms.InputTag( "offlinePrimaryVertices" ),
 
    # Add Track information
