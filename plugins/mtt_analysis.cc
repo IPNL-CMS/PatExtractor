@@ -1333,7 +1333,7 @@ void mtt_analysis::MCidentification()
     }
   }
 
-  if (m_leptonIndex == -1 || m_neutrinoIndex == -1 || m_leptonicBIndex == -1 || m_hadronicBIndex == -1)
+  if (m_leptonIndex == -1 || m_neutrinoIndex == -1 || m_leptonicBIndex == -1 || m_hadronicBIndex == -1 || m_firstJetIndex == -1 || m_secondJetIndex == -1)
     keepEvent = false;
 
   if (! keepEvent) {
