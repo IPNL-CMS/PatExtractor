@@ -218,7 +218,7 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
       m_MC_vz[ipart]         = p.vz();
       m_MC_eta[ipart]        = p.eta();
       m_MC_phi[ipart]        = p.phi();
-      new((*m_MC_lorentzvector)[i]) TLorentzVector(p.px(),p.py(),p.pz(),p.energy());
+      new((*m_MC_lorentzvector)[ipart]) TLorentzVector(p.px(),p.py(),p.pz(),p.energy());
 
       if (_doJpsi && id==443) {
         mothertmp = &(*genParticles)[i];
