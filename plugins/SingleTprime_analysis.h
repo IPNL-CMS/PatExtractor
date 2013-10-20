@@ -57,6 +57,7 @@ namespace patextractor {
     float m_jet4pt;
     float m_jet5pt;
     float m_jet6pt;
+    float m_DRHiggsJets;
     
     //bool isMC;
     float m_jet_Ptcut;
@@ -64,6 +65,13 @@ namespace patextractor {
     float m_jet_EtaAccepcut;
     float m_jet_MultInAcceptance;
     float m_jet_MultOutAcceptance;
+
+    //Reconstructed particles
+    TLorentzVector* ReconstructedHiggs;
+    TLorentzVector* ReconstructedW;
+    TLorentzVector* ReconstructedTop;
+    TLorentzVector* FirstHiggsJet;
+    TLorentzVector* SecondHiggsJet;
 
     //Linking extractors
     std::shared_ptr<EventExtractor> m_event;
@@ -76,6 +84,10 @@ namespace patextractor {
 
     //Counter for b-tagged jets
     int m_NBtaggedJets_CSVL;
+
+    /// scale factors for jet energy resolution
+    std::vector<double> jetEnergyResolutionScaleFactors_;
+    std::vector<double> jetEnergyResolutionEtaBinning_;
 
   };
 
