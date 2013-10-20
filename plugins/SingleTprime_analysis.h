@@ -49,6 +49,8 @@ namespace patextractor {
     TTree* m_tree_stp;
     
     int m_evt;
+    int m_nPU; //PileUp
+    int evt_num;
     
     float m_THT;
     float m_jet1pt;
@@ -58,11 +60,15 @@ namespace patextractor {
     float m_jet5pt;
     float m_jet6pt;
     float m_DRHiggsJets;
+    float m_DRWJets;
+    float m_DRTopHiggs;
+    float m_RelTHT;
     
     //bool isMC;
     float m_jet_Ptcut;
     float m_jet_EtaMaxcut;
     float m_jet_EtaAccepcut;
+    float m_jet_OverlapAccep;
     float m_jet_MultInAcceptance;
     float m_jet_MultOutAcceptance;
 
@@ -70,8 +76,12 @@ namespace patextractor {
     TLorentzVector* ReconstructedHiggs;
     TLorentzVector* ReconstructedW;
     TLorentzVector* ReconstructedTop;
+    TLorentzVector* ReconstructedTprime;
     TLorentzVector* FirstHiggsJet;
     TLorentzVector* SecondHiggsJet;
+    TLorentzVector* FirstWJet;
+    TLorentzVector* SecondWJet;
+    TLorentzVector* TopJet;
 
     //Linking extractors
     std::shared_ptr<EventExtractor> m_event;
