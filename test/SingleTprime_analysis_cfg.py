@@ -1,8 +1,7 @@
-
 ####################################
 # Variable to run only the analysis#
 ####################################
-OnlyAnalysis = True
+OnlyAnalysis = False
 ####################################
 
 import FWCore.ParameterSet.Config as cms
@@ -61,8 +60,21 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
   # PAT extractor main options statements
   #
   #########################################
+  # Jets correction : needs a valid global tags, or an external DB where JEC are stored
+  process.PATextraction.jet_PF.redoJetCorrection = True
+  
+  if isMC:
+    process.PATextraction.jet_PF.jetCorrectorLabel = "ak5PFchsL1FastL2L3"
+  else:
+    process.PATextraction.jet_PF.jetCorrectorLabel = "ak5PFchsL1FastL2L3Residual"
+
+  process.PATextraction.jet_PF.doJER = True # Disable automatically on data
 
   process.PATextraction.doJet      = True
+
+  # JER systematics:
+  # Use -1 for 1-sigma down, 0 for nominal correction, and 1 for 1-sigma up
+  process.PATextraction.jet_PF.jerSign = 0
 
   from Extractor_MTT_ScaleFactors import loadMuonScaleFactor, loadBTagScaleFactors, loadElectronScaleFactor
   loadBTagScaleFactors(process)
@@ -90,10 +102,12 @@ if __name__ == "__main__":
   process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
   
   if not OnlyAnalysis:
-    process.source.fileNames = cms.untracked.vstring(
-    #'file:/gridgroup/cms/bouvier/data/test_extractor/patTuple_1_1_Uqw.root'
-    #'file:/gridgroup/cms/bouvier/data/test_extractor/patTuple_10_1_Wtz.root'
-        'file:/home/cms/jruizalv/work/CMSSW_5_3_9_patch2/src/Extractors/Small_Sample_patTuple.root'
-    #'file:/home/cms/jruizalv/work/CMSSW_5_3_9_patch2/src/Extractors/PatExtractor/test/extracted_mc.root'
+    FileList=[]
+    BASE="file:/home/cms/jruizalv/work/CMSSW_5_3_9_patch2/src/Extractors/SignalSamples/Signal-PAT_tuple_"
+    for i in xrange(101):
+      FileList.append(BASE+str(i)+".root")
+    process.source.fileNames = cms.untracked.vstring( FileList
+    #    'file:/home/cms/jruizalv/work/CMSSW_5_3_9_patch2/src/Extractors/Small_Sample_patTuple.root'
+    #'file:/home/cms/jruizalv/work/CMSSW_5_3_9_patch2/src/Extractors/PatExtractor/test/extracted_mc.root'      
         )
     process.maxEvents.input = -1
