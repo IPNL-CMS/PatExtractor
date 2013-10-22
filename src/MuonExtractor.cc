@@ -3,7 +3,7 @@
 #include <DataFormats/VertexReco/interface/Vertex.h>
 
 MuonExtractor::MuonExtractor(const std::string& name, const edm::InputTag& tag, const edm::InputTag& vertexTag, bool doTree, ScaleFactorService::WorkingPoint isolationWp)
-  : BaseExtractor(name)
+  :  BaseExtractor(name), m_muo_lorentzvector(nullptr)
 {
   m_OK = false;
   m_vertexTag = vertexTag;
@@ -69,7 +69,7 @@ MuonExtractor::MuonExtractor(const std::string& name, const edm::InputTag& tag, 
 }
 
 MuonExtractor::MuonExtractor(const std::string& name, TFile *a_file)
-  : BaseExtractor(name)
+  :  BaseExtractor(name), m_muo_lorentzvector(nullptr)
 {
   m_file = a_file;
   std::cout << "MuonExtractor objet is retrieved" << std::endl;

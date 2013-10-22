@@ -7,7 +7,7 @@
 #include <DataFormats/RecoCandidate/interface/IsoDepositVetos.h>
 
 ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTag& tag, bool doTree)
-  : BaseExtractor(name)
+  : BaseExtractor(name), m_ele_lorentzvector(nullptr)
 {
   m_tag = tag;
 
@@ -86,7 +86,7 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTa
 }
 
   ElectronExtractor::ElectronExtractor(const std::string& name, TFile* a_file)
-: BaseExtractor(name)
+:  BaseExtractor(name), m_ele_lorentzvector(nullptr)
 {
   m_file = a_file;
 
