@@ -39,9 +39,11 @@ namespace patextractor {
     bool isJetAccepSel(TLorentzVector *jet);
     bool isJetForwSel(TLorentzVector *jet);
     int  SingleTprime_Sel();
+    int patIndexToExtractorIndex(int patIndex) const;
 
-  void reset();
-  void fillTree();
+    void MCidentification();
+    void reset();
+    void fillTree();
     
   private:
     int j;
@@ -62,6 +64,7 @@ namespace patextractor {
     float m_DRHiggsJets;
     float m_DRWJets;
     float m_DRTopHiggs;
+    float m_DRWHiggs;
     float m_RelTHT;
     
     //bool isMC;

@@ -88,6 +88,7 @@ namespace patextractor {
   m_tree_stp->Branch("DeltaR_of_Higgs_Jets",  &m_DRHiggsJets   ,"DRHiggsJets/F");
   m_tree_stp->Branch("DeltaR_of_W_Jets",  &m_DRWJets   ,"DRWJets/F");
   m_tree_stp->Branch("DeltaR_of_Top_Higgs",  &m_DRTopHiggs   ,"DRTopHiggs/F");
+  m_tree_stp->Branch("DeltaR_of_W_Higgs",  &m_DRWHiggs   ,"DRWHiggs/F");
   m_tree_stp->Branch("Relative_THT",  &m_RelTHT   ,"RelTHT/F");
 
   // Initialize the analysis parameters using the ParameterSet iConfig
@@ -295,7 +296,9 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
   //cout << "Higgs Jets are: " << IndexHiggsJets[0] << IndexHiggsJets[1] << " W Jets are: " << IndexWJets[0] << IndexWJets[1] << " Top jet is: " << IndexTopJet << endl;
   TLorentzVector HJ; HJ.SetPxPyPzE(ReconstructedHiggs->Px(), ReconstructedHiggs->Py(), ReconstructedHiggs->Pz(), ReconstructedHiggs->E());
   TLorentzVector TJ; TJ.SetPxPyPzE(ReconstructedTop->Px(), ReconstructedTop->Py(), ReconstructedTop->Pz(), ReconstructedTop->E());
+  TLorentzVector WJ; WJ.SetPxPyPzE(ReconstructedW->Px(), ReconstructedW->Py(), ReconstructedW->Pz(), ReconstructedW->E());
   m_DRTopHiggs=HJ.DeltaR(TJ);
+  m_DRWHiggs=HJ.DeltaR(WJ);
   m_RelTHT=(ReconstructedHiggs->Pt()+ReconstructedTop->Pt())/TotalHT; //Relative total hadronic energy
 
   ReconstructedTprime->SetPxPyPzE(ReconstructedHiggs->Px()+ReconstructedTop->Px(),ReconstructedHiggs->Py()+ReconstructedTop->Py(),ReconstructedHiggs->Pz()+ReconstructedTop->Pz(),ReconstructedHiggs->E()+ReconstructedTop->E());
@@ -358,6 +361,29 @@ void SingleTprime_analysis::analyze(const edm::EventSetup& iSetup, PatExtractor&
   fillTree();
 }
 
+  //MC Identification
+
+#define ID_B (5)
+#define ID_T (6)
+#define ID_H (25)
+#define ID_W (24)
+#define ID_Tp (6000006)
+
+int SingleTprime_analysis::patIndexToExtractorIndex(int patIndex) const {
+
+  for (int i = 0; i < m_MC->getSize() ; i++) {
+    if (m_MC->getPatIndex(i) == patIndex)
+      return i;
+  }
+
+  return -1;
+}
+
+void SingleTprime_analysis::MCidentification()
+{
+
+}
+
 void SingleTprime_analysis::reset()
 {
   m_evt = 0;
@@ -374,6 +400,7 @@ void SingleTprime_analysis::reset()
   m_DRHiggsJets=0.;
   m_DRWJets=0.;
   m_DRTopHiggs=0.;
+  m_DRWHiggs=0.;
   m_RelTHT=0.;
   ReconstructedHiggs->SetPxPyPzE(0., 0., 0., 0.);
   ReconstructedW->SetPxPyPzE(0., 0., 0., 0.);
