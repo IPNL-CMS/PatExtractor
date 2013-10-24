@@ -77,7 +77,7 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
   process.PATextraction.doMuon     = True
   process.PATextraction.doVertex   = True
 
-  if isMC: process.PATextraction.triggersXML = readFile("triggers_jets.xml")
+  if not isMC: process.PATextraction.triggersXML = readFile("triggers_jets.xml")
   
   # JER systematics:
   # Use -1 for 1-sigma down, 0 for nominal correction, and 1 for 1-sigma up
@@ -111,8 +111,8 @@ if __name__ == "__main__":
   if not OnlyAnalysis:
     FileList=[]
     BASE="file:/home/cms/jruizalv/work/CMSSW_5_3_9_patch2/src/Extractors/SignalSamples/734GeV/Signal-PAT_tuple_"
-    for i in xrange(101):
-      FileList.append(BASE+str(i)+".root")
+    for i in xrange(302):
+      if i!=175: FileList.append(BASE+str(i)+".root")
     process.source.fileNames = cms.untracked.vstring( FileList
     #    'file:/home/cms/jruizalv/work/CMSSW_5_3_9_patch2/src/Extractors/Small_Sample_patTuple.root'
     #'file:/home/cms/jruizalv/work/CMSSW_5_3_9_patch2/src/Extractors/PatExtractor/test/extracted_mc.root'      

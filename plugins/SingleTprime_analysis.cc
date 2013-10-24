@@ -54,11 +54,20 @@ namespace patextractor {
   ReconstructedW = new TLorentzVector(0., 0., 0., 0.);
   ReconstructedTop = new TLorentzVector(0., 0., 0., 0.);
   ReconstructedTprime = new TLorentzVector(0., 0., 0., 0.);
+  TrueHiggs = new TLorentzVector(0., 0., 0., 0.);
+  TrueW = new TLorentzVector(0., 0., 0., 0.);
+  TrueTop = new TLorentzVector(0., 0., 0., 0.);
+  TrueTprime = new TLorentzVector(0., 0., 0., 0.);
   FirstHiggsJet = new TLorentzVector(0., 0., 0., 0.);
   SecondHiggsJet = new TLorentzVector(0., 0., 0., 0.);
   FirstWJet = new TLorentzVector(0., 0., 0., 0.);
   SecondWJet = new TLorentzVector(0., 0., 0., 0.);
   TopJet = new TLorentzVector(0., 0., 0., 0.);
+  FirstTrueHiggsJet = new TLorentzVector(0., 0., 0., 0.);
+  SecondTrueHiggsJet = new TLorentzVector(0., 0., 0., 0.);
+  FirstTrueWJet = new TLorentzVector(0., 0., 0., 0.);
+  SecondTrueWJet = new TLorentzVector(0., 0., 0., 0.);
+  TopTrueJet = new TLorentzVector(0., 0., 0., 0.);
 
   /// Tree definition containing your analysis results
 
@@ -66,6 +75,24 @@ namespace patextractor {
   
   /// Branches definition
 
+  m_tree_stp->Branch("Reconstructed_Higgs", &ReconstructedHiggs);
+  m_tree_stp->Branch("Reconstructed_W", &ReconstructedW);
+  m_tree_stp->Branch("Reconstructed_Top", &ReconstructedTop);
+  m_tree_stp->Branch("Reconstructed_Tprime", &ReconstructedTprime);  
+  m_tree_stp->Branch("True_Higgs", &TrueHiggs);
+  m_tree_stp->Branch("True_W", &TrueW);
+  m_tree_stp->Branch("True_Top", &TrueTop);
+  m_tree_stp->Branch("True_Tprime", &TrueTprime);
+  m_tree_stp->Branch("First_Higgs_Jet", &FirstHiggsJet);
+  m_tree_stp->Branch("Second_Higgs_Jet", &SecondHiggsJet);
+  m_tree_stp->Branch("First_W_Jet", &FirstWJet);
+  m_tree_stp->Branch("Second_W_Jet", &SecondWJet);
+  m_tree_stp->Branch("Top_Jet", &TopJet);
+  m_tree_stp->Branch("First_True_Higgs_Jet", &FirstTrueHiggsJet);
+  m_tree_stp->Branch("Second_True_Higgs_Jet", &SecondTrueHiggsJet);
+  m_tree_stp->Branch("First_True_W_Jet", &FirstTrueWJet);
+  m_tree_stp->Branch("Second_True_W_Jet", &SecondTrueWJet);
+  m_tree_stp->Branch("True_Top_Jet", &TopTrueJet);
   m_tree_stp->Branch("evt",         &m_evt    ,"evt/I");      // Simple evt number or event ID
   m_tree_stp->Branch("PU",         &m_nPU    ,"m_nPU/I");
   m_tree_stp->Branch("THT", &m_THT,"THT/F");
@@ -76,20 +103,18 @@ namespace patextractor {
   m_tree_stp->Branch("jet5_pt",  &m_jet5pt   ,"jet5_pt/F");
   m_tree_stp->Branch("jet6_pt",  &m_jet6pt   ,"jet6_pt/F");
   m_tree_stp->Branch("Number_CSVLbtagged_jets",  &m_NBtaggedJets_CSVL   ,"m_NBtaggedJets_CSVL/I");
-  m_tree_stp->Branch("Reconstructed_Higgs", &ReconstructedHiggs);
-  m_tree_stp->Branch("Reconstructed_W", &ReconstructedW);
-  m_tree_stp->Branch("Reconstructed_Top", &ReconstructedTop);
-  m_tree_stp->Branch("Reconstructed_Tprime", &ReconstructedTprime);
-  m_tree_stp->Branch("First_Higgs_Jet", &FirstHiggsJet);
-  m_tree_stp->Branch("Second_Higgs_Jet", &SecondHiggsJet);
-  m_tree_stp->Branch("First_W_Jet", &FirstWJet);
-  m_tree_stp->Branch("Second_W_Jet", &SecondWJet);
-  m_tree_stp->Branch("Top_Jet", &TopJet);
   m_tree_stp->Branch("DeltaR_of_Higgs_Jets",  &m_DRHiggsJets   ,"DRHiggsJets/F");
   m_tree_stp->Branch("DeltaR_of_W_Jets",  &m_DRWJets   ,"DRWJets/F");
   m_tree_stp->Branch("DeltaR_of_Top_Higgs",  &m_DRTopHiggs   ,"DRTopHiggs/F");
   m_tree_stp->Branch("DeltaR_of_W_Higgs",  &m_DRWHiggs   ,"DRWHiggs/F");
   m_tree_stp->Branch("Relative_THT",  &m_RelTHT   ,"RelTHT/F");
+  m_tree_stp->Branch("Correct_Tprime",  &CorrectTprime   ,"CorrectTprime/I");
+  m_tree_stp->Branch("Correct_Higgs",  &CorrectH   ,"CorrectH/I");
+  m_tree_stp->Branch("Correct_W",  &CorrectW   ,"CorrectW/I");
+  m_tree_stp->Branch("Correct_Top",  &CorrectTop   ,"CorrectTop/I");
+  m_tree_stp->Branch("Correct_Higgs_Jet",  &CorrectHiggsJet   ,"CorrectHiggsJet/I");
+  m_tree_stp->Branch("Correct_W_Jet",  &CorrectWJet   ,"CorrectWJet/I");
+  m_tree_stp->Branch("Correct_Top_Jet",  &CorrectTopJet   ,"CorrectTopJet/I");
 
   // Initialize the analysis parameters using the ParameterSet iConfig
   //int an_option = iConfig.getUntrackedParameter<int>("an_option", 0);
@@ -101,6 +126,8 @@ namespace patextractor {
   m_jet_MultOutAcceptance = 1;
   m_JET_btag_CSVL = 0.244;
   evt_num = 0;
+  m_DRMatching=0.3;
+  m_DPtMatching=10.0;
 }
 
 SingleTprime_analysis::~SingleTprime_analysis(){}
@@ -303,6 +330,69 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
 
   ReconstructedTprime->SetPxPyPzE(ReconstructedHiggs->Px()+ReconstructedTop->Px(),ReconstructedHiggs->Py()+ReconstructedTop->Py(),ReconstructedHiggs->Pz()+ReconstructedTop->Pz(),ReconstructedHiggs->E()+ReconstructedTop->E());
 
+  ///////////////////////////
+  //Comparing with MC truth//
+  ///////////////////////////
+
+  //cout << "True Tprime components " << TrueTprime->Px() << " " << TrueTprime->Py() << " " << TrueTprime->Pz() << " " << TrueTprime->E() << endl;
+  //cout << "Reconstructed Tprime components "<< ReconstructedTprime->Px() << " " << ReconstructedTprime->Py() << " " << ReconstructedTprime->Pz() << " " << ReconstructedTprime->E() << endl;
+
+  if (TrueTprime->Pt()!=0 && ReconstructedTprime->Pt()!=0)
+    {
+      TLorentzVector TTp; TTp.SetPxPyPzE(TrueTprime->Px(), TrueTprime->Py(), TrueTprime->Pz(), TrueTprime->E());
+      TLorentzVector RTp; RTp.SetPxPyPzE(ReconstructedTprime->Px(), ReconstructedTprime->Py(), ReconstructedTprime->Pz(), ReconstructedTprime->E());
+      //cout << "DeltaR between true and reconstructed Tprime " << TTp.DeltaR(RTp) << endl;
+      if (RTp.DeltaR(TTp)<=m_DRMatching) CorrectTprime=1;
+    }
+  if (TrueHiggs->Pt()!=0 && ReconstructedHiggs->Pt()!=0)
+    {
+      TLorentzVector TH; TH.SetPxPyPzE(TrueHiggs->Px(), TrueHiggs->Py(), TrueHiggs->Pz(), TrueHiggs->E());
+      TLorentzVector RH; RH.SetPxPyPzE(ReconstructedHiggs->Px(), ReconstructedHiggs->Py(), ReconstructedHiggs->Pz(), ReconstructedHiggs->E());
+      if (RH.DeltaR(TH)<=m_DRMatching) CorrectH=1;
+    }
+  if (FirstTrueHiggsJet->Pt()!=0 && FirstHiggsJet->Pt()!=0)
+    {
+      TLorentzVector TrHFJ; TrHFJ.SetPxPyPzE(FirstTrueHiggsJet->Px(), FirstTrueHiggsJet->Py(), FirstTrueHiggsJet->Pz(), FirstTrueHiggsJet->E());
+      TLorentzVector HFJet; HFJet.SetPxPyPzE(FirstHiggsJet->Px(), FirstHiggsJet->Py(), FirstHiggsJet->Pz(), FirstHiggsJet->E());
+      if (HFJet.DeltaR(TrHFJ)<=m_DRMatching) CorrectHiggsJet=1;
+    }
+  if (SecondTrueHiggsJet->Pt()!=0 && SecondHiggsJet->Pt()!=0)
+    {
+      TLorentzVector TrHSJ; TrHSJ.SetPxPyPzE(SecondTrueHiggsJet->Px(), SecondTrueHiggsJet->Py(), SecondTrueHiggsJet->Pz(), SecondTrueHiggsJet->E());
+      TLorentzVector HSJet; HSJet.SetPxPyPzE(SecondHiggsJet->Px(), SecondHiggsJet->Py(), SecondHiggsJet->Pz(), SecondHiggsJet->E());
+      if (HSJet.DeltaR(TrHSJ)<=m_DRMatching) CorrectHiggsJet=2;
+    }
+  if (TrueW->Pt()!=0 && ReconstructedW->Pt()!=0)
+    {
+      TLorentzVector TrW; TrW.SetPxPyPzE(TrueW->Px(), TrueW->Py(), TrueW->Pz(), TrueW->E());
+      TLorentzVector ReW; ReW.SetPxPyPzE(ReconstructedW->Px(), ReconstructedW->Py(), ReconstructedW->Pz(), ReconstructedW->E());
+      if (ReW.DeltaR(TrW)<=m_DRMatching) CorrectW=1;
+    }
+  if (FirstTrueWJet->Pt()!=0 && FirstWJet->Pt()!=0)
+    {
+      TLorentzVector TWFJ; TWFJ.SetPxPyPzE(FirstTrueWJet->Px(), FirstTrueWJet->Py(), FirstTrueWJet->Pz(), FirstTrueWJet->E());
+      TLorentzVector WFJ; WFJ.SetPxPyPzE(FirstWJet->Px(), FirstWJet->Py(), FirstWJet->Pz(), FirstWJet->E());
+      if (WFJ.DeltaR(TWFJ)<=m_DRMatching) CorrectWJet=1;
+    }
+  if (SecondTrueWJet->Pt()!=0 && SecondWJet->Pt()!=0)
+    {
+      TLorentzVector TWSJ; TWSJ.SetPxPyPzE(SecondTrueWJet->Px(), SecondTrueWJet->Py(), SecondTrueWJet->Pz(), SecondTrueWJet->E());
+      TLorentzVector WSJ; WSJ.SetPxPyPzE(SecondWJet->Px(), SecondWJet->Py(), SecondWJet->Pz(), SecondWJet->E());
+      if (WSJ.DeltaR(TWSJ)<=m_DRMatching) CorrectWJet=2;
+    }
+  if (TrueTop->Pt()!=0 && ReconstructedTop->Pt()!=0)
+    {
+      TLorentzVector TT; TT.SetPxPyPzE(TrueTop->Px(), TrueTop->Py(), TrueTop->Pz(), TrueTop->E());
+      TLorentzVector RT; RT.SetPxPyPzE(ReconstructedTop->Px(), ReconstructedTop->Py(), ReconstructedTop->Pz(), ReconstructedTop->E());
+      if (RT.DeltaR(TT)<=m_DRMatching) CorrectTop=1;
+    }
+  if (TopJet->Pt()!=0 && TopTrueJet->Pt()!=0)
+    {
+      TLorentzVector TTJ; TTJ.SetPxPyPzE(TopTrueJet->Px(), TopTrueJet->Py(), TopTrueJet->Pz(), TopTrueJet->E());
+      TLorentzVector RTJ; RTJ.SetPxPyPzE(TopJet->Px(), TopJet->Py(), TopJet->Pz(), TopJet->E());
+      if (RTJ.DeltaR(TTJ)<=m_DRMatching) CorrectTopJet=1;
+    }
+
   // Finally fill the analysis tree 
   //SingleTprime_analysis::fillTree();
 
@@ -348,7 +438,11 @@ void SingleTprime_analysis::analyze(const edm::EventSetup& iSetup, PatExtractor&
   //Pointer to Extractor objects
   m_jetMet   = std::static_pointer_cast<JetMETExtractor>(extractor.getExtractor("JetMET"));
   m_event    = std::static_pointer_cast<EventExtractor>(extractor.getExtractor("event"));
-  if (m_isMC) m_MC = std::static_pointer_cast<MCExtractor>(extractor.getExtractor("MC"));
+  if (m_isMC) 
+    {
+      m_MC = std::static_pointer_cast<MCExtractor>(extractor.getExtractor("MC"));
+      MCidentification();
+    }
 
   m_nPU = m_event->nPU();
   m_evt = m_event->n_events();
@@ -382,6 +476,72 @@ int SingleTprime_analysis::patIndexToExtractorIndex(int patIndex) const {
 void SingleTprime_analysis::MCidentification()
 {
 
+  int n_MC = m_MC->getSize();
+
+  if (!n_MC) return;
+
+  for (int i = 0; i < n_MC ; ++i)
+    {
+
+      int motherIndex = patIndexToExtractorIndex(m_MC->getMom1Index(i));
+      int grandMotherIndex = -1;
+      if (motherIndex != -1) grandMotherIndex = patIndexToExtractorIndex(m_MC->getMom1Index(motherIndex));
+
+      if (abs(m_MC->getType(i)) == ID_H) 
+	{
+	  TrueHiggs->SetPxPyPzE(m_MC->getPx(i),m_MC->getPy(i),m_MC->getPz(i),m_MC->getE(i));
+	}
+      
+      if (abs(m_MC->getType(i)) == ID_W) 
+	{
+	  TrueW->SetPxPyPzE(m_MC->getPx(i),m_MC->getPy(i),m_MC->getPz(i),m_MC->getE(i));
+	}
+      
+      if (abs(m_MC->getType(i)) == ID_T) 
+	{
+	  TrueTop->SetPxPyPzE(m_MC->getPx(i),m_MC->getPy(i),m_MC->getPz(i),m_MC->getE(i));
+	}
+
+      if (abs(m_MC->getType(i)) == ID_Tp) 
+	{
+	  TrueTprime->SetPxPyPzE(m_MC->getPx(i),m_MC->getPy(i),m_MC->getPz(i),m_MC->getE(i));
+	}
+
+      if (m_MC->getType(i) == ID_B && abs(m_MC->getType(motherIndex)) == ID_H) 
+	{
+	  FirstTrueHiggsJet->SetPxPyPzE(m_MC->getPx(i),m_MC->getPy(i),m_MC->getPz(i),m_MC->getE(i));
+	}
+
+      if (m_MC->getType(i) == -1*ID_B && abs(m_MC->getType(motherIndex)) == ID_H) 
+	{
+	  SecondTrueHiggsJet->SetPxPyPzE(m_MC->getPx(i),m_MC->getPy(i),m_MC->getPz(i),m_MC->getE(i));
+	}
+
+      if (m_MC->getType(i) < ID_B && m_MC->getType(i) > 0 && abs(m_MC->getType(motherIndex)) == ID_W) 
+	{
+	  FirstTrueWJet->SetPxPyPzE(m_MC->getPx(i),m_MC->getPy(i),m_MC->getPz(i),m_MC->getE(i));
+	}
+
+      if (m_MC->getType(i) > -1*ID_B && m_MC->getType(i) < 0 && abs(m_MC->getType(motherIndex)) == ID_W) 
+	{
+	  SecondTrueWJet->SetPxPyPzE(m_MC->getPx(i),m_MC->getPy(i),m_MC->getPz(i),m_MC->getE(i));
+	}
+
+      if (abs(m_MC->getType(i)) == ID_B && abs(m_MC->getType(motherIndex)) == ID_T) 
+	{
+	  TopTrueJet->SetPxPyPzE(m_MC->getPx(i),m_MC->getPy(i),m_MC->getPz(i),m_MC->getE(i));
+	}
+
+      if (motherIndex == -1) continue;
+
+      if (true) 
+	{
+	  std::cout << "Type: " << m_MC->getType(i) << std::endl;
+	  std::cout << "Mother type: " << m_MC->getType(motherIndex) << std::endl;
+	  if (grandMotherIndex != -1) std::cout << "Grandmother type: " << m_MC->getType(grandMotherIndex) << std::endl;
+	}
+
+    }
 }
 
 void SingleTprime_analysis::reset()
@@ -402,15 +562,28 @@ void SingleTprime_analysis::reset()
   m_DRTopHiggs=0.;
   m_DRWHiggs=0.;
   m_RelTHT=0.;
+
+  CorrectTprime = 0;
+  CorrectH = 0;
+  CorrectW = 0;
+  CorrectTop = 0;
+  CorrectHiggsJet = 0;
+  CorrectWJet = 0;
+  CorrectTopJet = 0;
+
   ReconstructedHiggs->SetPxPyPzE(0., 0., 0., 0.);
   ReconstructedW->SetPxPyPzE(0., 0., 0., 0.);
   ReconstructedTop->SetPxPyPzE(0., 0., 0., 0.);
   ReconstructedTprime->SetPxPyPzE(0., 0., 0., 0.);
-  FirstHiggsJet->SetPxPyPzE(0., 0., 0., 0.);
-  SecondHiggsJet->SetPxPyPzE(0., 0., 0., 0.);
-  FirstWJet->SetPxPyPzE(0., 0., 0., 0.);
-  SecondWJet->SetPxPyPzE(0., 0., 0., 0.);
-  TopJet->SetPxPyPzE(0., 0., 0., 0.);
+  TrueHiggs->SetPxPyPzE(0., 0., 0., 0.);
+  TrueW->SetPxPyPzE(0., 0., 0., 0.);
+  TrueTop->SetPxPyPzE(0., 0., 0., 0.);
+  TrueTprime->SetPxPyPzE(0., 0., 0., 0.);
+  FirstTrueHiggsJet->SetPxPyPzE(0., 0., 0., 0.);
+  SecondTrueHiggsJet->SetPxPyPzE(0., 0., 0., 0.);
+  FirstTrueWJet->SetPxPyPzE(0., 0., 0., 0.);
+  SecondTrueWJet->SetPxPyPzE(0., 0., 0., 0.);
+  TopTrueJet->SetPxPyPzE(0., 0., 0., 0.);
 }
 
 // Fill the root tree containing analysis results

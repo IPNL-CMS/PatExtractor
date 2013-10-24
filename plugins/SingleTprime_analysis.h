@@ -74,17 +74,37 @@ namespace patextractor {
     float m_jet_OverlapAccep;
     float m_jet_MultInAcceptance;
     float m_jet_MultOutAcceptance;
+    float m_DRMatching;
+    float m_DPtMatching;
 
     //Reconstructed particles
     TLorentzVector* ReconstructedHiggs;
     TLorentzVector* ReconstructedW;
     TLorentzVector* ReconstructedTop;
     TLorentzVector* ReconstructedTprime;
+    TLorentzVector* TrueHiggs;
+    TLorentzVector* TrueW;
+    TLorentzVector* TrueTop;
+    TLorentzVector* TrueTprime;
     TLorentzVector* FirstHiggsJet;
     TLorentzVector* SecondHiggsJet;
     TLorentzVector* FirstWJet;
     TLorentzVector* SecondWJet;
     TLorentzVector* TopJet;
+    TLorentzVector* FirstTrueHiggsJet;
+    TLorentzVector* SecondTrueHiggsJet;
+    TLorentzVector* FirstTrueWJet;
+    TLorentzVector* SecondTrueWJet;
+    TLorentzVector* TopTrueJet;
+
+    //Matching with MC truth
+    int CorrectTprime;
+    int CorrectH;
+    int CorrectW;
+    int CorrectTop;
+    int CorrectHiggsJet;
+    int CorrectWJet;
+    int CorrectTopJet;
 
     //Linking extractors
     std::shared_ptr<EventExtractor> m_event;
