@@ -66,7 +66,18 @@ namespace patextractor {
     float m_DRTopHiggs;
     float m_DRWHiggs;
     float m_RelTHT;
-    
+    float m_Sphericity;
+    float m_Aplanarity;
+    float m_DRTrueHiggsRecoHiggs;
+    float m_DRTrueWRecoW;
+    float m_DRTrueTopRecoTop;
+    float m_DRTrueTprimeRecoTprime;
+    float m_DRTrueFirstHiggsJetRecoJet;
+    float m_DRTrueSecondHiggsJetRecoJet;
+    float m_DRTrueFirstWJetRecoJet;
+    float m_DRTrueSecondWJetRecoJet; 
+    float m_DRTrueTopJetRecoJet;   
+
     //bool isMC;
     float m_jet_Ptcut;
     float m_jet_EtaMaxcut;
