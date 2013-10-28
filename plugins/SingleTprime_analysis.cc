@@ -33,7 +33,7 @@
 int NumberOfGoodJets=5;
 int NumberOfBadJets=1;
 float THTcut=630;
-float HiggsMass=120.0;
+float HiggsMass=125.0;
 float HiggsMassWindow=2000.0;
 float WMass=80.3;
 float WMassWindow=2000.0;
@@ -149,7 +149,7 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
   int SingleTprime_analysis::SingleTprime_Sel() //Main function for the analysis
 {
   int n_jets = m_jetMet->getSize();
-  cout << "Number of jets " << n_jets << endl;
+  //cout << "Number of jets " << n_jets << endl;
   bool JetsInAcceptance[n_jets]; //Mas for keeping track of jets inside acceptance
   bool jetIsBTagged[n_jets]; //Mask for keeping track of b-tagged jets
   int CountingGoodJets=0;
@@ -169,29 +169,30 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
       //cout << "Pt of jet " << i << " is " << jeti->Pt() << endl;
 
       TotalHT+=fabs(jeti->Pt());
-      if (!isJetSel(jeti)) continue; // apply the pt cut
-      AllJets[i].SetPxPyPzE(jeti->Px(),jeti->Py(),jeti->Pz(),jeti->E());      
-      if (isJetAccepSel(jeti)) {JetsInAcceptance[i]=true; CountingGoodJets++;}
-      if (isJetAccepSel(jeti)) cout << "The pt of jet " << i << " is " << jeti->Pt() << endl;
-      else {JetsInAcceptance[i]=false;}
-      if (isJetForwSel(jeti)) {if (!JetsInAcceptance[i]) CountingBadJets++;}
-
+      AllJets[i].SetPxPyPzE(jeti->Px(),jeti->Py(),jeti->Pz(),jeti->E());
       if (m_isMC) jetSF[i] = m_jetMet->getScaleFactor(i);
+      //Finding B-tagged jets with loose requirement based on CSV algorithm                              
+      if ((m_jetMet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVL)
+        {
+          ++m_NBtaggedJets_CSVL;
+          jetIsBTagged[i] = true;
+        }
+      else
+        {
+          jetIsBTagged[i] = false;
+        }
+      
+      //if (!isJetSel(jeti)) continue; // apply the pt cut
+      if (isJetAccepSel(jeti)) {JetsInAcceptance[i]=true; CountingGoodJets++;}
+      //if (isJetAccepSel(jeti)) cout << "The pt of InJet " << i << " is " << jeti->Pt() << endl;
+      else {JetsInAcceptance[i]=false;}
+      if (isJetForwSel(jeti) && !JetsInAcceptance[i]) CountingBadJets++;
+      //if (isJetForwSel(jeti) && !JetsInAcceptance[i]) cout << "The pt of OutJet " << i << " is " << jeti->Pt() << endl;
 
-      //Finding B-tagged jets with loose requirement based on CSV algorithm
-      if ((m_jetMet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVL) 
-	{
-	  ++m_NBtaggedJets_CSVL;
-	  jetIsBTagged[i] = true;
-	} 
-      else 
-	{
-	  jetIsBTagged[i] = false;
-	}
     }
 
   // First check the number of jets in and out the acceptance
-  cout << CountingGoodJets << " " << CountingBadJets << endl;
+  //cout << CountingGoodJets << " " << CountingBadJets << endl;
   if (CountingGoodJets>=NumberOfGoodJets && CountingBadJets>=NumberOfBadJets) cout << "Good Event" << endl;
   else return 0; 
   
@@ -207,21 +208,21 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
   ///////////////////////////////////////////////
   //Reconstructing the Higgs from b-tagged jets//
   ///////////////////////////////////////////////
+  //cout << "Entering Higgs reconstruction" << endl;
   int IndexHiggsJets[2]={0,0};
   bool EventWithHiggs=false;
   int HiggsCounter=0;
   float DiffWithHiggMass=0;
   for (int i=0;i<n_jets;++i)
     {
-       if (!jetIsBTagged[i] || !JetsInAcceptance[i]) continue;
-      TLorentzVector jeti; jeti.SetPxPyPzE(AllJets[i].Px(),AllJets[i].Py(),AllJets[i].Pz(),AllJets[i].E()); //m_jetMet->getP4(i);
+      if (!jetIsBTagged[i] || !JetsInAcceptance[i]) continue;
+      TLorentzVector jeti; jeti.SetPxPyPzE(AllJets[i].Px(),AllJets[i].Py(),AllJets[i].Pz(),AllJets[i].E());
       for (int j=i+1;j<n_jets;++j)
 	{
 	  if (!jetIsBTagged[j] || !JetsInAcceptance[i]) continue;
-	  //TLorentzVector *jeti = m_jetMet->getP4(i);
-	  TLorentzVector jetj; jetj.SetPxPyPzE(AllJets[j].Px(),AllJets[j].Py(),AllJets[j].Pz(),AllJets[j].E()); //m_jetMet->getP4(j);
-	  TLorentzVector DiBjet = jeti+jetj; //DiBjet->SetPxPyPzE(0,0,0,0);
-	  //DiBjet->SetPxPyPzE(jeti->Px()+jetj->Px(),jeti->Py()+jetj->Py(),jeti->Pz()+jetj->Pz(),jeti->E()+jetj->E());
+	  TLorentzVector jetj; jetj.SetPxPyPzE(AllJets[j].Px(),AllJets[j].Py(),AllJets[j].Pz(),AllJets[j].E());
+	  TLorentzVector DiBjet = jeti+jetj;
+	  //DiBjet.SetPxPyPzE(jeti.Px()+jetj.Px(),jeti.Py()+jetj.Py(),jeti.Pz()+jetj.Pz(),jeti.E()+jetj.E());
 	  if (fabs(DiBjet.M()-HiggsMass)>HiggsMassWindow) continue;
 	  if (jeti.DeltaR(jetj)>DeltaRHiggsJets) continue;
 	  //cout << "Mass of jet i: " << jeti.M() << " and j: " << jetj.M() << endl;
@@ -258,6 +259,7 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
   //////////////////////////////////////////////////////////////////
   //Reconstruction of W from full jets collection minus Higgs jets//
   //////////////////////////////////////////////////////////////////
+  //cout << "Entering W reconstruction" << endl;
   int IndexWJets[2]={0,0};
   bool EventWithW=false;
   int WCounter=0;
@@ -303,6 +305,7 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
   /////////////////////////
   //Reconstruction of Top//
   /////////////////////////
+  //cout << "Entering Top reconstruction" << endl;
   int IndexTopJet=0;
   bool EventWithTop=false;
   int TopCounter=0;
@@ -349,7 +352,7 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
   ///////////////////////////
   //Comparing with MC truth//
   ///////////////////////////
-
+  cout << "Entering MC truth" << endl;
   TLorentzVector TrHFJ; TrHFJ.SetPxPyPzE(FirstTrueHiggsJet->Px(), FirstTrueHiggsJet->Py(), FirstTrueHiggsJet->Pz(), FirstTrueHiggsJet->E());
   TLorentzVector TrHSJ; TrHSJ.SetPxPyPzE(SecondTrueHiggsJet->Px(), SecondTrueHiggsJet->Py(), SecondTrueHiggsJet->Pz(), SecondTrueHiggsJet->E());
   TLorentzVector TWFJ; TWFJ.SetPxPyPzE(FirstTrueWJet->Px(), FirstTrueWJet->Py(), FirstTrueWJet->Pz(), FirstTrueWJet->E());
@@ -366,9 +369,9 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
       TLorentzVector jeti; jeti.SetPxPyPzE(AllJets[i].Px(),AllJets[i].Py(),AllJets[i].Pz(),AllJets[i].E());
       if (FirstTrueHiggsJet->Pt()!=0)
 	{
-	  if (CounterFHJ==0) {deltaRFHJ=jeti.DeltaR(TrHFJ); deltaPtFHJ=fabs(jeti.Pt()-FirstTrueHiggsJet->Pt()); FirstHiggsJetIndex=i; ++CounterFHJ;}
-	  if (CounterFHJ!=0 && deltaRFHJ>jeti.DeltaR(TrHFJ)) {deltaRFHJ=jeti.DeltaR(TrHFJ); m_DRTrueFirstHiggsJetRecoJet=jeti.DeltaR(TrHFJ); deltaPtFHJ=fabs(jeti.Pt()-FirstTrueHiggsJet->Pt()); FirstHiggsJetIndex=i;}
-	  cout << deltaRFHJ << endl;
+	  if (CounterFHJ==0) {deltaRFHJ=jeti.DeltaR(TrHFJ); deltaPtFHJ=fabs(jeti.Pt()-TrHFJ.Pt()); FirstHiggsJetIndex=i; ++CounterFHJ;}
+	  if (CounterFHJ!=0 && deltaRFHJ>jeti.DeltaR(TrHFJ)) {deltaRFHJ=jeti.DeltaR(TrHFJ); deltaPtFHJ=fabs(jeti.Pt()-FirstTrueHiggsJet->Pt()); FirstHiggsJetIndex=i;}
+	  cout << jeti.DeltaR(TrHFJ) << endl;
 	}
     }
 
@@ -382,15 +385,15 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
       TLorentzVector jeti; jeti.SetPxPyPzE(AllJets[i].Px(),AllJets[i].Py(),AllJets[i].Pz(),AllJets[i].E());
       if (SecondTrueHiggsJet->Pt()!=0) 
 	{
-	  if (CounterSHJ==0) {deltaRSHJ=jeti.DeltaR(TrHSJ); deltaPtSHJ=fabs(jeti.Pt()-SecondTrueHiggsJet->Pt()); SecondHiggsJetIndex=i; ++CounterSHJ;}
-	  if (CounterSHJ!=0 && deltaRSHJ>jeti.DeltaR(TrHSJ)) {deltaRSHJ=jeti.DeltaR(TrHSJ); m_DRTrueSecondHiggsJetRecoJet=jeti.DeltaR(TrHSJ); deltaPtSHJ=fabs(jeti.Pt()-SecondTrueHiggsJet->Pt()); SecondHiggsJetIndex=i;}
+	  if (CounterSHJ==0) {deltaRSHJ=jeti.DeltaR(TrHSJ); deltaPtSHJ=fabs(jeti.Pt()-TrHSJ.Pt()); SecondHiggsJetIndex=i; ++CounterSHJ;}
+	  if (CounterSHJ!=0 && deltaRSHJ>jeti.DeltaR(TrHSJ)) {deltaRSHJ=jeti.DeltaR(TrHSJ); deltaPtSHJ=fabs(jeti.Pt()-TrHSJ.Pt()); SecondHiggsJetIndex=i;}
+	  cout << jeti.DeltaR(TrHSJ) << endl;
 	}
-      cout << deltaRSHJ << endl;
     }
 
   if (FirstHiggsJetIndex==SecondHiggsJetIndex)
     {
-      cout << "First and second higgs jets matched to the same RECO jet, proceeding to pt differenciation" << endl;
+      cout << "First and second higgs jets matched to the same RECO jet, proceeding to pt disambiguation" << endl;
       if (deltaPtFHJ<=deltaPtSHJ) 
 	{
 	  SecondHiggsJetIndex=0;
@@ -404,6 +407,7 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
 		{
 		  if (CounterSHJ==0) {deltaRSHJ=jeti.DeltaR(TrHSJ); SecondHiggsJetIndex=i; ++CounterSHJ;}
 		  if (CounterSHJ!=0 && deltaRSHJ>jeti.DeltaR(TrHSJ)) {deltaRSHJ=jeti.DeltaR(TrHSJ); SecondHiggsJetIndex=i;}
+		  cout << jeti.DeltaR(TrHSJ) << endl;
 		}
 	    }
 	  m_DRTrueSecondHiggsJetRecoJet=deltaRSHJ;
@@ -421,6 +425,7 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
 		{
 		  if (CounterFHJ==0) {deltaRFHJ=jeti.DeltaR(TrHFJ); FirstHiggsJetIndex=i; ++CounterFHJ;}
 		  if (CounterFHJ!=0 && deltaRFHJ>jeti.DeltaR(TrHFJ)) {deltaRFHJ=jeti.DeltaR(TrHFJ); FirstHiggsJetIndex=i;}
+		  cout << jeti.DeltaR(TrHFJ) << endl;
 		}
 	    }
 	  m_DRTrueFirstHiggsJetRecoJet=deltaRFHJ;
@@ -433,6 +438,107 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
     }
   cout << "Final DeltaRFHJ " << deltaRFHJ << " with index " << FirstHiggsJetIndex << endl;
   cout << "Final DeltaRSHJ " << deltaRSHJ << " with index " << SecondHiggsJetIndex << endl;
+
+  int FirstWJetIndex=0;
+  float deltaRFWJ=0.;
+  float deltaPtFWJ=0.;
+  float CounterFWJ=0;
+  for (int i=0;i<n_jets;++i)
+    {
+      if (i==FirstHiggsJetIndex || i==SecondHiggsJetIndex || !JetsInAcceptance[i]) continue;
+      TLorentzVector jeti; jeti.SetPxPyPzE(AllJets[i].Px(),AllJets[i].Py(),AllJets[i].Pz(),AllJets[i].E());
+      if (FirstTrueWJet->Pt()!=0)
+        {
+          if (CounterFWJ==0) {deltaRFWJ=jeti.DeltaR(TWFJ); deltaPtFWJ=fabs(jeti.Pt()-TWFJ.Pt()); FirstWJetIndex=i; ++CounterFWJ;}
+          if (CounterFWJ!=0 && deltaRFWJ>jeti.DeltaR(TWFJ)) {deltaRFWJ=jeti.DeltaR(TWFJ); deltaPtFWJ=fabs(jeti.Pt()-TWFJ.Pt()); FirstWJetIndex=i;}
+          cout << jeti.DeltaR(TWFJ) << endl;
+        }
+    }
+
+  int SecondWJetIndex=0;
+  float deltaRSWJ=0.;
+  float deltaPtSWJ=0.;
+  float CounterSWJ=0;
+  for (int i=0;i<n_jets;++i)
+    {
+      if (i==FirstHiggsJetIndex || i==SecondHiggsJetIndex || !JetsInAcceptance[i]) continue;
+      TLorentzVector jeti; jeti.SetPxPyPzE(AllJets[i].Px(),AllJets[i].Py(),AllJets[i].Pz(),AllJets[i].E());
+      if (SecondTrueWJet->Pt()!=0)
+        {
+          if (CounterSWJ==0) {deltaRSWJ=jeti.DeltaR(TWSJ); deltaPtSWJ=fabs(jeti.Pt()-TWSJ.Pt()); SecondWJetIndex=i; ++CounterSWJ;}
+          if (CounterSWJ!=0 && deltaRSWJ>jeti.DeltaR(TWSJ)) {deltaRSWJ=jeti.DeltaR(TWSJ); deltaPtSWJ=fabs(jeti.Pt()-TWSJ.Pt()); SecondWJetIndex=i;}
+          cout << jeti.DeltaR(TWSJ) << endl;
+        }
+    }
+
+  int TopJetIndex=0;
+  float deltaRTJ=0.;
+  float deltaPtTJ=0.;
+  float CounterTJ=0;
+  for (int i=0;i<n_jets;++i)
+    {
+      if (i==FirstHiggsJetIndex || i==SecondHiggsJetIndex || !JetsInAcceptance[i]) continue;
+      TLorentzVector jeti; jeti.SetPxPyPzE(AllJets[i].Px(),AllJets[i].Py(),AllJets[i].Pz(),AllJets[i].E());
+      if (TopTrueJet->Pt()!=0)
+        {
+          if (CounterTJ==0) {deltaRTJ=jeti.DeltaR(TTJ); deltaPtTJ=fabs(jeti.Pt()-TTJ.Pt()); TopJetIndex=i; ++CounterFWJ;}
+          if (CounterTJ!=0 && deltaRTJ>jeti.DeltaR(TTJ)) {deltaRTJ=jeti.DeltaR(TTJ); deltaPtTJ=fabs(jeti.Pt()-TTJ.Pt()); TopJetIndex=i;}
+          cout << jeti.DeltaR(TTJ) << endl;
+        }
+    }
+  m_DRTrueTopJetRecoJet=deltaRTJ;
+
+
+  if (FirstWJetIndex==SecondWJetIndex || TopJetIndex==SecondWJetIndex || FirstWJetIndex==TopJetIndex)
+    {
+      if (FirstWJetIndex==SecondWJetIndex)
+	{
+	  cout << "First and second W jets matched to the same RECO jet, proceeding to pt disambiguation" << endl;
+	  if (deltaPtFWJ<=deltaPtSWJ)
+	    {
+	      SecondWJetIndex=0;
+	      deltaRSWJ=0.;
+	      CounterSWJ=0;
+	      for (int i=0;i<n_jets;++i)
+		{
+		  if (i==FirstHiggsJetIndex || i==SecondHiggsJetIndex || !JetsInAcceptance[i] || i==FirstWJetIndex) continue;
+		  TLorentzVector jeti; jeti.SetPxPyPzE(AllJets[i].Px(),AllJets[i].Py(),AllJets[i].Pz(),AllJets[i].E());
+		  if (SecondTrueWJet->Pt()!=0)
+		    {
+		      if (CounterSWJ==0) {deltaRSWJ=jeti.DeltaR(TWSJ); deltaPtSWJ=fabs(jeti.Pt()-TWSJ.Pt()); SecondWJetIndex=i; ++CounterSWJ;}
+		      if (CounterSWJ!=0 && deltaRSWJ>jeti.DeltaR(TWSJ)) {deltaRSWJ=jeti.DeltaR(TWSJ); deltaPtSWJ=fabs(jeti.Pt()-TWSJ.Pt()); SecondWJetIndex=i;}
+		      cout << jeti.DeltaR(TWSJ) << endl;
+		    }
+		}
+	      m_DRTrueSecondWJetRecoJet=deltaRSWJ;
+	    }
+	  else
+	    {
+	      FirstWJetIndex=0;
+	      deltaRFWJ=0.;
+	      CounterFWJ=0;
+	      for (int i=0;i<n_jets;++i)
+		{
+		  if (i==FirstHiggsJetIndex || i==SecondHiggsJetIndex || !JetsInAcceptance[i] || i==SecondWJetIndex) continue;
+		  TLorentzVector jeti; jeti.SetPxPyPzE(AllJets[i].Px(),AllJets[i].Py(),AllJets[i].Pz(),AllJets[i].E());
+		  if (FirstTrueWJet->Pt()!=0)
+		    {
+		      if (CounterFWJ==0) {deltaRFWJ=jeti.DeltaR(TWFJ); FirstWJetIndex=i; ++CounterFWJ;}
+		      if (CounterFWJ!=0 && deltaRFWJ>jeti.DeltaR(TWFJ)) {deltaRFWJ=jeti.DeltaR(TWFJ); FirstWJetIndex=i;}
+		      cout << jeti.DeltaR(TWFJ) << endl;
+		    }
+		}
+	      m_DRTrueFirstWJetRecoJet=deltaRFWJ;
+	    }
+	}
+    }
+  else
+    {
+      m_DRTrueFirstWJetRecoJet=deltaRFWJ;
+      m_DRTrueSecondWJetRecoJet=deltaRSWJ;
+    }
+  cout << "Final DeltaRFWJ " << deltaRFWJ << " with index " << FirstWJetIndex << endl;
+  cout << "Final DeltaRSWJ " << deltaRSWJ << " with index " << SecondWJetIndex << endl;
 
   /*  for (int i=0;i<n_jets;++i)
     {
@@ -572,7 +678,7 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
   // Finally fill the analysis tree 
   //SingleTprime_analysis::fillTree();
 
-  return 0;
+  return 1;
 }
 
 bool SingleTprime_analysis::isJetSel(TLorentzVector *jet) //Function to select Jets of interest
@@ -580,25 +686,27 @@ bool SingleTprime_analysis::isJetSel(TLorentzVector *jet) //Function to select J
   double jetpt = jet->Pt();
   double jeteta = jet->Eta();
 
-  if (jetpt<m_jet_Ptcut) { if (fabs(jeteta)>m_jet_EtaMaxcut) return false;}
-
+  if (jetpt<m_jet_Ptcut || fabs(jeteta)>m_jet_EtaMaxcut) return false;
+  
   return true;
 }
 
 bool SingleTprime_analysis::isJetAccepSel(TLorentzVector *jet) //Function to select jets inside the acceptance
 {  
+  double jetpt = jet->Pt();
   double jeteta = jet->Eta();
 
-  if (fabs(jeteta)<m_jet_EtaAccepcut) return true;
+  if (jetpt>m_jet_Ptcut && fabs(jeteta)<m_jet_EtaAccepcut) return true;
 
   return false;
 }
 
 bool SingleTprime_analysis::isJetForwSel(TLorentzVector *jet) // Function to select jets outside acceptance
 {  
+  double jetpt = jet->Pt();
   double jeteta = jet->Eta();
 
-  if (fabs(jeteta)>(m_jet_EtaAccepcut-m_jet_OverlapAccep) && fabs(jeteta)<m_jet_EtaMaxcut) return true;
+  if (jetpt>m_jet_Ptcut && fabs(jeteta)>(m_jet_EtaAccepcut-m_jet_OverlapAccep) && fabs(jeteta)<m_jet_EtaMaxcut) return true;
 
   return false;
 }
@@ -626,9 +734,9 @@ void SingleTprime_analysis::analyze(const edm::EventSetup& iSetup, PatExtractor&
 
   //Performing analysis
   //cout << "Going to selection" << endl;
-  SingleTprime_Sel();
+  int ToFillTree = SingleTprime_Sel();
 
-  fillTree();
+  if (ToFillTree==1) fillTree();
 }
 
   //MC Identification
