@@ -1,7 +1,7 @@
 ####################################
 # Variable to run only the analysis#
 ####################################
-OnlyAnalysis = False
+OnlyAnalysis = True
 ####################################
 
 import FWCore.ParameterSet.Config as cms
@@ -31,7 +31,7 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
     process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1000))
   else:
     process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
-    process.PATextraction.n_events=1000
+    process.PATextraction.n_events=100000
     process.source = cms.Source("EmptySource")  
     process.PATextraction.fillTree   = False
     process.PATextraction.inputRootFile=cms.string('extracted_mc.root')
@@ -111,7 +111,7 @@ if __name__ == "__main__":
   if not OnlyAnalysis:
     FileList=[]
     BASE="file:/home/cms/jruizalv/work/CMSSW_5_3_9_patch2/src/Extractors/SignalSamples/734GeV/Signal-PAT_tuple_"
-    for i in xrange(302):
+    for i in xrange(1000):
       if i!=175: FileList.append(BASE+str(i)+".root")
     process.source.fileNames = cms.untracked.vstring( FileList
     #    'file:/home/cms/jruizalv/work/CMSSW_5_3_9_patch2/src/Extractors/Small_Sample_patTuple.root'
