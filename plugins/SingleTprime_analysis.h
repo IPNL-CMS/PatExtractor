@@ -78,6 +78,11 @@ namespace patextractor {
     float m_DRTrueSecondWJetRecoJet; 
     float m_DRTrueTopJetRecoJet;   
 
+    float m_DRTrueWJets;
+    float m_DRMatchedWJets;
+    float m_DPhiTrueWJets;   
+    float m_DPhiMatchedWJets;
+
     //bool isMC;
     float m_jet_Ptcut;
     float m_jet_EtaMaxcut;
@@ -97,6 +102,7 @@ namespace patextractor {
     TLorentzVector* TrueW;
     TLorentzVector* TrueTop;
     TLorentzVector* TrueTprime;
+    TLorentzVector* TrueTprimeAcompainingJet;
     TLorentzVector* FirstHiggsJet;
     TLorentzVector* SecondHiggsJet;
     TLorentzVector* FirstWJet;
@@ -116,6 +122,9 @@ namespace patextractor {
     int CorrectHiggsJet;
     int CorrectWJet;
     int CorrectTopJet;
+    int NumbMatchedHiggsJets;
+    int NumbMatchedWJets;
+    int NumbMatchedTopJets;
 
     //Linking extractors
     std::shared_ptr<EventExtractor> m_event;
