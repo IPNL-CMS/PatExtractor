@@ -95,6 +95,9 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   //m_tree_jet->Branch("jet_btag_TCHE",    &m_jet_btag_TCHE,   "jet_btag_TCHE[n_jets]/F");
   m_tree_jet->Branch("jet_mcParticleIndex",&m_jet_MCIndex,"jet_mcParticleIndex[n_jets]/I");
 
+  m_tree_jet->Branch("jet_algo_parton_flavor", &m_jet_algo_parton_flavor, "jet_algo_parton_flavor[n_jets]/I");
+  m_tree_jet->Branch("jet_physics_parton_pdgid", &m_jet_physics_parton_pdgid, "jet_physics_parton_pdgid[n_jets]/I");
+
   m_tree_jet->Branch("jet_scaleFactor", &m_scaleFactors.getBackingArray());
 
   m_tree_met = NULL;
@@ -155,6 +158,12 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
       m_tree_jet->SetBranchAddress("jet_btag_TCHP",     &m_jet_btag_TCHP);
     if (m_tree_jet->FindBranch("jet_btag_CSV")) 
       m_tree_jet->SetBranchAddress("jet_btag_CSV",      &m_jet_btag_CSV);
+
+    if (m_tree_jet->FindBranch("jet_algo_parton_flavor"))
+      m_tree_jet->SetBranchAddress("jet_algo_parton_flavor", &m_jet_algo_parton_flavor);
+
+    if (m_tree_jet->FindBranch("jet_physics_parton_pdgid"))
+      m_tree_jet->SetBranchAddress("jet_physics_parton_pdgid", &m_jet_physics_parton_pdgid);
 
     if (m_tree_jet->FindBranch("jet_mcParticleIndex")) 
       m_tree_jet->SetBranchAddress("jet_mcParticleIndex",&m_jet_MCIndex);
@@ -336,6 +345,9 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
     m_jet_btag_CSV[index]      = part.bDiscriminator("combinedSecondaryVertexBJetTags");
   }
 
+  m_jet_algo_parton_flavor[index] = part.partonFlavour();
+  m_jet_physics_parton_pdgid[index] = (part.genParton()) ? part.genParton()->pdgId() : 0;
+
   if (m_isMC)
     m_scaleFactors.push_back(m_scaleFactorService->getBTaggingScaleFactor(part.et(), part.eta()));
 }
@@ -398,6 +410,9 @@ void JetMETExtractor::reset()
     m_jet_btag_CSV[i] = 0.;
 
     m_jet_MCIndex[i]    = -1;
+
+    m_jet_algo_parton_flavor[i] = 0;
+    m_jet_physics_parton_pdgid[i] = 0;
   }
   if (m_jet_lorentzvector)
     m_jet_lorentzvector->Clear();

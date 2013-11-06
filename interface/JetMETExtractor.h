@@ -135,6 +135,14 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
 
     void extractRawJets(pat::JetCollection& jets);
 
+    int getAlgoPartonFlavor(int index) const {
+      return m_jet_algo_parton_flavor[index];
+    }
+
+    int getPhysicsPartonFlavor(int index) const {
+      return m_jet_physics_parton_pdgid[index];
+    }
+
   private:
 
     TTree* m_tree_jet;
@@ -170,6 +178,9 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     float	m_jet_btag_CSV[m_jets_MAX];
 
     int  m_jet_MCIndex[m_jets_MAX];
+
+    int m_jet_algo_parton_flavor[m_jets_MAX];
+    int m_jet_physics_parton_pdgid[m_jets_MAX];
 
     // MET
 
