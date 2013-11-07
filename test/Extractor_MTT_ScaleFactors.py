@@ -100,5 +100,4 @@ def loadElectronScaleFactor(filename, workingPoint):
     return mainSet
 
 def loadBTagScaleFactors(process):
-  #process.load ("RecoBTag.PerformanceDB.PoolBTagPerformanceDB2013")
-  process.load ("RecoBTag.PerformanceDB.BTagPerformanceDB2013")
+  process.load ("RecoBTag.PerformanceDB.BTagPerformanceDBWinter13")
