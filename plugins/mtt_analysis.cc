@@ -340,6 +340,14 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
   m_KinFit = new KinFit(fname, cmsswSettings);
 
   m_weight = 1.;
+
+  m_gen_bjets = new TH1F("number_of_gen_bjets", "", 98, 20, 1000);
+  m_gen_cjets = new TH1F("number_of_gen_cjets", "", 98, 20, 1000);
+  m_gen_lightjets = new TH1F("number_of_gen_lightjets", "", 98, 20, 1000);
+
+  m_reco_bjets = new TH1F("number_of_reco_bjets", "", 98, 20, 1000);
+  m_reco_fake_bjets_among_cjets = new TH1F("number_of_reco_fake_bjets_among_cjets", "", 98, 20, 1000);
+  m_reco_fake_bjets_among_lightjets = new TH1F("number_of_reco_fake_bjets_among_lightjets", "", 98, 20, 1000);
 }
 
 mtt_analysis::~mtt_analysis()
@@ -645,6 +653,37 @@ int mtt_analysis::JetSel()
         ++m_mtt_NBtaggedJets_CSVT;
       if ((m_jetMet->getJetBTagProb_TCHP(i)) > m_JET_btag_TCHPT)
         ++m_mtt_NBtaggedJets_TCHPT;
+
+      int flavor = abs(m_jetMet->getPhysicsPartonFlavor(i));
+      if (flavor == 5) {
+        // The true flavor of this jet is B
+        m_gen_bjets->Fill(jetP->Pt());
+
+        if ((m_jetMet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVM) {
+          // This reco jet is tagged as a B
+          m_reco_bjets->Fill(jetP->Pt());
+        }
+      }
+
+      if (flavor == 4) {
+        // The true flavor of this jet is C
+        m_gen_cjets->Fill(jetP->Pt());
+
+        if ((m_jetMet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVM) {
+          // This reco jet is tagged as a B
+          m_reco_fake_bjets_among_cjets->Fill(jetP->Pt());
+        }
+      }
+
+      if ((flavor > 0 && flavor <= 3) || (flavor == 21)) {
+        // The true flavor of this jet is C
+        m_gen_lightjets->Fill(jetP->Pt());
+
+        if ((m_jetMet->getJetBTagProb_CSV(i)) > m_JET_btag_CSVM) {
+          // This reco jet is tagged as a B
+          m_reco_fake_bjets_among_lightjets->Fill(jetP->Pt());
+        }
+      }
     }
 
     if (m_mtt_NJets == 1) m_mtt_1stjetpt = m_mtt_JetPt[m_mtt_NJets - 1];

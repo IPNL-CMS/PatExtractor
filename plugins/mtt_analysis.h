@@ -56,6 +56,13 @@ namespace patextractor {
       virtual void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup, PatExtractor& extractor);
       virtual void analyze(const edm::EventSetup& iSetup, PatExtractor& extractor);
       virtual void endJob() {
+        m_reco_bjets->Write(); // Number of tagged B in reco which are true B jets
+        m_reco_fake_bjets_among_cjets->Write(); // Number of tagged B in reco which are in reality C jets
+        m_reco_fake_bjets_among_lightjets->Write(); // Number of tagged B in reco which are in reality light jets
+
+        m_gen_bjets->Write();
+        m_gen_cjets->Write();
+        m_gen_lightjets->Write();
       }
 
     private:
@@ -395,6 +402,14 @@ namespace patextractor {
       int m_pass_met_cut;
       int m_pass_lepton_cut;
       int m_pass_jet_cut;
+
+      TH1* m_gen_bjets; // Number of b-jets at generator level for an event
+      TH1* m_gen_cjets; // Number of c-jets at generator level for an event
+      TH1* m_gen_lightjets; // Number of light-jets at generator level for an event
+
+      TH1* m_reco_bjets; // Number of b-jets at reco level correctly tagged
+      TH1* m_reco_fake_bjets_among_cjets; // Number of tagged b-jets at reco level which are C jets
+      TH1* m_reco_fake_bjets_among_lightjets; // Number of tagged b-jets at reco level which are light jets
   };
 
 }
