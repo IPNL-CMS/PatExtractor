@@ -154,20 +154,12 @@ namespace patextractor {
   m_tree_stp->Branch("Sphericity",  &m_Sphericity   ,"Sphericity/F");
   m_tree_stp->Branch("Aplanarity",  &m_Aplanarity   ,"Aplanarity/F");
 
-  m_tree_stp->Branch("Cut_0",  &m_Cut0   ,"PentaJetMass/F");
-  m_tree_stp->Branch("Cut_1",  &m_Cut1   ,"PentaJetMass/F");
-  m_tree_stp->Branch("Cut_2",  &m_Cut2   ,"PentaJetMass/F");
-  m_tree_stp->Branch("Cut_3",  &m_Cut3   ,"PentaJetMass/F");
-  m_tree_stp->Branch("Cut_4",  &m_Cut4   ,"PentaJetMass/F");
-  m_tree_stp->Branch("Cut_5",  &m_Cut5   ,"PentaJetMass/F");
-  m_tree_stp->Branch("Cut_6",  &m_Cut6   ,"PentaJetMass/F");
-  m_tree_stp->Branch("Cut_7",  &m_Cut7   ,"PentaJetMass/F");
-  m_tree_stp->Branch("Cut_8",  &m_Cut8   ,"PentaJetMass/F");
-  m_tree_stp->Branch("Cut_9",  &m_Cut9   ,"PentaJetMass/F");
-  m_tree_stp->Branch("Cut_10",  &m_Cut10   ,"PentaJetMass/F");
-  m_tree_stp->Branch("Cut_11",  &m_Cut11   ,"PentaJetMass/F");
-  m_tree_stp->Branch("Cut_12",  &m_Cut12   ,"PentaJetMass/F");
+  m_tree_stp->Branch("trigger_passed", &m_trigger_passed, "trigger_passed/O");
 
+  // Weights and errors from differents scale factors
+  m_tree_stp->Branch("weight", &m_weight, "weight/F");
+  m_tree_stp->Branch("weight_error_low", &m_weight_error_low, "weight_error_low/F");
+  m_tree_stp->Branch("weight_error_high", &m_weight_error_high, "weight_error_high/F");
 
   // Initialize the analysis parameters using the ParameterSet iConfig
   //int an_option = iConfig.getUntrackedParameter<int>("an_option", 0);
@@ -179,12 +171,16 @@ namespace patextractor {
   evt_num = 0;
   m_DRMatching=0.3;
   m_DPtMatching=10.0;
+
+  m_weight = 1.;
 }
 
 SingleTprime_analysis::~SingleTprime_analysis(){}
 
   int SingleTprime_analysis::SingleTprime_Sel() //Main function for the analysis
 {
+  if (!m_trigger_passed) return 0;
+
   int n_jets = m_jetMet->getSize();
   //cout << "Number of jets " << n_jets << endl;
   bool JetsInAcceptance[n_jets]; //Mas for keeping track of jets inside acceptance
@@ -257,21 +253,19 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
 
   // First check the number of jets in and out the acceptance
   //cout << CountingGoodJets << " " << CountingBadJets << endl;
-  if (CountingGoodJets>=NumberOfGoodJets && CountingBadJets>=NumberOfBadJets) cout << "Good Event" << endl;
-  else return 0;
-  
+
   /////////
   //Cut 0//
   /////////
 
-  m_Cut0= PentaJet.M();
+  if (CountingGoodJets>=NumberOfGoodJets && CountingBadJets>=NumberOfBadJets) cout << "Good Event" << endl;
+  else return 0;
   
   /////////
   //Cut 1//
   /////////
 
   if (LeadingJet.Pt()<LeadingJetPt) return 0;
-  m_Cut1= PentaJet.M();
 
   //cout << "The HT of the event is " << TotalHT << endl;
   m_THT = TotalHT;
@@ -698,6 +692,42 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
   // Finally fill the analysis tree 
   //SingleTprime_analysis::fillTree();
   
+  if (m_isMC) {
+    // Get scale factors
+    double sf = 1;
+    double sf_error = 0;
+
+    if (m_NBtaggedJets_CSVL >= 2) {
+
+      ScaleFactor sf_jet1 = {1, 0, 0};
+      ScaleFactor sf_jet2 = {1, 0, 0};
+      bool gotJet1 = false;
+
+      for (int i = 0; i < n_jets; i++)
+      {
+        if (jetIsBTagged[i]) {
+          if (! gotJet1) {
+            gotJet1 = true;
+            sf_jet1 = jetSF[i];
+          } else {
+            sf_jet2 = jetSF[i];
+            break;
+          }
+        }
+      }
+
+      sf = sf_jet1.getValue() * sf_jet2.getValue();
+      sf_error = sf_jet2.getValue() * sf_jet2.getValue() * sf_jet1.getErrorHigh() * sf_jet1.getErrorHigh() +
+        sf_jet1.getValue() * sf_jet1.getValue() * sf_jet2.getErrorHigh() * sf_jet2.getErrorHigh();
+    }
+
+    m_weight *= sf;
+
+    double squared_sf_error = sf_error * sf_error;
+    m_weight_error_low += squared_sf_error;
+    m_weight_error_high += squared_sf_error;
+  }
+
   return 1;
 }
 
@@ -731,6 +761,8 @@ bool SingleTprime_analysis::isJetForwSel(TLorentzVector *jet) // Function to sel
   return false;
 }
 
+#define   MTT_TRIGGER_NOT_FOUND   1000
+
 void SingleTprime_analysis::analyze(const edm::Event& event, const edm::EventSetup& iSetup, PatExtractor& extractor) {
   analyze(iSetup, extractor);
 }
@@ -742,6 +774,10 @@ void SingleTprime_analysis::analyze(const edm::EventSetup& iSetup, PatExtractor&
   //Pointer to Extractor objects
   m_jetMet   = std::static_pointer_cast<JetMETExtractor>(extractor.getExtractor("JetMET"));
   m_event    = std::static_pointer_cast<EventExtractor>(extractor.getExtractor("event"));
+
+  std::shared_ptr<HLTExtractor> HLT = std::static_pointer_cast<HLTExtractor>(extractor.getExtractor("HLT"));
+  m_trigger_passed = HLT->isTriggerFired();
+
   if (m_isMC) 
     {
       m_MC = std::static_pointer_cast<MCExtractor>(extractor.getExtractor("MC"));
@@ -899,20 +935,6 @@ void SingleTprime_analysis::reset()
   m_DPhiTrueWJets=0;
   m_DPhiMatchedWJets=0;
 
-  m_Cut0=0.; //Good+BadJets
-  m_Cut1=0.; //Leading jet pt
-  m_Cut2=0.; //HT
-  m_Cut3=0.; //At least two b-tags
-  m_Cut4=0.; //DeltaR Higgs jets
-  m_Cut5=0.; //HptToppt
-  m_Cut6=0.; //DeltaR WH
-  m_Cut7=0.; //DeltaPhi Higgs Jets DeltaPhi TopJet W
-  m_Cut8=0.; //Jet Multiplicity
-  m_Cut9=0.; //DeltaPhi Higgs Jets DeltaPhi W Jets
-  m_Cut10=0.; //Higgs Mass
-  m_Cut11=0.; //Relative HT
-  m_Cut12=0.; //Aplanarit
-
   CorrectTprime = 0;
   CorrectH = 0;
   CorrectW = 0;
@@ -923,6 +945,12 @@ void SingleTprime_analysis::reset()
   NumbMatchedHiggsJets = 0;
   NumbMatchedWJets = 0;
   NumbMatchedTopJets = 0;
+
+  m_trigger_passed = false;
+
+  m_weight = 1.;
+  m_weight_error_low = 0.;
+  m_weight_error_high = 0.;
 
   ReconstructedHiggs->SetPxPyPzE(0., 0., 0., 0.);
   ReconstructedW->SetPxPyPzE(0., 0., 0., 0.);
@@ -944,6 +972,8 @@ void SingleTprime_analysis::reset()
 
 void SingleTprime_analysis::fillTree()
 {
+  m_weight_error_low = sqrt(m_weight_error_low);
+  m_weight_error_high = sqrt(m_weight_error_high);
   m_tree_stp->Fill(); 
 }
 

@@ -77,7 +77,9 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
   process.PATextraction.doMuon     = True
   process.PATextraction.doVertex   = True
 
-  if not isMC: process.PATextraction.triggersXML = readFile("triggers_jets.xml")
+  #if not isMC: process.PATextraction.triggersXML = readFile("triggers_jets.xml")
+
+  process.PATextraction.triggersXML = readFile("triggers_jets.xml")
   
   # JER systematics:
   # Use -1 for 1-sigma down, 0 for nominal correction, and 1 for 1-sigma up

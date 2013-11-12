@@ -83,20 +83,6 @@ namespace patextractor {
     float m_DPhiTrueWJets;   
     float m_DPhiMatchedWJets;
 
-    float m_Cut0; //Good+BadJets
-    float m_Cut1; //Leading jet pt
-    float m_Cut2; //HT
-    float m_Cut3; //At least two b-tags
-    float m_Cut4; //DeltaR Higgs jets
-    float m_Cut5; //HptToppt
-    float m_Cut6; //DeltaR WH
-    float m_Cut7; //DeltaPhi Higgs Jets DeltaPhi TopJet W
-    float m_Cut8; //Jet Multiplicity
-    float m_Cut9; //DeltaPhi Higgs Jets DeltaPhi W Jets
-    float m_Cut10; //Higgs Mass
-    float m_Cut11; //Relative HT
-    float m_Cut12; //Aplanarity
-
     //bool isMC;
     float m_jet_Ptcut;
     float m_jet_EtaMaxcut;
@@ -155,6 +141,12 @@ namespace patextractor {
     /// scale factors for jet energy resolution
     std::vector<double> jetEnergyResolutionScaleFactors_;
     std::vector<double> jetEnergyResolutionEtaBinning_;
+
+    bool m_trigger_passed;	
+
+    float m_weight;	
+    float m_weight_error_low;
+    float m_weight_error_high;
 
   };
 
