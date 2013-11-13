@@ -65,8 +65,12 @@ def loadMuonScaleFactor(filenameIso, filenameEff, effWorkingPoint, isoWorkingPoi
 
   return mainSet
 
-def loadElectronScaleFactor(filename, workingPoint):
-  import json
+def loadElectronScaleFactor(filename, recofilename, workingPoint):
+  import json, math
+  from ROOT import TFile, TH2
+
+  recoFile = TFile.Open(recofilename)
+  hRecoSF = recoFile.Get("h_electronScaleFactor_RECO")
   with open(filename) as f:
     data = json.load(f)
 
@@ -80,13 +84,25 @@ def loadElectronScaleFactor(filename, workingPoint):
       etaSet = cms.VPSet()
 
       for j in range(0, len(ptBins) - 1):
+        meanPt = (float(ptBins[j]) + float(ptBins[j + 1])) / 2.
+        meanEta = (float(etaBins[i]) + float(etaBins[i + 1])) / 2.
+
+        bin = hRecoSF.FindBin(meanPt, meanEta)
+        recoSF = hRecoSF.GetBinContent(bin)
+        recoSF_error = hRecoSF.GetBinError(bin)
+
+        isoSF_error_high = float(data["sf"][i][j][1])
+        isoSF_error_low = float(data["sf"][i][j][2])
+
+        sf_error_high = math.sqrt( math.pow(isoSF_error_high, 2) + math.pow(recoSF_error, 2) )
+        sf_error_low = math.sqrt( math.pow(isoSF_error_low, 2) + math.pow(recoSF_error, 2) )
 
         pset = cms.PSet(
             pt = cms.vdouble(float(ptBins[j]), float(ptBins[j + 1])),
-            value = cms.double(float(data["sf"][i][j][0])),
-            error_high = cms.double(float(data["sf"][i][j][1])),
-            error_low = cms.double(float(data["sf"][i][j][2])),
-            )
+            value = cms.double(float(data["sf"][i][j][0]) * recoSF),
+            error_high = cms.double(sf_error_high),
+            error_low = cms.double(sf_error_low),
+        )
 
         etaSet.append(pset)
 
@@ -97,6 +113,7 @@ def loadElectronScaleFactor(filename, workingPoint):
             )
           )
 
+    recoFile.Close()
     return mainSet
 
 def loadBTagScaleFactors(process):
