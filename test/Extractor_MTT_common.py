@@ -211,7 +211,8 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
           ),
 
         mva = cms.PSet(
-          weights = cms.string("Extractors/PatExtractor/data/ttbar_BDT.weights.xml")
+          weights = cms.string("Extractors/PatExtractor/data/TTJets_semimu_BDT.weights.xml") if isSemiMu else
+                    cms.string("Extractors/PatExtractor/data/TTJets_semie_BDT.weights.xml")
           ),
 
         use_mva = cms.bool(True),
