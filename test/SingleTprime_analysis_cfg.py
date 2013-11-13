@@ -51,7 +51,30 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
 
   process.PATextraction.plugins = cms.PSet( # <1>
     SingleTprime_analysis = cms.PSet(
-      #an_option = cms.untracked.int32(42)
+        jets = cms.PSet(
+          pt_min = cms.double(30),
+          eta_max = cms.double(4.5),
+          eta_accept = cms.double(2.5),
+          eta_overlap = cms.double(2.5),
+          btag_CSVL = cms.double(0.244)
+          ),
+	cuts = cms.PSet(
+	  cut0 = cms.bool(True),
+	  cut1 = cms.bool(True),
+	  cut2 = cms.bool(True),
+          cut3 = cms.bool(True),
+          cut4 = cms.bool(True),
+          cut5 = cms.bool(True),
+          cut6 = cms.bool(True),
+          cut7 = cms.bool(True),
+          cut8 = cms.bool(True),
+          cut9 = cms.bool(True),
+          cut10 = cms.bool(True),
+          cut11 = cms.bool(True),
+          cut12 = cms.bool(True),
+          cut13 = cms.bool(True)
+          ),
+        DoMatching = cms.bool(True)
       )
     )
   

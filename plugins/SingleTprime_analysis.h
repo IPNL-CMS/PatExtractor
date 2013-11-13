@@ -93,6 +93,24 @@ namespace patextractor {
     float m_DRMatching;
     float m_DPtMatching;
 
+    //Booleans to activate each cut
+    bool Cut0;
+    bool Cut1;
+    bool Cut2;
+    bool Cut3;
+    bool Cut4;
+    bool Cut5;
+    bool Cut6;
+    bool Cut7;
+    bool Cut8;
+    bool Cut9;
+    bool Cut10;
+    bool Cut11;
+    bool Cut12;
+    bool Cut13;
+
+    bool DoMCMatching;
+ 
     //Reconstructed particles
     TLorentzVector* ReconstructedHiggs;
     TLorentzVector* ReconstructedW;

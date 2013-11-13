@@ -60,7 +60,7 @@ using namespace std;
 
 namespace patextractor {
 
-  SingleTprime_analysis::SingleTprime_analysis(const edm::ParameterSet& iConfig): Plugin(iConfig)/*,
+  SingleTprime_analysis::SingleTprime_analysis(const edm::ParameterSet& cmsswSettings): Plugin(cmsswSettings)/*,
     jetEnergyResolutionScaleFactors_  (cmsswSettings.getParameter<std::vector<double> >("jetEnergyResolutionScaleFactors")),
     jetEnergyResolutionEtaBinning_    (cmsswSettings.getParameter<std::vector<double> >("jetEnergyResolutionEtaBinning"))*/
 {
@@ -163,14 +163,31 @@ namespace patextractor {
 
   // Initialize the analysis parameters using the ParameterSet iConfig
   //int an_option = iConfig.getUntrackedParameter<int>("an_option", 0);
-  m_jet_Ptcut = 30;                               // Default val
-  m_jet_EtaMaxcut = 4.5;
-  m_jet_EtaAccepcut = 2.5;
-  m_jet_OverlapAccep = 2.5;
-  m_JET_btag_CSVL = 0.244;
+  m_jet_Ptcut = cmsswSettings.getParameter<edm::ParameterSet>("jets").getParameter<double>("pt_min"); //30;                               // Default val
+  m_jet_EtaMaxcut = cmsswSettings.getParameter<edm::ParameterSet>("jets").getParameter<double>("eta_max"); //4.5;
+  m_jet_EtaAccepcut = cmsswSettings.getParameter<edm::ParameterSet>("jets").getParameter<double>("eta_accept"); //2.5;
+  m_jet_OverlapAccep = cmsswSettings.getParameter<edm::ParameterSet>("jets").getParameter<double>("eta_overlap"); //2.5;
+  m_JET_btag_CSVL = cmsswSettings.getParameter<edm::ParameterSet>("jets").getParameter<double>("btag_CSVL"); //0.244;
   evt_num = 0;
   m_DRMatching=0.3;
   m_DPtMatching=10.0;
+
+  Cut0=cmsswSettings.getParameter<edm::ParameterSet>("cuts").getParameter<bool>("cut0");
+  Cut1=cmsswSettings.getParameter<edm::ParameterSet>("cuts").getParameter<bool>("cut1");
+  Cut2=cmsswSettings.getParameter<edm::ParameterSet>("cuts").getParameter<bool>("cut2");
+  Cut3=cmsswSettings.getParameter<edm::ParameterSet>("cuts").getParameter<bool>("cut3");
+  Cut4=cmsswSettings.getParameter<edm::ParameterSet>("cuts").getParameter<bool>("cut4");
+  Cut5=cmsswSettings.getParameter<edm::ParameterSet>("cuts").getParameter<bool>("cut5");
+  Cut6=cmsswSettings.getParameter<edm::ParameterSet>("cuts").getParameter<bool>("cut6");
+  Cut7=cmsswSettings.getParameter<edm::ParameterSet>("cuts").getParameter<bool>("cut7");
+  Cut8=cmsswSettings.getParameter<edm::ParameterSet>("cuts").getParameter<bool>("cut8");
+  Cut9=cmsswSettings.getParameter<edm::ParameterSet>("cuts").getParameter<bool>("cut9");
+  Cut10=cmsswSettings.getParameter<edm::ParameterSet>("cuts").getParameter<bool>("cut10");
+  Cut11=cmsswSettings.getParameter<edm::ParameterSet>("cuts").getParameter<bool>("cut11");
+  Cut12=cmsswSettings.getParameter<edm::ParameterSet>("cuts").getParameter<bool>("cut12");
+  Cut13=cmsswSettings.getParameter<edm::ParameterSet>("cuts").getParameter<bool>("cut13");
+
+  DoMCMatching=cmsswSettings.getParameter<bool>("DoMatching");
 
   m_weight = 1.;
 }
@@ -542,7 +559,7 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
   //Comparing with MC truth//
   ///////////////////////////
 
-  if (false) //Switch to true to obtain comparison of our method with MC matching
+  if (DoMCMatching) //Switch to true to obtain comparison of our method with MC matching
     {
       int MatchedHiggsJets=0;
       int MatchedFirstHiggsJets=0;
