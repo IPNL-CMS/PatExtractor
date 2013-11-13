@@ -23,7 +23,7 @@
 #include <TTree.h>
 #include <TLorentzVector.h>
 #include <TRef.h>
-#include <TH1.h>
+#include <TH2.h>
 
 class AnalysisSettings;
 class EventExtractor;
@@ -36,6 +36,7 @@ class HLTExtractor;
 class PatExtractor;
 class MCExtractor;
 class JetMETExtractor;
+class BTaggingEfficiencyProvider;
 
 namespace edm {
   class EventSetup;
@@ -85,6 +86,8 @@ namespace patextractor {
       void fillTree();
 
       bool isBJet(unsigned int index);
+      float getBTagProbabilityMC();
+      float getBTagProbabilityData();
 
       bool   m_MAIN_doUseBTag;
       //bool   m_MAIN_doKF;
@@ -407,13 +410,16 @@ namespace patextractor {
       int m_pass_lepton_cut;
       int m_pass_jet_cut;
 
-      TH1* m_gen_bjets; // Number of b-jets at generator level for an event
-      TH1* m_gen_cjets; // Number of c-jets at generator level for an event
-      TH1* m_gen_lightjets; // Number of light-jets at generator level for an event
+      // b-tagging efficiencies
+      TH2* m_gen_bjets; // Number of b-jets at generator level for an event
+      TH2* m_gen_cjets; // Number of c-jets at generator level for an event
+      TH2* m_gen_lightjets; // Number of light-jets at generator level for an event
 
-      TH1* m_reco_bjets; // Number of b-jets at reco level correctly tagged
-      TH1* m_reco_fake_bjets_among_cjets; // Number of tagged b-jets at reco level which are C jets
-      TH1* m_reco_fake_bjets_among_lightjets; // Number of tagged b-jets at reco level which are light jets
+      TH2* m_reco_bjets; // Number of b-jets at reco level correctly tagged
+      TH2* m_reco_fake_bjets_among_cjets; // Number of tagged b-jets at reco level which are C jets
+      TH2* m_reco_fake_bjets_among_lightjets; // Number of tagged b-jets at reco level which are light jets
+
+      std::shared_ptr<BTaggingEfficiencyProvider> m_b_tagging_efficiency_provider;
   };
 
 }
