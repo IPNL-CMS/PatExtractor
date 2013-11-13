@@ -43,7 +43,7 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
   process.source = cms.Source("PoolSource",
       fileNames = cms.untracked.vstring(
         ),
-      duplicateCheckMode = cms.untracked.string( 'noDuplicateCheck' )
+      duplicateCheckMode = cms.untracked.string( 'noDuplicateCheck' ),
       )
 
   #Output extracted file name
@@ -110,7 +110,7 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
   process.PATextraction.MET_PF.redoMetPhiCorrection   = False
   process.PATextraction.MET_PF.redoMetTypeICorrection = False # Automatically true if redoJetCorrection is True
 
-  from Extractor_MTT_ScaleFactors import loadMuonScaleFactor, loadBTagScaleFactors, loadElectronScaleFactor
+  from Extractor_MTT_ScaleFactors import loadMuonScaleFactor, loadBTagScaleFactors, loadElectronScaleFactor, loadLightJetsScaleFactor
   loadBTagScaleFactors(process)
 
   # Scale factors
@@ -122,6 +122,23 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
   process.PATextraction.electron_scale_factors_tighteff_tightiso = loadElectronScaleFactor("Electron_scale_factors.json", "tight")
   process.PATextraction.electron_scale_factors_looseeff_tightiso = loadElectronScaleFactor("Electron_scale_factors.json", "loose")
   process.PATextraction.electron_scale_factors = cms.vstring("electron_scale_factors_tighteff_tightiso", "electron_scale_factors_looseeff_tightiso")
+
+  process.PATextraction.b_tagging_scale_factors_b_jets = cms.PSet(
+          jet_type = cms.string("b"),
+          from_globaltag = cms.bool(True),
+          payload = cms.string("MUJETSWPBTAGTTBARCSVM")
+          )
+  process.PATextraction.b_tagging_scale_factors_c_jets = cms.PSet(
+          jet_type = cms.string("c"),
+          from_globaltag = cms.bool(True),
+          payload = cms.string("MUJETSWPBTAGTTBARCSVM")
+          )
+  process.PATextraction.b_tagging_scale_factors_light_jets = cms.PSet(
+          jet_type = cms.string("light"),
+          from_globaltag = cms.bool(False),
+          scale_factors = loadLightJetsScaleFactor()
+          )
+  process.PATextraction.b_tagging_scale_factors = cms.vstring("b_tagging_scale_factors_b_jets", "b_tagging_scale_factors_c_jets", "b_tagging_scale_factors_light_jets")
 
   # MTT analysis configuration
   process.PATextraction.plugins = cms.PSet(

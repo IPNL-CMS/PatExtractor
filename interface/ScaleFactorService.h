@@ -2,6 +2,8 @@
 
 #include <map>
 #include <vector>
+#include <memory>
+#include <tuple>
 
 #include <boost/algorithm/string.hpp>
 
@@ -18,11 +20,173 @@
 
 #include <FWCore/Utilities/interface/Exception.h>
 
+
+#include <TString.h>
+#include <TF1.h>
+
+class BTagScaleFactorService {
+  public:
+    BTagScaleFactorService(const std::string& jet_type) {
+      m_jet_type = jet_type;
+    }
+
+    virtual void init(const edm::EventSetup& iSetup) {
+      // Do nothing
+    }
+
+    virtual ScaleFactor getScaleFactor(float et, float eta) = 0;
+
+  protected:
+    std::string m_jet_type;
+};
+
+class BTagScaleFactorFromGlobalTagService: public BTagScaleFactorService {
+  public:
+    BTagScaleFactorFromGlobalTagService(const std::string& jet_type, const std::string& payload):
+      BTagScaleFactorService(jet_type) {
+      m_payload = payload;
+      m_init = false;
+
+      std::cout << "Reading scale factors from Global Tag for " << jet_type << " jets" << std::endl;
+    }
+
+    virtual void init(const edm::EventSetup& iSetup) {
+      try {
+        iSetup.get<BTagPerformanceRecord>().get(m_payload, mBTagPerf);
+        m_init = mBTagPerf.isValid();
+      } catch (const cms::Exception& ex) {
+        m_init = false;
+        std::cout << "WARNING: an error occured when loading scale factors from Global Tag. Please check that '" << m_payload << "' is a correct payload" << std::endl;
+        std::cout << ex << std::endl;
+      }
+
+      if (m_init) {
+        std::cout << "B-tagging scale factors correctly loaded from Global Tag" << std::endl;
+      } else {
+      }
+    }
+
+    virtual ScaleFactor getScaleFactor(float et, float eta) {
+
+      if (!m_init)
+        return ScaleFactor();
+
+      eta = fabs(eta);
+
+      // Double errors if pt < 20 || pt > 800
+      bool doubleErrors = et < 20 || et > 800;
+      if (et < 20)
+        et = 20;
+
+      if (et > 800)
+        et = 800;
+
+      BinningPointByMap measurePoint;
+      measurePoint.insert(BinningVariables::JetEt, et);
+      measurePoint.insert(BinningVariables::JetEta, eta);
+
+      if (mBTagPerf->isResultOk(PerformanceResult::BTAGBEFFCORR, measurePoint) && mBTagPerf->isResultOk(PerformanceResult::BTAGBERRCORR, measurePoint)) {
+        ScaleFactor sf(mBTagPerf->getResult(PerformanceResult::BTAGBEFFCORR, measurePoint), mBTagPerf->getResult(PerformanceResult::BTAGBERRCORR, measurePoint));
+
+        if (doubleErrors)
+          return {sf.getValue(), 2 * sf.getErrorHigh(), 2 * sf.getErrorLow()};
+
+        return sf;
+      }
+
+      return ScaleFactor();
+    }
+
+  private:
+    std::string m_payload;
+    bool m_init;
+    edm::ESHandle<BtagPerformance> mBTagPerf;
+};
+
+class BTagScaleFactorFromVSetService: public BTagScaleFactorService {
+  public:
+    BTagScaleFactorFromVSetService(const std::string& jet_type, const edm::VParameterSet& sfs):
+      BTagScaleFactorService(jet_type) {
+
+      int nEta = 0;
+      for (const edm::ParameterSet& etaBin: sfs) {
+        nEta++;
+        const std::vector<double> etaBinVector = etaBin.getParameter<std::vector<double>>("eta");
+        auto eta = std::make_pair(etaBinVector[0], etaBinVector[1]);
+        float ptMax = ((eta.first - 1.5 < 1e-6) || (eta.first - 1.6 < 1e-6)) ? 850. : 1000;
+        auto functions = std::make_tuple(
+            new TF1(TString::Format("%s_nominal_%f_%f", jet_type.c_str(), eta.first, eta.second), etaBin.getParameter<std::string>("value").c_str(), 20, ptMax),
+            new TF1(TString::Format("%s_max_%f_%f", jet_type.c_str(), eta.first, eta.second), etaBin.getParameter<std::string>("error_high").c_str(), 20, ptMax),
+            new TF1(TString::Format("%s_min_%f_%f", jet_type.c_str(), eta.first, eta.second), etaBin.getParameter<std::string>("error_low").c_str(), 20, ptMax)
+            );
+
+        m_scaleFactors[eta] = functions;
+      }
+
+      std::cout << nEta << " eta bins loaded for " << jet_type << " jets." << std::endl;
+    }
+
+    virtual ~BTagScaleFactorFromVSetService() {
+      for (auto& scaleFactor: m_scaleFactors) {
+        delete std::get<0>(scaleFactor.second);
+        delete std::get<1>(scaleFactor.second);
+        delete std::get<2>(scaleFactor.second);
+      }
+    }
+
+    virtual ScaleFactor getScaleFactor(float et, float eta) {
+      eta = fabs(eta);
+      float ptMax = getPtMax(eta);
+
+      // Double errors if pt < 20 or pt > ptMax
+      float errorFactor = (et < 20 || et > ptMax) ? 2. : 1.;
+      if (et > ptMax)
+        et = ptMax;
+      else if (et < 20)
+        et = 20;
+
+      for (const auto& etaBin: m_scaleFactors) {
+        if (eta >= etaBin.first.first && eta < etaBin.first.second) {
+          TF1* nominal = std::get<0>(etaBin.second);
+          TF1* error_high = std::get<1>(etaBin.second);
+          TF1* error_low = std::get<2>(etaBin.second);
+
+          float nominal_value = nominal->Eval(et);
+          float error_high_value = error_high->Eval(et);
+          float error_low_value = error_low->Eval(et);
+
+          return ScaleFactor(nominal_value, errorFactor * (error_high_value - nominal_value), errorFactor * (nominal_value - error_low_value));
+        }
+      }
+
+      return ScaleFactor();
+    }
+
+  private:
+    std::map<
+      std::pair<float, float>, // Name
+      std::tuple<TF1*, TF1*, TF1*> // Functions (nominal, up, down)
+    > m_scaleFactors;
+
+    float getPtMax(float eta) const {
+      if (fabs(eta) >= 1.6)
+        return 850;
+      else
+        return 1000;
+    }
+};
+
 class ScaleFactorService {
   public:
     enum WorkingPoint {
       LOOSE,
       TIGHT
+    };
+
+    enum Flavor {
+      B,
+      C,
+      LIGHT
     };
 
   private:
@@ -39,22 +203,21 @@ class ScaleFactorService {
       >
     > ScaleFactorMap;
 
+    typedef std::map<
+      std::string, // Name
+      std::shared_ptr<BTagScaleFactorService>
+    > BTagScaleFactorMap;
+
   public:
     ScaleFactorService(const edm::ParameterSet& settings) {
       parseMuonScaleFactors(settings);
       parseElectronScaleFactors(settings);
-      mBTagPerfInit = false;
+      parseBTagScaleFactors(settings);
     }
 
     void prepareBTaggingScaleFactors(const edm::EventSetup& iSetup) {
-      if ( mBTagPerfInit)
-        return;
-
-      try {
-        iSetup.get<BTagPerformanceRecord>().get("MUJETSWPBTAGCSVM", mBTagPerf);
-        mBTagPerfInit = mBTagPerf.isValid();
-      } catch (const cms::Exception& ex) {
-        mBTagPerfInit = false;
+      for (auto& btagSF: mBTagScaleFactors) {
+        btagSF.second->init(iSetup);
       }
     }
 
@@ -66,24 +229,20 @@ class ScaleFactorService {
       return getScaleFactorFromMap(effWp,  isoWp, pt, eta, mMuonScaleFactors);
     }
 
-    ScaleFactor getBTaggingScaleFactor(double et, double eta) const {
+    ScaleFactor getBTaggingScaleFactor(Flavor flavor, double et, double eta) const {
 
-      if (!mBTagPerfInit)
+      const std::string flavorName = flavorToString(flavor);
+      if (mBTagScaleFactors.count(flavorName) == 0)
         return ScaleFactor();
 
-      eta = fabs(eta);
+      ScaleFactor sf = mBTagScaleFactors.at(flavorName)->getScaleFactor(et, eta);
 
-      BinningPointByMap measurePoint;
-      measurePoint.insert(BinningVariables::JetEt, et);
-      measurePoint.insert(BinningVariables::JetEta, eta);
-
-      if (mBTagPerf->isResultOk(PerformanceResult::BTAGBEFFCORR, measurePoint) && mBTagPerf->isResultOk(PerformanceResult::BTAGBERRCORR, measurePoint)) {
-        ScaleFactor sf(mBTagPerf->getResult(PerformanceResult::BTAGBEFFCORR, measurePoint), mBTagPerf->getResult(PerformanceResult::BTAGBERRCORR, measurePoint));
-
+      if (flavor == C) {
+        // For C jets, SFc = SFb, but errors are twice larger
+        return {sf.getValue(), 2 * sf.getErrorHigh(), 2 * sf.getErrorLow() };
+      } else {
         return sf;
       }
-
-      return ScaleFactor();
     }
 
     ScaleFactor getHLTScaleFactor(double pt, double eta) {
@@ -156,6 +315,25 @@ class ScaleFactorService {
       std::cout << std::endl;
     }
 
+    void parseBTagScaleFactors(const edm::ParameterSet& settings) {
+      std::cout << "Loading btag scale factors..." << std::endl;
+      const std::vector<std::string>& scaleFactors = settings.getParameter<std::vector<std::string>>("b_tagging_scale_factors");
+      for (const std::string& name: scaleFactors) {
+        const edm::ParameterSet& sf = settings.getParameterSet(name);
+        std::string jet_type = sf.getParameter<std::string>("jet_type");
+        bool from_globaltag = sf.getParameter<bool>("from_globaltag");
+        if (from_globaltag) {
+          std::string payload = sf.getParameter<std::string>("payload");
+          mBTagScaleFactors[jet_type] = std::make_shared<BTagScaleFactorFromGlobalTagService>(jet_type, payload);
+        } else {
+          const edm::VParameterSet& sfs = sf.getParameterSetVector("scale_factors");
+          mBTagScaleFactors[jet_type] = std::make_shared<BTagScaleFactorFromVSetService>(jet_type, sfs);
+        }
+      }
+
+      std::cout << std::endl;
+    }
+
     std::string workingPointToString(WorkingPoint wp) const {
       switch (wp) {
         case LOOSE:
@@ -168,15 +346,29 @@ class ScaleFactorService {
       return "";
     }
 
+    std::string flavorToString(Flavor flavor) const {
+      switch (flavor) {
+        case B:
+          return "b";
+
+        case C:
+          return "c";
+
+        case LIGHT:
+          return "light";
+      }
+
+      return "";
+    }
+
     std::string nameFromWorkingPoints(WorkingPoint eff, WorkingPoint iso) const {
       return workingPointToString(eff) + "eff_" + workingPointToString(iso) + "iso";
     }
 
     ScaleFactorMap mMuonScaleFactors;
     ScaleFactorMap mElectronScaleFactors;
+    BTagScaleFactorMap mBTagScaleFactors;
 
     // BTag
-    bool mBTagPerfInit;
-    edm::ESHandle<BtagPerformance> mBTagPerf;
     float mBTagEfficiency;
 };

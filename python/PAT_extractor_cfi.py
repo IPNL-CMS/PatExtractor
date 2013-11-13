@@ -106,6 +106,12 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
    doPF          = cms.untracked.bool(False),
    pf_tag        = cms.InputTag( "particleFlow" ),
 
+   # Scale factors
+   muon_scale_factors = cms.vstring(),
+   electron_scale_factors = cms.vstring(),
+   b_tagging_scale_factors = cms.vstring(),
+
+
 ##
 ## Finally you put some details on the analysis
 ##

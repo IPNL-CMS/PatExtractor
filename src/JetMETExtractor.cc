@@ -348,8 +348,18 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
   m_jet_algo_parton_flavor[index] = part.partonFlavour();
   m_jet_physics_parton_pdgid[index] = (part.genParton()) ? part.genParton()->pdgId() : 0;
 
-  if (m_isMC)
-    m_scaleFactors.push_back(m_scaleFactorService->getBTaggingScaleFactor(part.et(), part.eta()));
+  if (m_isMC) {
+    int mcFlavor = abs(m_jet_algo_parton_flavor[index]);
+    ScaleFactorService::Flavor flavor = ScaleFactorService::B;
+    if (mcFlavor == 4) {
+      flavor = ScaleFactorService::C;
+    } else if ((mcFlavor <= 3) || (mcFlavor == 21)) {
+      // If mcFlavor == 0, assume it's a light jet
+      flavor = ScaleFactorService::LIGHT;
+    }
+
+    m_scaleFactors.push_back(m_scaleFactorService->getBTaggingScaleFactor(flavor, part.et(), part.eta()));
+  }
 }
 
 void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::MET& part, int index) 
