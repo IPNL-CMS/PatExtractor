@@ -63,8 +63,8 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
 	  cut1 = cms.bool(True),
 	  cut2 = cms.bool(True),
           cut3 = cms.bool(True),
-          cut4 = cms.bool(True),
-          cut5 = cms.bool(True),
+          cut4 = cms.bool(True), #Higgs
+          cut5 = cms.bool(True), #W
           cut6 = cms.bool(True),
           cut7 = cms.bool(True),
           cut8 = cms.bool(True),
@@ -74,7 +74,7 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
           cut12 = cms.bool(True),
           cut13 = cms.bool(True)
           ),
-        DoMatching = cms.bool(True)
+        DoMatching = cms.bool(False)
       )
     )
   

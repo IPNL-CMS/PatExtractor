@@ -87,10 +87,12 @@ namespace patextractor {
   FirstTrueWJet = new TLorentzVector(0., 0., 0., 0.);
   SecondTrueWJet = new TLorentzVector(0., 0., 0., 0.);
   TopTrueJet = new TLorentzVector(0., 0., 0., 0.);
+  TprimeFromMatching = new TLorentzVector(0., 0., 0., 0.);
 
   /// Tree definition containing your analysis results
 
   m_tree_stp = new TTree("stp","Single Analysis info");  
+  m_tree_cuts = new TTree("cuts","Cuts efficiencies");
   
   /// Branches definition
 
@@ -113,6 +115,7 @@ namespace patextractor {
   m_tree_stp->Branch("First_True_W_Jet", &FirstTrueWJet);
   m_tree_stp->Branch("Second_True_W_Jet", &SecondTrueWJet);
   m_tree_stp->Branch("True_Top_Jet", &TopTrueJet);
+  m_tree_stp->Branch("Tprime_From_Matching", &TprimeFromMatching);
   m_tree_stp->Branch("evt",         &m_evt    ,"evt/I");      // Simple evt number or event ID
   m_tree_stp->Branch("PU",         &m_nPU    ,"m_nPU/I");
   m_tree_stp->Branch("THT", &m_THT,"THT/F");
@@ -154,12 +157,29 @@ namespace patextractor {
   m_tree_stp->Branch("Sphericity",  &m_Sphericity   ,"Sphericity/F");
   m_tree_stp->Branch("Aplanarity",  &m_Aplanarity   ,"Aplanarity/F");
 
-  m_tree_stp->Branch("trigger_passed", &m_trigger_passed, "trigger_passed/O");
+  m_tree_stp->Branch("trigger_passed", &m_trigger_passed, "trigger_passed/I");
 
   // Weights and errors from differents scale factors
   m_tree_stp->Branch("weight", &m_weight, "weight/F");
   m_tree_stp->Branch("weight_error_low", &m_weight_error_low, "weight_error_low/F");
   m_tree_stp->Branch("weight_error_high", &m_weight_error_high, "weight_error_high/F");
+
+  //Cuts
+  m_tree_cuts->Branch("Trigger_cut", &m_triggercut, "Trigger_passed/I");
+  m_tree_cuts->Branch("Cut_0", &m_Cut0, "Cut0_passed/I");
+  m_tree_cuts->Branch("Cut_1", &m_Cut1, "Cut1_passed/I");
+  m_tree_cuts->Branch("Cut_2", &m_Cut2, "Cut2_passed/I");
+  m_tree_cuts->Branch("Cut_3", &m_Cut3, "Cut3_passed/I");
+  m_tree_cuts->Branch("Cut_4", &m_Cut4, "Cut4_passed/I");
+  m_tree_cuts->Branch("Cut_5", &m_Cut5, "Cut5_passed/I");
+  m_tree_cuts->Branch("Cut_6", &m_Cut6, "Cut6_passed/I");
+  m_tree_cuts->Branch("Cut_7", &m_Cut7, "Cut7_passed/I");
+  m_tree_cuts->Branch("Cut_8", &m_Cut8, "Cut8_passed/I");
+  m_tree_cuts->Branch("Cut_9", &m_Cut9, "Cut9_passed/I");
+  m_tree_cuts->Branch("Cut_10", &m_Cut10, "Cut10_passed/I");
+  m_tree_cuts->Branch("Cut_11", &m_Cut11, "Cut11_passed/I");
+  m_tree_cuts->Branch("Cut_12", &m_Cut12, "Cut12_passed/I");
+  m_tree_cuts->Branch("Cut_13", &m_Cut13, "Cut13_passed/I");
 
   // Initialize the analysis parameters using the ParameterSet iConfig
   //int an_option = iConfig.getUntrackedParameter<int>("an_option", 0);
@@ -197,6 +217,7 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
   int SingleTprime_analysis::SingleTprime_Sel() //Main function for the analysis
 {
   if (!m_trigger_passed) return 0;
+  m_triggercut=1;
 
   int n_jets = m_jetMet->getSize();
   //cout << "Number of jets " << n_jets << endl;
@@ -275,14 +296,17 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
   //Cut 0//
   /////////
 
+  if(Cut0) {
   if (CountingGoodJets>=NumberOfGoodJets && CountingBadJets>=NumberOfBadJets) cout << "Good Event" << endl;
-  else return 0;
+  else return 0; }
+  m_Cut0=1;
   
   /////////
   //Cut 1//
   /////////
 
   if (LeadingJet.Pt()<LeadingJetPt) return 0;
+  m_Cut1=1;
 
   //cout << "The HT of the event is " << TotalHT << endl;
   m_THT = TotalHT;
@@ -297,13 +321,15 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
   //Cut 2//
   /////////
 
-  if (TotalHT<THTcut) return 0;
+  if (Cut1) {if (TotalHT<THTcut) return 0;}
+  m_Cut2=1;
 
   /////////
   //Cut 3//
   /////////
 
-  if (BtagCounter<2) return 0;
+  if (Cut2) {if (BtagCounter<2) return 0;}
+  m_Cut3=1;
 
   ///////////////////////////////////////////////
   //Reconstructing the Higgs from b-tagged jets//
@@ -351,7 +377,8 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
   //TLorentzVector BJetCouple;  BJetCouple.SetPxPyPzE(FirstHiggsJet->Px()+SecondHiggsJet->Px(),FirstHiggsJet->Py()+SecondHiggsJet->Py(),FirstHiggsJet->Pz()+SecondHiggsJet->Pz(),FirstHiggsJet->E()+SecondHiggsJet->E());
   //cout << "Mass of selected couple of b jets is " << BJetCouple.M() << endl;
 
-  if (!EventWithHiggs) return 0;
+  if (Cut4) {if (!EventWithHiggs) return 0;}
+  m_Cut4=1;
   TLorentzVector FHJ; FHJ.SetPxPyPzE(FirstHiggsJet->Px(), FirstHiggsJet->Py(), FirstHiggsJet->Pz(), FirstHiggsJet->E());
   TLorentzVector SHJ; SHJ.SetPxPyPzE(SecondHiggsJet->Px(), SecondHiggsJet->Py(), SecondHiggsJet->Pz(), SecondHiggsJet->E());
   m_DRHiggsJets=FHJ.DeltaR(SHJ);
@@ -397,7 +424,8 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
 	}
     }
 
-  if (!EventWithW) return 0;
+  if (Cut5) {if (!EventWithW) return 0;}
+  m_Cut5=1;
   //cout << "Higgs Jets are: " << IndexHiggsJets[0] << IndexHiggsJets[1] << " W Jets are: " << IndexWJets[0] << IndexWJets[1] << endl;
   TLorentzVector FWJ; FWJ.SetPxPyPzE(FirstWJet->Px(), FirstWJet->Py(), FirstWJet->Pz(), FirstWJet->E());
   TLorentzVector SWJ; SWJ.SetPxPyPzE(SecondWJet->Px(), SecondWJet->Py(), SecondWJet->Pz(), SecondWJet->E());
@@ -454,43 +482,50 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
   //Cut 6//
   /////////
   
-  if (HJ.Pt()<HiggsPt && TJ.Pt()<TopPt) return 0;
+  if (Cut6) {if (HJ.Pt()<HiggsPt && TJ.Pt()<TopPt) return 0;}
+  m_Cut6=1;
 
   /////////
   //Cut 7//
   /////////
 
-  if (HJ.DeltaR(WJ)<MinDeltaRWH || HJ.DeltaR(WJ)>MaxDeltaRWH) return 0;
+  if (Cut7) {if (HJ.DeltaR(WJ)<MinDeltaRWH || HJ.DeltaR(WJ)>MaxDeltaRWH) return 0;}
+  m_Cut7=1;
 
   /////////
   //Cut 8//
   /////////
 
-  if (fabs(FHJ.Phi()-SHJ.Phi())>2.0 || fabs(TopJet->Phi()-WJ.Phi())>3.3) return 0;
+  if (Cut8) {if (fabs(FHJ.Phi()-SHJ.Phi())>2.0 || fabs(TopJet->Phi()-WJ.Phi())>3.3) return 0;}
+  m_Cut8=1;
 
   /////////
   //Cut 9//
   /////////
 
-  if (CountingBadJets>JetMultiplicity) return 0;
+  if (Cut9) {if (CountingBadJets>JetMultiplicity) return 0;}
+  m_Cut9=1;
 
   //////////
   //Cut 10//
   //////////
 
-  if (fabs(FHJ.Phi()-SHJ.Phi())>2.3 || fabs(FWJ.Phi()-SWJ.Phi())>DeltaPhiWjets) return 0;
+  if (Cut10) {if (fabs(FHJ.Phi()-SHJ.Phi())>2.3 || fabs(FWJ.Phi()-SWJ.Phi())>DeltaPhiWjets) return 0;}
+  m_Cut10=1;
 
   //////////
   //Cut 11//
   //////////
 
-  if (HJ.M()>MaxHiggsMass || HJ.M()<MinHiggsMass) return 0;
+  if (Cut11) {if (HJ.M()>MaxHiggsMass || HJ.M()<MinHiggsMass) return 0;}
+  m_Cut11=1;
 
   //////////
   //Cut 12//
   //////////
 
-  if (m_RelTHT<RelHT) return 0;
+  if (Cut12) {if (m_RelTHT<RelHT) return 0;}
+  m_Cut12=1;
 
   /////////////////////////////////////////////
   //Extracting info for Sphericity/Aplanarity//
@@ -553,7 +588,8 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
   //Cut 13//
   //////////
 
-  if (m_Aplanarity>Aplanarity) return 0;
+  if (Cut13) {if (m_Aplanarity>Aplanarity) return 0;}
+  m_Cut13=1;
 
   ///////////////////////////
   //Comparing with MC truth//
@@ -588,7 +624,7 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
       NumbMatchedWJets=MatchedWJets;
       NumbMatchedTopJets=MatchedTopJets;
       
-      //Taking into account only events where a the MC indformation was obtained correctly
+      //Taking into account only events where the MC indformation was obtained correctly
       if (FirstTrueHiggsJet->Pt()==0 || SecondTrueHiggsJet->Pt()==0 || FirstTrueWJet->Pt()==0 || SecondTrueWJet->Pt()==0 || TopTrueJet->Pt()==0 || TrueW->Pt()==0 || TrueTprimeAcompainingJet->Pt()==0) return 0;
       
       //Disambiguation with Pt
@@ -671,6 +707,8 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
 	  m_DRMatchedWJets=AllJets[MatchedJetsIndexes[2]].DeltaR(AllJets[MatchedJetsIndexes[3]]);
 	  m_DPhiMatchedWJets=fabs(AllJets[MatchedJetsIndexes[2]].Phi()-AllJets[MatchedJetsIndexes[3]].Phi());
 	  
+	  TprimeFromMatching->SetPxPyPzE(AllJets[MatchedJetsIndexes[0]].Px()+AllJets[MatchedJetsIndexes[1]].Px()+AllJets[MatchedJetsIndexes[2]].Px()+AllJets[MatchedJetsIndexes[3]].Px()+AllJets[MatchedJetsIndexes[4]].Px(),AllJets[MatchedJetsIndexes[0]].Py()+AllJets[MatchedJetsIndexes[1]].Py()+AllJets[MatchedJetsIndexes[2]].Py()+AllJets[MatchedJetsIndexes[3]].Py()+AllJets[MatchedJetsIndexes[4]].Py(),AllJets[MatchedJetsIndexes[0]].Pz()+AllJets[MatchedJetsIndexes[1]].Pz()+AllJets[MatchedJetsIndexes[2]].Pz()+AllJets[MatchedJetsIndexes[3]].Pz()+AllJets[MatchedJetsIndexes[4]].Pz(),AllJets[MatchedJetsIndexes[0]].E()+AllJets[MatchedJetsIndexes[1]].E()+AllJets[MatchedJetsIndexes[2]].E()+AllJets[MatchedJetsIndexes[3]].E()+AllJets[MatchedJetsIndexes[4]].E());
+
 	  int GoodMatchedJets=0;
 	  bool AllDiffIndex=true;
 	  
@@ -686,7 +724,7 @@ SingleTprime_analysis::~SingleTprime_analysis(){}
 		  if (IndexHiggsJets[0]==MatchedJetsIndexes[j] || IndexHiggsJets[1]==MatchedJetsIndexes[j] || IndexWJets[0]==MatchedJetsIndexes[j] || IndexWJets[1]==MatchedJetsIndexes[j] || IndexTopJet==MatchedJetsIndexes[j]) ++GoodMatchedJets;
 		}
 	    }
-	  else cout << "Shared index between decay prodcuts of tprime after disambiguation " << MatchedJetsIndexes[0] << MatchedJetsIndexes[1] << MatchedJetsIndexes[2] << MatchedJetsIndexes[3] << MatchedJetsIndexes[4] << endl;
+	  else cout << "Shared index between decay products of tprime after disambiguation " << MatchedJetsIndexes[0] << MatchedJetsIndexes[1] << MatchedJetsIndexes[2] << MatchedJetsIndexes[3] << MatchedJetsIndexes[4] << endl;
 	  
 	  if (GoodMatchedJets==5) CorrectTprime=1;
 	  
@@ -810,6 +848,7 @@ void SingleTprime_analysis::analyze(const edm::EventSetup& iSetup, PatExtractor&
   int ToFillTree = SingleTprime_Sel();
 
   if (ToFillTree==1) fillTree();
+  m_tree_cuts->Fill();
 }
 
   //MC Identification
@@ -963,6 +1002,22 @@ void SingleTprime_analysis::reset()
   NumbMatchedWJets = 0;
   NumbMatchedTopJets = 0;
 
+  m_triggercut= 0;
+  m_Cut0= 0;
+  m_Cut1= 0;
+  m_Cut2= 0;
+  m_Cut3= 0;
+  m_Cut4= 0;
+  m_Cut5= 0;
+  m_Cut6= 0;
+  m_Cut7= 0;
+  m_Cut8= 0;
+  m_Cut9= 0;
+  m_Cut10= 0;
+  m_Cut11= 0;
+  m_Cut12= 0;
+  m_Cut13= 0;
+
   m_trigger_passed = false;
 
   m_weight = 1.;
@@ -983,6 +1038,7 @@ void SingleTprime_analysis::reset()
   FirstTrueWJet->SetPxPyPzE(0., 0., 0., 0.);
   SecondTrueWJet->SetPxPyPzE(0., 0., 0., 0.);
   TopTrueJet->SetPxPyPzE(0., 0., 0., 0.);
+  TprimeFromMatching->SetPxPyPzE(0., 0., 0., 0.);
 }
 
 // Fill the root tree containing analysis results

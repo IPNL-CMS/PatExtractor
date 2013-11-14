@@ -49,6 +49,7 @@ namespace patextractor {
     int j;
 
     TTree* m_tree_stp;
+    TTree* m_tree_cuts;
     
     int m_evt;
     int m_nPU; //PileUp
@@ -110,6 +111,23 @@ namespace patextractor {
     bool Cut13;
 
     bool DoMCMatching;
+
+    //Cuts
+    int m_triggercut;
+    int m_Cut0;
+    int m_Cut1;
+    int m_Cut2;
+    int m_Cut3;
+    int m_Cut4;
+    int m_Cut5;
+    int m_Cut6;
+    int m_Cut7;
+    int m_Cut8;
+    int m_Cut9;
+    int m_Cut10;
+    int m_Cut11;
+    int m_Cut12;
+    int m_Cut13;
  
     //Reconstructed particles
     TLorentzVector* ReconstructedHiggs;
@@ -131,6 +149,7 @@ namespace patextractor {
     TLorentzVector* FirstTrueWJet;
     TLorentzVector* SecondTrueWJet;
     TLorentzVector* TopTrueJet;
+    TLorentzVector* TprimeFromMatching;
 
     //Matching with MC truth
     int CorrectTprime;
