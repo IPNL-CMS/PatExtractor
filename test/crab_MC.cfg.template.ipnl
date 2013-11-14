@@ -8,17 +8,17 @@ use_server = 0
 dbs_url = http://cmsdbsprod.cern.ch/cms_dbs_ph_analysis_02/servlet/DBSServlet
 datasetpath = @datasetname@
 
-pset = Extractor_MTT_MC.py
+pset = Extractor_SingleTprime_MC.py
 
 total_number_of_events = -1
 
 ### Number of events to be processed per job
-events_per_job = 400000
+events_per_job = 50000
 
 ### The output files produced by your application (comma separated list)
 output_file = extracted_mc.root
 
-additional_input_files = kfparams_semilept.dat
+#additional_input_files = kfparams_semilept.dat
 
 [USER]
 
