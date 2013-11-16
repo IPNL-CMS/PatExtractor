@@ -262,9 +262,13 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
   m_tree_Mtt->Branch("trigger_passed", &m_trigger_passed, "trigger_passed/O");
 
   // Weights and errors from differents scale factors
-  m_tree_Mtt->Branch("weight", &m_weight, "weight/F");
-  m_tree_Mtt->Branch("weight_error_low", &m_weight_error_low, "weight_error_low/F");
-  m_tree_Mtt->Branch("weight_error_high", &m_weight_error_high, "weight_error_high/F");
+  m_tree_Mtt->Branch("lepton_weight", &m_lepton_weight, "lepton_weight/F");
+  m_tree_Mtt->Branch("lepton_weight_error_low", &m_lepton_weight_error_low, "lepton_weight_error_low/F");
+  m_tree_Mtt->Branch("lepton_weight_error_high", &m_lepton_weight_error_high, "lepton_weight_error_high/F");
+
+  m_tree_Mtt->Branch("btag_weight", &m_btag_weight, "btag_weight/F");
+  m_tree_Mtt->Branch("btag_weight_error_low", &m_btag_weight_error_low, "btag_weight_error_low/F");
+  m_tree_Mtt->Branch("btag_weight_error_high", &m_btag_weight_error_high, "btag_weight_error_high/F");
 
   // Neutrino Pz calculation study
   m_tree_Mtt->Branch("is_neutrino_pz_corrected", &m_is_neutrino_pz_corrected, "is_neutrino_pz_corrected/O");
@@ -339,7 +343,6 @@ mtt_analysis::mtt_analysis(const edm::ParameterSet& cmsswSettings):
   std::string fname = "kfparams_semilept.dat";
   m_KinFit = new KinFit(fname, cmsswSettings);
 
-  m_weight = 1.;
 
   m_gen_bjets = new TH1F("number_of_gen_bjets", "", 98, 20, 1000);
   m_gen_cjets = new TH1F("number_of_gen_cjets", "", 98, 20, 1000);
@@ -513,9 +516,9 @@ int mtt_analysis::MuonSel()
   if (m_isMC) {
     // Get scale factor
     ScaleFactor sf = m_muon->getScaleFactor(ScaleFactorService::TIGHT, goodmuidx);
-    m_weight *= sf.getValue();
-    m_weight_error_low += sf.getErrorLow() * sf.getErrorLow();
-    m_weight_error_high += sf.getErrorHigh() * sf.getErrorHigh();
+    m_lepton_weight *= sf.getValue();
+    m_lepton_weight_error_low += sf.getErrorLow() * sf.getErrorLow();
+    m_lepton_weight_error_high += sf.getErrorHigh() * sf.getErrorHigh();
   }
 
   return 1;
@@ -598,9 +601,9 @@ int mtt_analysis::ElectronSel()
   if (m_isMC) {
     // Get scale factor
     ScaleFactor sf = m_electron->getScaleFactor(ScaleFactorService::TIGHT, goodelidx);
-    m_weight *= sf.getValue();
-    m_weight_error_low += sf.getErrorLow() * sf.getErrorLow();
-    m_weight_error_high += sf.getErrorHigh() * sf.getErrorHigh();
+    m_lepton_weight *= sf.getValue();
+    m_lepton_weight_error_low += sf.getErrorLow() * sf.getErrorLow();
+    m_lepton_weight_error_high += sf.getErrorHigh() * sf.getErrorHigh();
   }
 
   return 1;
@@ -743,7 +746,7 @@ int mtt_analysis::JetSel()
         sf_jet1.getValue() * sf_jet1.getValue() * sf_jet2.getErrorHigh() * sf_jet2.getErrorHigh();
     }
 
-    m_weight *= sf;
+    m_btag_weight *= sf;
 
     double squared_sf_error = sf_error * sf_error;
     m_weight_error_low += squared_sf_error;
@@ -1512,8 +1515,12 @@ void mtt_analysis::checkIfSolutionIsCorrect() {
 
 void mtt_analysis::fillTree()
 {
-  m_weight_error_low = sqrt(m_weight_error_low);
-  m_weight_error_high = sqrt(m_weight_error_high);
+  m_lepton_weight_error_low = sqrt(m_lepton_weight_error_low);
+  m_lepton_weight_error_high = sqrt(m_lepton_weight_error_high);
+
+  m_btag_weight_error_low = sqrt(m_btag_weight_error_low);
+  m_btag_weight_error_high = sqrt(m_btag_weight_error_high);
+
   m_tree_Mtt->Fill();
 }
 
@@ -1674,9 +1681,13 @@ void mtt_analysis::reset()
     m_hadTopP4_AfterMVA->SetPxPyPzE(0., 0., 0., 0.);
   }
 
-  m_weight = 1.;
-  m_weight_error_low = 0.;
-  m_weight_error_high = 0.;
+  m_lepton_weight = 1.;
+  m_lepton_weight_error_low = 0.;
+  m_lepton_weight_error_high = 0.;
+
+  m_btag_weight = 1.;
+  m_btag_weight_error_low = 0.;
+  m_btag_weight_error_high = 0.;
 
   m_is_neutrino_pz_corrected = false;
 }

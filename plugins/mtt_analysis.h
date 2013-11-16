@@ -391,9 +391,13 @@ namespace patextractor {
       std::vector<edm::ParameterSet> lepResolutions_;
       std::vector<edm::ParameterSet> metResolutions_;
 
-      float m_weight;
-      float m_weight_error_low;
-      float m_weight_error_high;
+      float m_lepton_weight;
+      float m_lepton_weight_error_low;
+      float m_lepton_weight_error_high;
+
+      float m_btag_weight;
+      float m_btag_weight_error_low;
+      float m_btag_weight_error_high;
 
       bool m_is_neutrino_pz_corrected;
 
