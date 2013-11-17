@@ -218,7 +218,13 @@ def createExtractorProcess(isMC, isSemiMu, useShiftCorrectedMET, globalTag):
         use_mva = cms.bool(True),
         use_chi2 = cms.bool(True),
 
-        b_tagging_efficiency = cms.double(0.6915),
+        b_tagging_efficiency = cms.PSet(
+                filename = cms.string("Extractors/PatExtractor/data/TTJets_MassiveBinDECAY_btagging_efficiency_semimu.root") if isSemiMu else
+                           cms.string("Extractors/PatExtractor/data/TTJets_MassiveBinDECAY_btagging_efficiency_semie.root"),
+                b_eff_histo_name = cms.string("btagging_efficiency"),
+                cjets_fakerate_histo_name = cms.string("cjets_fakerate"),
+                lightjets_fakerate_histo_name = cms.string("lightjets_fakerate")
+                ),
 
         # ------------------------------------------------
         # settings for the KinFitter
