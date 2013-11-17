@@ -290,6 +290,13 @@ The default python configuration of +PatExtractor+ can be found in the file +pyt
 Adding your own analysis
 ------------------------
 
+[WARNING]
+===============================
+Do not create your analysis in PatExtractor folders! Create your own CMSSW package for that.
+
+For example, create your own github repository, and store your analysis here. See https://github.com/IPNL-CMS/MttExtractorAnalysis for real-life example.
+===============================
+
 Adding your own analysis in +PatExtractors+ is easy. Here's a list of steps to follow:
 
 . Each new +analysis+ (or plugin) must be a class inheriting from +patextractor::Plugin+ (you can find declaration in +interface/ExtractorPlugin.h+).
