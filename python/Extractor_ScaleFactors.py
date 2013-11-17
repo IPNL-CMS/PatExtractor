@@ -116,9 +116,6 @@ def loadElectronScaleFactor(filename, recofilename, workingPoint):
     recoFile.Close()
     return mainSet
 
-def loadBTagScaleFactors(process):
-  process.load ("RecoBTag.PerformanceDB.BTagPerformanceDBWinter13")
-
 def loadLightJetsScaleFactor():
     # TF1 for each eta bin
     return cms.VPSet(

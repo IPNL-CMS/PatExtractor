@@ -52,5 +52,5 @@
 <lib   name="MathMore"/>
 
 <export>
-  <lib name="1" />
+    <lib   name="1"/>
 </export>

@@ -1,3 +1,5 @@
+import os
+
 import FWCore.ParameterSet.Config as cms
 
 from JetMETCorrections.Configuration.JetCorrectionProducers_cff import *
@@ -15,6 +17,11 @@ ak5PFchsL1FastL2L3Residual = cms.ESProducer(
   'JetCorrectionESChain',
   correctors = cms.vstring('ak5PFchsL1Fastjet', 'ak5PFchsL2Relative','ak5PFchsL3Absolute', 'ak5PFchsResidual')
 )
+
+from Extractor_ScaleFactors import loadMuonScaleFactor, loadElectronScaleFactor, loadLightJetsScaleFactor
+from RecoBTag.PerformanceDB.BTagPerformanceDBWinter13 import *
+
+rootPath = os.path.join(os.environ["CMSSW_BASE"], "src/Extractors/PatExtractor/python")
 
 PATextraction = cms.EDAnalyzer("PatExtractor",
 
@@ -83,6 +90,7 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
        doJER              = cms.untracked.bool(True),
        jerSign            = cms.untracked.int32(0), # Use 0 for no JER systematics, 1 for 1-sigma up and -1 for 1-sigma down
        jesSign            = cms.untracked.int32(0), # Use 0 for no JES systematics, 1 for 1-sigma up and -1 for 1-sigma down
+       jes_uncertainties_file = cms.untracked.string("Extractors/PatExtractor/data/START53_V23_Uncertainty_AK5PFchs.txt")
    ),
 
    # Add MET information
@@ -107,16 +115,37 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
    pf_tag        = cms.InputTag( "particleFlow" ),
 
    # Scale factors
-   muon_scale_factors = cms.vstring(),
-   electron_scale_factors = cms.vstring(),
-   b_tagging_scale_factors = cms.vstring(),
+   muon_scale_factors_tighteff_tightiso = loadMuonScaleFactor(os.path.join(rootPath, "MuonEfficiencies_ISO_Run_2012ReReco_53X.pkl"), os.path.join(rootPath, "MuonEfficiencies_Run2012ReReco_53X.pkl"), "Tight", "combRelIsoPF04dBeta<012_Tight"),
+   muon_scale_factors_tighteff_looseiso = loadMuonScaleFactor(os.path.join(rootPath, "MuonEfficiencies_ISO_Run_2012ReReco_53X.pkl"), os.path.join(rootPath, "MuonEfficiencies_Run2012ReReco_53X.pkl"), "Tight", "combRelIsoPF04dBeta<02_Tight"),
+   muon_scale_factors_looseeff_looseiso = loadMuonScaleFactor(os.path.join(rootPath, "MuonEfficiencies_ISO_Run_2012ReReco_53X.pkl"), os.path.join(rootPath, "MuonEfficiencies_Run2012ReReco_53X.pkl"), "Loose", "combRelIsoPF04dBeta<02_Loose"),
+   muon_scale_factors = cms.vstring("muon_scale_factors_looseeff_looseiso", "muon_scale_factors_tighteff_looseiso", "muon_scale_factors_tighteff_tightiso"),
+
+   electron_scale_factors_tighteff_tightiso = loadElectronScaleFactor(os.path.join(rootPath, "Electron_scale_factors.json"), os.path.join(rootPath, "Electrons_ScaleFactors_Reco_8TeV.root"), "tight"),
+   electron_scale_factors_looseeff_tightiso = loadElectronScaleFactor(os.path.join(rootPath, "Electron_scale_factors.json"), os.path.join(rootPath, "Electrons_ScaleFactors_Reco_8TeV.root"), "loose"),
+   electron_scale_factors = cms.vstring("electron_scale_factors_tighteff_tightiso", "electron_scale_factors_looseeff_tightiso"),
+
+   b_tagging_scale_factors_b_jets = cms.PSet(
+      jet_type = cms.string("b"),
+      from_globaltag = cms.bool(True),
+      payload = cms.string("MUJETSWPBTAGTTBARCSVM")
+      ),
+   b_tagging_scale_factors_c_jets = cms.PSet(
+      jet_type = cms.string("c"),
+      from_globaltag = cms.bool(True),
+      payload = cms.string("MUJETSWPBTAGTTBARCSVM")
+      ),
+   b_tagging_scale_factors_light_jets = cms.PSet(
+      jet_type = cms.string("light"),
+      from_globaltag = cms.bool(False),
+      scale_factors = loadLightJetsScaleFactor()
+      ),
+   b_tagging_scale_factors = cms.vstring("b_tagging_scale_factors_b_jets", "b_tagging_scale_factors_c_jets", "b_tagging_scale_factors_light_jets"),
 
 
 ##
 ## Finally you put some details on the analysis
 ##
 
-   doMtt         = cms.untracked.bool(False),
    doDimuon      = cms.untracked.bool(False),
    do4TopHLT     = cms.untracked.bool(False),
    n_events = cms.untracked.int32(10000),  # How many events you want to analyze (only if fillTree=False)

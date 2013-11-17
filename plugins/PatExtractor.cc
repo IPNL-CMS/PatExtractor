@@ -1,4 +1,5 @@
 #include "../interface/PatExtractor.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
 
 using namespace std;
 using namespace edm;
@@ -343,3 +344,5 @@ void PatExtractor::retrieve(const edm::ParameterSet& config)
     extractor->setScaleFactorsService(m_scaleFactors);
   }
 }
+
+DEFINE_FWK_MODULE(PatExtractor);
