@@ -163,6 +163,11 @@ class BaseExtractor: public SuperBaseExtractor
         // Compute dR and dP, and check limits
         TLorentzVector mcp4; // = mcExtractor->getP4(i);
         mcp4.SetPxPyPzE(mcExtractor->getPx(i), mcExtractor->getPy(i), mcExtractor->getPz(i), mcExtractor->getE(i));
+        if (mcp4.Pt() < 1e-4) {
+          // ROOT will crash when computing eta for such low Pt
+          continue;
+        }
+
         float dR = mcp4.DeltaR(p4);
         if (dR > dR_limit)
           continue;
