@@ -50,6 +50,11 @@ class EventExtractor: public SuperBaseExtractor
   int n_events() {return m_n_events;}
   int nPU() {return m_nPU;}
   float nTrueInteractions() { return m_nTrueInteractions; }
+
+  inline float getGeneratorWeight() const {
+    return m_generator_weight;
+  }
+
  private:
   
   TTree* m_tree_event;
@@ -62,6 +67,7 @@ class EventExtractor: public SuperBaseExtractor
   unsigned int   m_n_events;
   int   m_nPU;
   float m_nTrueInteractions;
+  float m_generator_weight;
 };
 
 #endif 

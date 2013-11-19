@@ -1,5 +1,7 @@
 #include "../interface/EventExtractor.h"
 
+#include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
+
 EventExtractor::EventExtractor(const std::string& name)
 {
   //std::cout << "EventExtractor objet is created" << std::endl;
@@ -18,6 +20,8 @@ EventExtractor::EventExtractor(const std::string& name)
   m_tree_event->Branch("time",   &m_time,"time/i");
   m_tree_event->Branch("nPU",    &m_nPU,"nPileUp/I");
   m_tree_event->Branch("nTrueInteractions", &m_nTrueInteractions, "nTrueInteractions/F");
+
+  m_tree_event->Branch("generator_weight", &m_generator_weight, "generator_weight/F");
 
   // Set everything to 0
 
@@ -48,6 +52,8 @@ EventExtractor::EventExtractor(const std::string& name, TFile *a_file)
   if (m_tree_event->FindBranch("nPileUp")) m_tree_event->SetBranchAddress("nPileUp",&m_nPU);
   if (m_tree_event->FindBranch("nTrueInteractions"))
     m_tree_event->SetBranchAddress("nTrueInteractions", &m_nTrueInteractions);
+  if (m_tree_event->FindBranch("generator_weight"))
+    m_tree_event->SetBranchAddress("generator_weight", &m_generator_weight);
 }
 
 EventExtractor::~EventExtractor()
@@ -86,6 +92,15 @@ void EventExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& i
     }
   }
 
+  if (m_isMC) {
+    edm::Handle<GenEventInfoProduct> generatorInfo;
+    event.getByLabel("generator", generatorInfo);
+
+    if (generatorInfo.isValid()) {
+      m_generator_weight = generatorInfo->weight();
+    }
+  }
+
   m_tree_event->Fill();
 }
 
@@ -110,6 +125,7 @@ void EventExtractor::reset()
   m_run               =  0;
   m_nPU               =  0;
   m_nTrueInteractions = 0;
+  m_generator_weight  = 1;
 }
 
 // Method print the event info
