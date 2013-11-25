@@ -15,6 +15,8 @@
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/Common/interface/View.h"
 
+#include "DataFormats/MuonReco/interface/Muon.h"
+
 #include "../interface/BaseExtractor.h"
 #include "../interface/MCExtractor.h"
 #include <Extractors/PatExtractor/interface/ScaleFactor.h>
@@ -74,7 +76,9 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
     // Setters/Getters
 
     TLorentzVector *getMuLorentzVector(int muidx) {return (TLorentzVector*)m_muo_lorentzvector->At(muidx);}
+    int getMuisHighPt(int muidx) {return m_muo_isHighPt[muidx];}
     int getMuisGlobal(int muidx) {return m_muo_isGlobal[muidx];}
+    int getMuisGood(int muidx) {return m_muo_isGood[muidx];}
     int getMuisTracker(int muidx) {return m_muo_isTracker[muidx];}
     int getMunValPixelHits(int muidx) {return m_muo_nValPixelHits[muidx];}
     int getMunValTrackerHits(int muidx) {return m_muo_nValTrackerHits[muidx];}
@@ -89,6 +93,10 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
 
     float getTrackerLayersWithMeasurements(int index) {
       return m_muo_trackerLayersWithMeasurement[index];
+    }
+    
+    float getPixelLayerWithMeasurement(int index) {
+      return m_muo_pixelLayerWithMeasurement[index];
     }
 
     float getGlobalTrackNumberOfValidMuonHits(int index) {
@@ -137,7 +145,9 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
     float	m_muo_vx[m_muons_MAX];
     float	m_muo_vy[m_muons_MAX];
     float	m_muo_vz[m_muons_MAX];
+    int 	m_muo_isHighPt[m_muons_MAX];
     int 	m_muo_isGlobal[m_muons_MAX];
+    int 	m_muo_isGood[m_muons_MAX];
     int 	m_muo_isTracker[m_muons_MAX];
     float m_muo_dB[m_muons_MAX];
     float m_muo_normChi2[m_muons_MAX];

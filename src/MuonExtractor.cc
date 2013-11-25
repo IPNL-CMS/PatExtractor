@@ -35,6 +35,8 @@ MuonExtractor::MuonExtractor(const std::string& name, const edm::InputTag& tag, 
     m_tree_muon->Branch("muon_vy",  &m_muo_vy,   "muon_vy[n_muons]/F");  
     m_tree_muon->Branch("muon_vz",  &m_muo_vz,   "muon_vz[n_muons]/F");  
     m_tree_muon->Branch("muon_charge", &m_muo_charge,  "muon_charge[n_muons]/I");
+    m_tree_muon->Branch("muon_isHighPt", 	&m_muo_isHighPt,  "muon_isHighPt[n_muons]/I");
+    m_tree_muon->Branch("muon_isGood", 	&m_muo_isGood,  "muon_isGood[n_muons]/I");
     m_tree_muon->Branch("muon_isGlobal", 	&m_muo_isGlobal,  "muon_isGlobal[n_muons]/I");
     m_tree_muon->Branch("muon_isTracker", &m_muo_isTracker, "muon_isTracker[n_muons]/I");
     m_tree_muon->Branch("muon_dB",        &m_muo_dB,        "muon_dB[n_muons]/F");
@@ -102,7 +104,11 @@ MuonExtractor::MuonExtractor(const std::string& name, TFile *a_file)
   if (m_tree_muon->FindBranch("muon_vz"))
     m_tree_muon->SetBranchAddress("muon_vz",  &m_muo_vz);
   if (m_tree_muon->FindBranch("muon_charge"))
-  m_tree_muon->SetBranchAddress("muon_charge", &m_muo_charge);
+    m_tree_muon->SetBranchAddress("muon_charge", &m_muo_charge);
+  if (m_tree_muon->FindBranch("muon_isHighPt"))
+    m_tree_muon->SetBranchAddress("muon_isHighPt", 	&m_muo_isHighPt);
+  if (m_tree_muon->FindBranch("muon_isGood"))
+    m_tree_muon->SetBranchAddress("muon_isGood", 	&m_muo_isGood);
   if (m_tree_muon->FindBranch("muon_isGlobal"))
     m_tree_muon->SetBranchAddress("muon_isGlobal", 	&m_muo_isGlobal);
   if (m_tree_muon->FindBranch("muon_isTracker"))
@@ -191,7 +197,9 @@ void MuonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iS
   m_muo_vx[index]                             = part.vx();
   m_muo_vy[index]                             = part.vy();
   m_muo_vz[index]                             = part.vz();
+  m_muo_isHighPt[index]                       = part.isHighPtMuon(pvHandle->at(0),pat::Muon::improvedTuneP);
   m_muo_isGlobal[index]                       = part.isGlobalMuon();
+  m_muo_isGood[index]                         = muon::isGoodMuon(part, muon::TMOneStationTight);
   m_muo_isTracker[index]                      = part.isTrackerMuon();
   m_muo_charge[index]                         = part.charge();
   m_muo_nMatchedStations[index]               = part.numberOfMatchedStations();
@@ -256,7 +264,9 @@ void MuonExtractor::reset()
     m_muo_vx[i] = 0.;
     m_muo_vy[i] = 0.;
     m_muo_vz[i] = 0.;
+    m_muo_isHighPt[i] = 0;
     m_muo_isGlobal[i] = 0;
+    m_muo_isGood[i] = 0;
     m_muo_isTracker[i] = 0;
     m_muo_charge[i] = 0;
     m_muo_dB[i] = 0.;
