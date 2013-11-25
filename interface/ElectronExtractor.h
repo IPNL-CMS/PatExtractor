@@ -76,6 +76,7 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
     float getElepfChargedHadronIso(int eidx) {return m_ele_pfChargedHadronIso[eidx];}
     float getElepfNeutralHadronIso(int eidx) {return m_ele_pfNeutralHadronIso[eidx];}
     float getElepfPhotonIso(int eidx) {return m_ele_pfPhotonIso[eidx];}
+    float getEleeidMVATrigV0(int eidx) {return m_ele_eidMVATrigV0[eidx];}
 
     int getEleMCIndex(int eidx){return m_ele_MCIndex[eidx];}
     int getEleCharge(int eidx) {return m_ele_charge[eidx];}
