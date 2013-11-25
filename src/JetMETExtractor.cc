@@ -83,6 +83,8 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   m_tree_jet->Branch("jet_chhadEfrac",    &m_jet_chhadEfrac,   "jet_chhadEfrac[n_jets]/F");
   m_tree_jet->Branch("jet_nemEfrac",      &m_jet_nemEfrac,     "jet_nemEfrac[n_jets]/F");
   m_tree_jet->Branch("jet_nhadEfrac",     &m_jet_nhadEfrac,    "jet_nhadEfrac[n_jets]/F");
+  m_tree_jet->Branch("jet_isPFJetLoose",  &m_jet_isPFJetLoose, "jet_isPFJetLoose[n_jets]/I");
+  m_tree_jet->Branch("jet_puJetId",       &m_jet_puJetId,      "jet_puJetId[n_jets]/I");
 
   // 2012 b-tag algo
   m_tree_jet->Branch("jet_btag_jetProb",  &m_jet_btag_jetProb, "jet_btag_jetProb[n_jets]/F");
@@ -143,6 +145,10 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
       m_tree_jet->SetBranchAddress("jet_nemEfrac",      &m_jet_nemEfrac);
     if (m_tree_jet->FindBranch("jet_nhadEfrac")) 
       m_tree_jet->SetBranchAddress("jet_nhadEfrac",     &m_jet_nhadEfrac);
+    if (m_tree_jet->FindBranch("jet_isPFJetLoose")) 
+      m_tree_jet->SetBranchAddress("jet_isPFJetLoose",  &m_jet_isPFJetLoose);
+    if (m_tree_jet->FindBranch("jet_puJetId")) 
+      m_tree_jet->SetBranchAddress("jet_puJetId",  &m_jet_puJetId);
     /*  if (m_tree_jet->FindBranch("jet_btag_BjetProb")) 
         m_tree_jet->SetBranchAddress("jet_btag_BjetProb", &m_jet_btag_BjetProb);
         if (m_tree_jet->FindBranch("jet_btag_SSVHE")) 
@@ -211,6 +217,34 @@ bool JetMETExtractor::isPFJetLoose(const pat::Jet& jet)
   }
 
   return isValid;
+}
+
+int JetMETExtractor::valPuJetId(const edm::Event& event, const pat::Jet& jet, const pat::JetRef& ref)
+{
+    // pass loose wp  : 1
+    // pass medium wp : 2
+    // pass tight wp  : 3
+    
+    int puValue = 0;
+
+    edm::Handle<edm::ValueMap<int> > puJetIdFlag;
+    event.getByLabel(edm::InputTag("puJetMva", "full53xId"),puJetIdFlag);
+
+    if (! jet.isPFJet())
+      return 0;
+    
+    int idflag = (*puJetIdFlag)[ref]; 
+    if( PileupJetIdentifier::passJetId( idflag, PileupJetIdentifier::kLoose )) {
+      puValue = 1;
+    }
+    if( PileupJetIdentifier::passJetId( idflag, PileupJetIdentifier::kMedium )) {
+      puValue = 2;
+    }
+    if( PileupJetIdentifier::passJetId( idflag, PileupJetIdentifier::kTight )) {
+      puValue = 3;
+    }
+
+  return puValue;
 }
 
 //
@@ -288,10 +322,11 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
       }
 #endif
 
-    if (! isPFJetLoose(rawJet))
-      continue;
-
-    JetMETExtractor::writeInfo(event, iSetup, p_jets.at(i), m_size); 
+    //if (! isPFJetLoose(rawJet)) 
+      //continue;
+      
+    pat::JetRef jetRef(jetHandle, i);    
+    JetMETExtractor::writeInfo(event, iSetup, p_jets.at(i), m_size, jetRef); 
 
     if (m_MC)
       doMCMatch(p_jets.at(i), event, m_MC, m_size);
@@ -306,7 +341,7 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
   fillTree();
 }
 
-void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Jet& part, int index) 
+void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Jet& part, int index, const pat::JetRef& ref) 
 {
   if (index>=m_jets_MAX) return;
 
@@ -331,6 +366,9 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
     m_jet_chhadEfrac[index]    = part.chargedHadronEnergyFraction();
     m_jet_nemEfrac[index]      = part.neutralEmEnergyFraction();
     m_jet_nhadEfrac[index]     = part.neutralHadronEnergyFraction();
+    
+    m_jet_isPFJetLoose[index]  = int(isPFJetLoose(part));
+    m_jet_puJetId[index]       = valPuJetId(event, part, ref);
 
     //m_jet_btag_jetProb[index]  = part.bDiscriminator("jetProbabilityBJetTags");
     //m_jet_btag_BjetProb[index] = part.bDiscriminator("jetBProbabilityBJetTags");
@@ -411,6 +449,9 @@ void JetMETExtractor::reset()
     m_jet_chhadEfrac[i] = 0.;
     m_jet_nemEfrac[i] = 0.;
     m_jet_nhadEfrac[i] = 0.;
+    m_jet_isPFJetLoose[i] = 0.;
+    m_jet_puJetId[i] = 0.;
+    
     //m_jet_btag_BjetProb[i] = 0.;
     //m_jet_btag_SSVHE[i] = 0.;
     //m_jet_btag_SSVHP[i] = 0.;

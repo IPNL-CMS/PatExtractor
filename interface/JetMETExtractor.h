@@ -19,6 +19,8 @@
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/Common/interface/View.h"
 
+#include "CMGTools/External/interface/PileupJetIdentifier.h"
+
 #include "../interface/BaseExtractor.h"
 #include "../interface/MCExtractor.h"
 #include <Extractors/PatExtractor/interface/ScaleFactor.h>
@@ -45,7 +47,8 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
 
     void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* m_MC); 
 
-    void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Jet& part, int index); 
+    void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Jet& part, int index, const pat::JetRef& ref); 
+    void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Jet& part, int index) {}
     void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::MET& part, int index); 
 
     void getInfo(int ievt); 
@@ -120,6 +123,12 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
 
     // Jet ID
     bool isPFJetLoose(const pat::Jet& jet);
+    int isPFJetLoose(int muidx) const { return m_jet_isPFJetLoose[muidx]; }
+    
+    // PU jet ID
+    int valPuJetId(const edm::Event& event, const pat::Jet& jet, const pat::JetRef& ref);
+    int getPuJetId(int muidx) const { return m_jet_puJetId[muidx]; }
+
 
     void correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets);
     void correctJets(pat::JetCollection& jets, const edm::Event& iEvent, const edm::EventSetup& iSetup);
@@ -162,12 +171,13 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     float	m_jet_vx[m_jets_MAX];
     float	m_jet_vy[m_jets_MAX];
     float	m_jet_vz[m_jets_MAX];
-    int	m_jet_chmult[m_jets_MAX];
+    int         m_jet_chmult[m_jets_MAX];
     float	m_jet_chmuEfrac[m_jets_MAX];
     float	m_jet_chemEfrac[m_jets_MAX];
     float	m_jet_chhadEfrac[m_jets_MAX];
     float	m_jet_nemEfrac[m_jets_MAX];
     float	m_jet_nhadEfrac[m_jets_MAX];
+    int         m_jet_isPFJetLoose[m_jets_MAX];
 
     //float	m_jet_btag_BjetProb[m_jets_MAX];
     //float	m_jet_btag_SSVHE[m_jets_MAX];
@@ -176,6 +186,13 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     float	m_jet_btag_jetProb[m_jets_MAX];
     float	m_jet_btag_TCHP[m_jets_MAX];
     float	m_jet_btag_CSV[m_jets_MAX];
+    
+    //PuJetId
+    int         m_jet_puJetId[m_jets_MAX];
+    // is loose wp  : 1
+    // is medium wp : 2
+    // is tight wp  : 3
+
 
     int  m_jet_MCIndex[m_jets_MAX];
 
