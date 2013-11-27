@@ -36,6 +36,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   if (mDoJER) {
     mJERSign = jetConfig.getUntrackedParameter<int>("jerSign", 0);
   }
+  mDoLooseJetID = jetConfig.getUntrackedParameter<bool>("doLooseJetID", true);
 
   mJESSign = jetConfig.getUntrackedParameter<int>("jesSign", 0);
 
@@ -326,9 +327,11 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
         }
       }
 #endif
+    if(mDoLooseJetID) {
+      if (! isPFJetLoose(rawJet)) 
+        continue;
+    }
 
-    //if (! isPFJetLoose(rawJet)) 
-      //continue;
       
     pat::JetRef jetRef(jetHandle, i);    
     JetMETExtractor::writeInfo(event, iSetup, p_jets.at(i), m_size, jetRef); 

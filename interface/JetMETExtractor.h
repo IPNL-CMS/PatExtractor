@@ -163,6 +163,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     GreaterByPt<pat::Jet> mSorter;
     bool mRedoTypeI;
     bool mDoJER;
+    bool mDoLooseJetID;
     int  mJERSign;
     int  mJESSign;
 
