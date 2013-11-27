@@ -87,6 +87,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     }
 
     TLorentzVector *getP4(int jetidx) {return (TLorentzVector*)m_jet_lorentzvector->At(jetidx);}
+    TLorentzVector *getGenP4(int jetidx) {return (TLorentzVector*)m_genjet_lorentzvector->At(jetidx);}
 
     float getJetBTagProb_CSV(int jetidx) const { return m_jet_btag_CSV[jetidx]; }
     float getJetBTagProb_TCHP(int jetidx) const { return m_jet_btag_TCHP[jetidx]; }
@@ -168,6 +169,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     static const int 	m_jets_MAX       = 200;
 
     TClonesArray* m_jet_lorentzvector;
+    TClonesArray* m_genjet_lorentzvector;
     float	m_jet_vx[m_jets_MAX];
     float	m_jet_vy[m_jets_MAX];
     float	m_jet_vz[m_jets_MAX];
