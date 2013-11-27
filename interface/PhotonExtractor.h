@@ -35,8 +35,14 @@ class PhotonExtractor: public BaseExtractor<pat::Photon>
     PhotonExtractor(const std::string& name, const edm::InputTag& tag, bool doTree);
     PhotonExtractor(const std::string& name, TFile *a_file);
     virtual ~PhotonExtractor();
+    
+    void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* m_MC); 
 
-    void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Photon& part, int index); 
+    void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const
+    pat::Photon& part, int index, const pat::PhotonRef& photonRef);
+    void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const
+    pat::Photon& part, int index) {} 
+    
     void getInfo(int ievt);
 
     void reset();
@@ -68,7 +74,16 @@ class PhotonExtractor: public BaseExtractor<pat::Photon>
 
       return p4;
     }
-
+    
+    TLorentzVector *getP4(int photidx) {return (TLorentzVector*)m_pho_lorentzvector->At(photidx);}
+    
+    float getHadTowOverEm(int phidx) const { return m_pho_hadTowOverEm[phidx]; }
+    float getSigmaIetaIeta(int phidx) const { return m_pho_sigmaIetaIeta[phidx]; }
+    bool  hasMatchedPromptElectron(int phidx) const { return m_pho_hasMatchedPromptElectron[phidx]; }
+    double getChargedHadronsIsolation(int phidx) const { return m_pho_chargedHadronsIsolation[phidx]; }
+    double getNeutralHadronsIsolation(int phidx) const { return m_pho_neutralHadronsIsolation[phidx]; }
+    double getPhotonIsolation(int phidx) const { return m_pho_photonIsolation[phidx]; }
+    
     // Setters/Getters
 
   private:
@@ -83,6 +98,12 @@ class PhotonExtractor: public BaseExtractor<pat::Photon>
     float	m_pho_vx[m_photons_MAX];
     float	m_pho_vy[m_photons_MAX];
     float	m_pho_vz[m_photons_MAX];
+    float	m_pho_hadTowOverEm[m_photons_MAX];
+    float	m_pho_sigmaIetaIeta[m_photons_MAX];
+    bool	m_pho_hasMatchedPromptElectron[m_photons_MAX];
+    double	m_pho_chargedHadronsIsolation[m_photons_MAX];
+    double	m_pho_neutralHadronsIsolation[m_photons_MAX];
+    double	m_pho_photonIsolation[m_photons_MAX];
     int   m_pho_MCIndex[m_photons_MAX];
 };
 
