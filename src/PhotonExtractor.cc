@@ -23,14 +23,13 @@ PhotonExtractor::PhotonExtractor(const std::string& name, const edm::InputTag& t
     m_tree_photon->Branch("photon_vx",  &m_pho_vx,   "photon_vx[n_photons]/F");  
     m_tree_photon->Branch("photon_vy",  &m_pho_vy,   "photon_vy[n_photons]/F");  
     m_tree_photon->Branch("photon_vz",  &m_pho_vz,   "photon_vz[n_photons]/F");
+    m_tree_photon->Branch("photon_hasPixelSeed",  &m_pho_hasPixelSeed, "photon_hasPixelSeed[n_photons]/O");
     m_tree_photon->Branch("photon_hadTowOverEm",  &m_pho_hadTowOverEm,   "photon_hadTowOverEm[n_photons]/F");
     m_tree_photon->Branch("photon_sigmaIetaIeta",  &m_pho_sigmaIetaIeta,   "photon_sigmaIetaIeta[n_photons]/F");
-    m_tree_photon->Branch("photon_hasMatchedPromptElectron",  &m_pho_hasMatchedPromptElectron,   "photon_hasMatchedPromptElectron[n_photons]/B");
-    m_tree_photon->Branch("photon_chargedHadronsIsolation", 
-    &m_pho_chargedHadronsIsolation,  
-    "photon_chargedHadronsIsolation[n_photons]/D");
-    m_tree_photon->Branch("photon_neutralHadronsIsolation",  &m_pho_neutralHadronsIsolation,   "photon_neutralHadronsIsolation[n_photons]/D");
-    m_tree_photon->Branch("photon_photonIsolation",  &m_pho_photonIsolation,   "photon_photonIsolation[n_photons]/D");
+    m_tree_photon->Branch("photon_hasMatchedPromptElectron",  &m_pho_hasMatchedPromptElectron,   "photon_hasMatchedPromptElectron[n_photons]/O");
+    m_tree_photon->Branch("photon_chargedHadronsIsolation", &m_pho_chargedHadronsIsolation, "photon_chargedHadronsIsolation[n_photons]/F");
+    m_tree_photon->Branch("photon_neutralHadronsIsolation",  &m_pho_neutralHadronsIsolation,   "photon_neutralHadronsIsolation[n_photons]/F");
+    m_tree_photon->Branch("photon_photonIsolation",  &m_pho_photonIsolation,   "photon_photonIsolation[n_photons]/F");
     m_tree_photon->Branch("photon_mcParticleIndex",&m_pho_MCIndex,"photon_mcParticleIndex[n_photons]/I");  
   }
 }
@@ -64,6 +63,7 @@ PhotonExtractor::PhotonExtractor(const std::string& name, TFile *a_file)
   m_tree_photon->SetBranchAddress("photon_vx",  &m_pho_vx);
   m_tree_photon->SetBranchAddress("photon_vy",  &m_pho_vy);
   m_tree_photon->SetBranchAddress("photon_vz",  &m_pho_vz);
+  m_tree_photon->SetBranchAddress("photon_hasPixelSeed",  &m_pho_hasPixelSeed);
   m_tree_photon->SetBranchAddress("photon_hadTowOverEm",  &m_pho_hadTowOverEm);
   m_tree_photon->SetBranchAddress("photon_sigmaIetaIeta",  &m_pho_sigmaIetaIeta);
   m_tree_photon->SetBranchAddress("photon_hasMatchedPromptElectron",  &m_pho_hasMatchedPromptElectron);
@@ -163,8 +163,10 @@ void PhotonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
   reset();
   m_size = 0;
 
+  std::cout<<"write info photon before loop"<<std::endl;
   for (unsigned int i = 0; i < p_photons.size(); ++i)
   {
+    std::cout<<"photon #"<<i<<std::endl;
     pat::PhotonRef photonRef(photonHandle, i);    
     PhotonExtractor::writeInfo(event, iSetup, p_photons.at(i), m_size, photonRef); 
 
@@ -177,15 +179,16 @@ void PhotonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
   fillTree();
 }
 
-void PhotonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup&
-iSetup, const pat::Photon& part, int index, const pat::PhotonRef& photonRef) 
+void PhotonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Photon& part, int index, const pat::PhotonRef& photonRef) 
 {
   if (index>=m_photons_MAX) return;
+  std::cout<<"write photon #"<<index<<std::endl;
 
-  new((*m_pho_lorentzvector)[index]) TLorentzVector(part.energy(),part.px(),part.py(),part.pz());
+  new((*m_pho_lorentzvector)[index]) TLorentzVector(part.px(),part.py(),part.pz(),part.energy());
   m_pho_vx[index]   = part.vx();
   m_pho_vy[index]   = part.vy();
   m_pho_vz[index]   = part.vz();
+  m_pho_hasPixelSeed[index] = part.hasPixelSeed();
   m_pho_hadTowOverEm[index]  = photonRef->hadTowOverEm();
   m_pho_sigmaIetaIeta[index] = photonRef->sigmaIetaIeta();
   
@@ -235,6 +238,7 @@ void PhotonExtractor::reset()
     m_pho_vx[i] = 0.;
     m_pho_vy[i] = 0.;
     m_pho_vz[i] = 0.;
+    m_pho_hasPixelSeed[i] = false;
     m_pho_hadTowOverEm[i] = -1;
     m_pho_sigmaIetaIeta[i] = -1;
     m_pho_hasMatchedPromptElectron[i] = false;
