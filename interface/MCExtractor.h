@@ -86,6 +86,22 @@ class MCExtractor: public SuperBaseExtractor
   bool m_MC_JPsiFromAntiTop[m_MCs_MAX];
   bool m_MC_LeptonFromTop[m_MCs_MAX];
   bool m_MC_LeptonFromAntiTop[m_MCs_MAX];
+  TClonesArray *m_MC_JPsi_lorentzvector;
+  float m_MC_JPsi_E[m_MCs_MAX];
+  float	m_MC_JPsi_px[m_MCs_MAX];
+  float	m_MC_JPsi_py[m_MCs_MAX];
+  float	m_MC_JPsi_pz[m_MCs_MAX];
+  TClonesArray *m_MC_Bhad_lorentzvector;
+  float m_MC_Bhad_E[m_MCs_MAX];
+  float	m_MC_Bhad_px[m_MCs_MAX];
+  float	m_MC_Bhad_py[m_MCs_MAX];
+  float	m_MC_Bhad_pz[m_MCs_MAX];
+  int   m_MC_Bhad_id[m_MCs_MAX];
+  TClonesArray *m_MC_Bquark_lorentzvector;
+  float m_MC_Bquark_E[m_MCs_MAX];
+  float	m_MC_Bquark_px[m_MCs_MAX];
+  float	m_MC_Bquark_py[m_MCs_MAX];
+  float	m_MC_Bquark_pz[m_MCs_MAX];
 
   void constructGeneration(int gene, int npart);
 };
