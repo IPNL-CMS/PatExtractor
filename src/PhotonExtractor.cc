@@ -163,10 +163,10 @@ void PhotonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
   reset();
   m_size = 0;
 
-  std::cout<<"write info photon before loop"<<std::endl;
+  //std::cout<<"write info photon before loop"<<std::endl;
   for (unsigned int i = 0; i < p_photons.size(); ++i)
   {
-    std::cout<<"photon #"<<i<<std::endl;
+    //std::cout<<"photon #"<<i<<std::endl;
     pat::PhotonRef photonRef(photonHandle, i);    
     PhotonExtractor::writeInfo(event, iSetup, p_photons.at(i), m_size, photonRef); 
 
@@ -182,7 +182,7 @@ void PhotonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
 void PhotonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Photon& part, int index, const pat::PhotonRef& photonRef) 
 {
   if (index>=m_photons_MAX) return;
-  std::cout<<"write photon #"<<index<<std::endl;
+  //std::cout<<"write photon #"<<index<<std::endl;
 
   new((*m_pho_lorentzvector)[index]) TLorentzVector(part.px(),part.py(),part.pz(),part.energy());
   m_pho_vx[index]   = part.vx();
