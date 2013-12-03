@@ -127,12 +127,12 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
    b_tagging_scale_factors_b_jets = cms.PSet(
       jet_type = cms.string("b"),
       from_globaltag = cms.bool(True),
-      payload = cms.string("MUJETSWPBTAGTTBARCSVM")
+      payload = cms.string("MUJETSWPBTAGNOTTBARCSVM")
       ),
    b_tagging_scale_factors_c_jets = cms.PSet(
       jet_type = cms.string("c"),
       from_globaltag = cms.bool(True),
-      payload = cms.string("MUJETSWPBTAGTTBARCSVM")
+      payload = cms.string("MUJETSWPBTAGNOTTBARCSVM")
       ),
    b_tagging_scale_factors_light_jets = cms.PSet(
       jet_type = cms.string("light"),
