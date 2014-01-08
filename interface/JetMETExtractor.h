@@ -127,8 +127,11 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     int isPFJetLoose(int muidx) const { return m_jet_isPFJetLoose[muidx]; }
     
     // PU jet ID
-    int valPuJetId(const edm::Event& event, const pat::Jet& jet, const pat::JetRef& ref);
-    int getPuJetId(int muidx) const { return m_jet_puJetId[muidx]; }
+    int valPuJetFullId(const edm::Event& event, const pat::Jet& jet, const pat::JetRef& ref);
+    int getPuJetFullId(int muidx) const { return m_jet_puJetFullId[muidx]; }
+    
+    int valPuJetCutBasedId(const edm::Event& event, const pat::Jet& jet, const pat::JetRef& ref);
+    int getPuJetCutBasedId(int muidx) const { return m_jet_puJetCutBasedId[muidx]; }
 
 
     void correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets);
@@ -191,10 +194,11 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     float	m_jet_btag_CSV[m_jets_MAX];
     
     //PuJetId
-    int         m_jet_puJetId[m_jets_MAX];
-    // is loose wp  : 1
-    // is medium wp : 2
-    // is tight wp  : 3
+    int         m_jet_puJetFullId[m_jets_MAX];
+    int         m_jet_puJetCutBasedId[m_jets_MAX];
+    // is loose wp  : 4
+    // is medium wp : 6
+    // is tight wp  : 7
 
 
     int  m_jet_MCIndex[m_jets_MAX];

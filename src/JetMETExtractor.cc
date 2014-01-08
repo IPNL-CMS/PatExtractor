@@ -87,7 +87,8 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   m_tree_jet->Branch("jet_nemEfrac",      &m_jet_nemEfrac,     "jet_nemEfrac[n_jets]/F");
   m_tree_jet->Branch("jet_nhadEfrac",     &m_jet_nhadEfrac,    "jet_nhadEfrac[n_jets]/F");
   m_tree_jet->Branch("jet_isPFJetLoose",  &m_jet_isPFJetLoose, "jet_isPFJetLoose[n_jets]/I");
-  m_tree_jet->Branch("jet_puJetId",       &m_jet_puJetId,      "jet_puJetId[n_jets]/I");
+  m_tree_jet->Branch("jet_puJetFullId",       &m_jet_puJetFullId,      "jet_puJetFullId[n_jets]/I");
+  m_tree_jet->Branch("jet_puJetCutBasedId",       &m_jet_puJetCutBasedId,      "jet_puJetCutBasedId[n_jets]/I");
 
   // 2012 b-tag algo
   m_tree_jet->Branch("jet_btag_jetProb",  &m_jet_btag_jetProb, "jet_btag_jetProb[n_jets]/F");
@@ -153,8 +154,10 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
       m_tree_jet->SetBranchAddress("jet_nhadEfrac",     &m_jet_nhadEfrac);
     if (m_tree_jet->FindBranch("jet_isPFJetLoose")) 
       m_tree_jet->SetBranchAddress("jet_isPFJetLoose",  &m_jet_isPFJetLoose);
-    if (m_tree_jet->FindBranch("jet_puJetId")) 
-      m_tree_jet->SetBranchAddress("jet_puJetId",  &m_jet_puJetId);
+    if (m_tree_jet->FindBranch("jet_puJetFullId")) 
+      m_tree_jet->SetBranchAddress("jet_puJetFullId",  &m_jet_puJetFullId);
+    if (m_tree_jet->FindBranch("jet_puJetCutBasedId")) 
+      m_tree_jet->SetBranchAddress("jet_puJetCutBasedId",  &m_jet_puJetCutBasedId);
     /*  if (m_tree_jet->FindBranch("jet_btag_BjetProb")) 
         m_tree_jet->SetBranchAddress("jet_btag_BjetProb", &m_jet_btag_BjetProb);
         if (m_tree_jet->FindBranch("jet_btag_SSVHE")) 
@@ -225,32 +228,35 @@ bool JetMETExtractor::isPFJetLoose(const pat::Jet& jet)
   return isValid;
 }
 
-int JetMETExtractor::valPuJetId(const edm::Event& event, const pat::Jet& jet, const pat::JetRef& ref)
+int JetMETExtractor::valPuJetFullId(const edm::Event& event, const pat::Jet& jet, const pat::JetRef& ref)
 {
-    // pass loose wp  : 1
-    // pass medium wp : 2
-    // pass tight wp  : 3
-    
-    int puValue = 0;
 
-    edm::Handle<edm::ValueMap<int> > puJetIdFlag;
-    event.getByLabel(edm::InputTag("puJetMva", "full53xId"),puJetIdFlag);
+    edm::Handle<edm::ValueMap<int> > puJetFullIdFlag;
+    event.getByLabel(edm::InputTag("puJetMva", "full53xId"),puJetFullIdFlag);
+
+    
 
     if (! jet.isPFJet())
       return 0;
     
-    int idflag = (*puJetIdFlag)[ref]; 
-    if( PileupJetIdentifier::passJetId( idflag, PileupJetIdentifier::kLoose )) {
-      puValue = 1;
-    }
-    if( PileupJetIdentifier::passJetId( idflag, PileupJetIdentifier::kMedium )) {
-      puValue = 2;
-    }
-    if( PileupJetIdentifier::passJetId( idflag, PileupJetIdentifier::kTight )) {
-      puValue = 3;
-    }
+    int idflag = (*puJetFullIdFlag)[ref]; 
 
-  return puValue;
+    return idflag;
+}
+
+int JetMETExtractor::valPuJetCutBasedId(const edm::Event& event, const pat::Jet& jet, const pat::JetRef& ref)
+{
+
+    edm::Handle<edm::ValueMap<int> > puJetCutBasedIdFlag;
+    event.getByLabel(edm::InputTag("puJetMva", "cutbasedId"),puJetCutBasedIdFlag);    
+    
+
+    if (! jet.isPFJet())
+      return 0;
+    
+    int idflag = (*puJetCutBasedIdFlag)[ref]; 
+
+    return idflag;
 }
 
 //
@@ -383,7 +389,8 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
     m_jet_nhadEfrac[index]     = part.neutralHadronEnergyFraction();
     
     m_jet_isPFJetLoose[index]  = int(isPFJetLoose(part));
-    m_jet_puJetId[index]       = valPuJetId(event, part, ref);
+    m_jet_puJetFullId[index]       = valPuJetFullId(event, part, ref);
+    m_jet_puJetCutBasedId[index]   = valPuJetCutBasedId(event, part, ref);
 
     //m_jet_btag_jetProb[index]  = part.bDiscriminator("jetProbabilityBJetTags");
     //m_jet_btag_BjetProb[index] = part.bDiscriminator("jetBProbabilityBJetTags");
@@ -465,7 +472,8 @@ void JetMETExtractor::reset()
     m_jet_nemEfrac[i] = 0.;
     m_jet_nhadEfrac[i] = 0.;
     m_jet_isPFJetLoose[i] = 0.;
-    m_jet_puJetId[i] = 0.;
+    m_jet_puJetFullId[i] = 0.;
+    m_jet_puJetCutBasedId[i] = 0.;
     
     //m_jet_btag_BjetProb[i] = 0.;
     //m_jet_btag_SSVHE[i] = 0.;
