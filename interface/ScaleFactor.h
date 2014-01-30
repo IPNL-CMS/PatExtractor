@@ -27,6 +27,8 @@ class ScaleFactor {
       m_value = other.m_value;
       m_error_low = other.m_error_low;
       m_error_high = other.m_error_high;
+
+      m_array = nullptr;
       
       return *this;
     }
@@ -51,7 +53,7 @@ class ScaleFactor {
 
     friend class ScaleFactorCollection;
 
-    ScaleFactor(const std::vector<double>& array) {
+    ScaleFactor(const std::vector<double>& array): m_array(nullptr) {
       m_value = array[0];
       m_error_low = array[1];
       m_error_high = array[2];
