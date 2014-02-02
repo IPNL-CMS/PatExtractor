@@ -90,7 +90,7 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
        doJER              = cms.untracked.bool(True),
        jerSign            = cms.untracked.int32(0), # Use 0 for no JER systematics, 1 for 1-sigma up and -1 for 1-sigma down
        jesSign            = cms.untracked.int32(0), # Use 0 for no JES systematics, 1 for 1-sigma up and -1 for 1-sigma down
-       jes_uncertainties_file = cms.untracked.string("Extractors/PatExtractor/data/START53_V23_Uncertainty_AK5PFchs.txt")
+       jes_uncertainties_file = cms.untracked.string("")
    ),
 
    # Add MET information
