@@ -65,6 +65,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   // Set everything to 0
   m_jet_lorentzvector = new TClonesArray("TLorentzVector");
   m_genjet_lorentzvector = new TClonesArray("TLorentzVector");
+  m_rawjet_lorentzvector = new TClonesArray("TLorentzVector");
   m_met_lorentzvector = new TClonesArray("TLorentzVector");
   m_scaleFactors.setWriteMode();
 
@@ -77,6 +78,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   m_tree_jet->Branch("n_jets",  &m_size,   "n_jets/i");  
   m_tree_jet->Branch("jet_4vector","TClonesArray",&m_jet_lorentzvector, 5000, 0);
   m_tree_jet->Branch("genjet_4vector","TClonesArray",&m_genjet_lorentzvector, 5000, 0);
+  m_tree_jet->Branch("rawjet_4vector","TClonesArray",&m_rawjet_lorentzvector, 5000, 0);
   m_tree_jet->Branch("jet_vx",  &m_jet_vx,   "jet_vx[n_jets]/F");  
   m_tree_jet->Branch("jet_vy",  &m_jet_vy,   "jet_vy[n_jets]/F");  
   m_tree_jet->Branch("jet_vz",  &m_jet_vz,   "jet_vz[n_jets]/F"); 
@@ -127,6 +129,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   if (m_tree_jet) {
     m_jet_lorentzvector = new TClonesArray("TLorentzVector");
     m_genjet_lorentzvector = new TClonesArray("TLorentzVector");
+    m_rawjet_lorentzvector = new TClonesArray("TLorentzVector");
 
     if (m_tree_jet->FindBranch("n_jets")) 
       m_tree_jet->SetBranchAddress("n_jets",            &m_size);
@@ -134,6 +137,8 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
       m_tree_jet->SetBranchAddress("jet_4vector",       &m_jet_lorentzvector);
     if (m_tree_jet->FindBranch("genjet_4vector")) 
       m_tree_jet->SetBranchAddress("genjet_4vector",       &m_genjet_lorentzvector);
+    if (m_tree_jet->FindBranch("rawjet_4vector")) 
+      m_tree_jet->SetBranchAddress("rawjet_4vector",       &m_rawjet_lorentzvector);
     if (m_tree_jet->FindBranch("jet_vx")) 
       m_tree_jet->SetBranchAddress("jet_vx",            &m_jet_vx);
     if (m_tree_jet->FindBranch("jet_vy")) 
@@ -375,6 +380,9 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
     new((*m_genjet_lorentzvector)[index]) TLorentzVector(0.,0.,0.,0.);
   }
 
+  const pat::Jet* rawJet = part.userData<pat::Jet>("rawJet");
+  new((*m_rawjet_lorentzvector)[index]) TLorentzVector(rawJet->px(),rawJet->py(),rawJet->pz(),rawJet->energy());
+
   m_jet_vx[index]   = part.vx();
   m_jet_vy[index]   = part.vy();
   m_jet_vz[index]   = part.vz();
@@ -492,6 +500,8 @@ void JetMETExtractor::reset()
     m_jet_lorentzvector->Clear();
   if (m_genjet_lorentzvector)
     m_genjet_lorentzvector->Clear();
+  if (m_rawjet_lorentzvector)
+    m_rawjet_lorentzvector->Clear();
   if (m_met_lorentzvector)
     m_met_lorentzvector->Clear();
 }

@@ -88,6 +88,8 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
 
     TLorentzVector *getP4(int jetidx) {return (TLorentzVector*)m_jet_lorentzvector->At(jetidx);}
     TLorentzVector *getGenP4(int jetidx) {return (TLorentzVector*)m_genjet_lorentzvector->At(jetidx);}
+    TLorentzVector *getRawP4(int jetidx) {return (TLorentzVector*)m_rawjet_lorentzvector->At(jetidx);}
+
 
     float getJetBTagProb_CSV(int jetidx) const { return m_jet_btag_CSV[jetidx]; }
     float getJetBTagProb_TCHP(int jetidx) const { return m_jet_btag_TCHP[jetidx]; }
@@ -174,16 +176,18 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
 
     TClonesArray* m_jet_lorentzvector;
     TClonesArray* m_genjet_lorentzvector;
+    TClonesArray* m_rawjet_lorentzvector;
+
     float	m_jet_vx[m_jets_MAX];
     float	m_jet_vy[m_jets_MAX];
     float	m_jet_vz[m_jets_MAX];
-    int         m_jet_chmult[m_jets_MAX];
+    int   m_jet_chmult[m_jets_MAX];
     float	m_jet_chmuEfrac[m_jets_MAX];
     float	m_jet_chemEfrac[m_jets_MAX];
     float	m_jet_chhadEfrac[m_jets_MAX];
     float	m_jet_nemEfrac[m_jets_MAX];
     float	m_jet_nhadEfrac[m_jets_MAX];
-    int         m_jet_isPFJetLoose[m_jets_MAX];
+    int   m_jet_isPFJetLoose[m_jets_MAX];
 
     //float	m_jet_btag_BjetProb[m_jets_MAX];
     //float	m_jet_btag_SSVHE[m_jets_MAX];
@@ -194,8 +198,8 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     float	m_jet_btag_CSV[m_jets_MAX];
     
     //PuJetId
-    int         m_jet_puJetFullId[m_jets_MAX];
-    int         m_jet_puJetCutBasedId[m_jets_MAX];
+    int    m_jet_puJetFullId[m_jets_MAX];
+    int    m_jet_puJetCutBasedId[m_jets_MAX];
     // is loose wp  : 4
     // is medium wp : 6
     // is tight wp  : 7
