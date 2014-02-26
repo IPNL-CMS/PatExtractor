@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE payloads [
+<!ELEMENT payloads (corrections)>
+<!ELEMENT corrections (correction+)>
+<!ATTLIST corrections prefix CDATA #REQUIRED>
+<!ATTLIST corrections path CDATA "">
+<!ELEMENT correction EMPTY>
+<!ATTLIST correction name CDATA #REQUIRED>
+<!ATTLIST correction onlyondata (true|false) "false">
+]>
+<payloads>
+  <!--
+  <corrections path="/gridgroup/cms/brochet/CMSSW/CMSSW_5_2_5/src/JetMETCorrections/GammaJetFilter/analysis/jec_payloads/" prefix="Summer12_V7">
+  -->
+  <corrections path="Extractors/PatExtractor/data/" prefix="Summer12_V7">
+    <correction name="L1FastJet" />
+    <correction name="L2Relative" />
+    <correction name="L3Absolute" />
+    <correction name="L2L3Residual" onlyondata="true" />
+  </corrections>
+</payloads>

@@ -18,6 +18,7 @@
 #include "DataFormats/PatCandidates/interface/MET.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/Common/interface/View.h"
+#include <CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h>
 
 #include "CMGTools/External/interface/PileupJetIdentifier.h"
 
@@ -44,6 +45,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     JetMETExtractor(const std::string& name, const std::string& met_name, const edm::ParameterSet& config);
     JetMETExtractor(const std::string& name, const std::string& met_name, TFile *a_file);
     virtual ~JetMETExtractor();
+    virtual void beginJob();
 
     void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* m_MC); 
 
@@ -163,6 +165,9 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     TTree* m_tree_jet;
 
     bool mCorrectJets;
+    bool mUseGlobalTagForJEC;
+    std::string mJecPayload;
+    std::string mJecJetAlgo;
     bool mCorrectSysShiftMet;
     std::string mJetCorrectorLabel;
     GreaterByPt<pat::Jet> mSorter;
@@ -171,6 +176,8 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     bool mDoLooseJetID;
     int  mJERSign;
     int  mJESSign;
+    
+    FactorizedJetCorrector* mTxtCorrector; 
 
     static const int 	m_jets_MAX       = 200;
 

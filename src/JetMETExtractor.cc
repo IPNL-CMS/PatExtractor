@@ -1,4 +1,5 @@
 #include "../interface/JetMETExtractor.h"
+#include "../interface/JECReader.h"
 
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 
@@ -29,6 +30,21 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   m_metTag = metConfig.getParameter<edm::InputTag>("input"); 
 
   mCorrectJets = jetConfig.getUntrackedParameter<bool>("redoJetCorrection", false);
+  mUseGlobalTagForJEC = jetConfig.getUntrackedParameter<bool>("useGlobalTagForJEC", true);
+
+  if (!mUseGlobalTagForJEC) {
+    mJecPayload =  jetConfig.getUntrackedParameter<std::string>("jecPayload");
+    mJecJetAlgo =  jetConfig.getUntrackedParameter<std::string>("jecJetAlgo");
+    if (mJecPayload.length() > 0) {
+      mJecPayload = edm::FileInPath(mJecPayload).fullPath();
+    } else {
+      std::cout << "WARNING! No JecPayload file found. Use the global tag instead for JEC" << std::endl;
+      mUseGlobalTagForJEC = true;
+    }
+  }
+
+  mTxtCorrector = nullptr;
+
   if (mCorrectJets)
     mJetCorrectorLabel = jetConfig.getParameter<std::string>("jetCorrectorLabel");
   mDoJER = jetConfig.getUntrackedParameter<bool>("doJER", true);
@@ -111,6 +127,15 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   m_tree_met = NULL;
   m_tree_met      = new TTree(met_name.c_str(), "PAT PF MET info");  
   m_tree_met->Branch("met_4vector","TClonesArray",&m_met_lorentzvector, 1000, 0);
+}
+
+void JetMETExtractor::beginJob() {
+  if (!mUseGlobalTagForJEC) {
+    mTxtCorrector = makeFactorizedJetCorrectorFromXML(mJecPayload, mJecJetAlgo, m_isMC);
+    std::cout << "Using text files for JEC" << std::endl;
+  } else {
+    std::cout << "Using global tag for JEC" << std::endl;
+  }
 }
 
 
@@ -210,7 +235,9 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
 
 
 JetMETExtractor::~JetMETExtractor()
-{}
+{
+  delete mTxtCorrector;
+}
 
 
 bool JetMETExtractor::isPFJetLoose(const pat::Jet& jet)
@@ -524,7 +551,19 @@ void JetMETExtractor::correctJets(pat::JetCollection& jets, const edm::Event& iE
 #endif
 
   // Get Jet corrector
-  const JetCorrector* corrector = JetCorrector::getJetCorrector(mJetCorrectorLabel, iSetup);
+  const JetCorrector* globalTagCorrector = nullptr;
+
+  if (mUseGlobalTagForJEC) {
+    globalTagCorrector = JetCorrector::getJetCorrector(mJetCorrectorLabel, iSetup);
+  }
+
+  edm::Handle<reco::VertexCollection>  vertexHandle;
+  iEvent.getByLabel("goodOfflinePrimaryVertices", vertexHandle);
+  reco::VertexCollection vertices = *vertexHandle;
+
+  edm::Handle<double> rhos;
+  iEvent.getByLabel(edm::InputTag("kt6PFJets", "rho", "RECO"), rhos);
+  double rho = *rhos;
 
   // Correct jets
   for (pat::JetCollection::iterator it = jets.begin(); it != jets.end(); ++it)  {
@@ -547,7 +586,18 @@ void JetMETExtractor::correctJets(pat::JetCollection& jets, const edm::Event& iE
     std::cout << "Raw pt: " << jet.pt() << std::endl;
 #endif
 
-    double corrections = corrector->correction(jet, iEvent, iSetup);
+    double corrections = 0.;
+    if (mUseGlobalTagForJEC) {
+      corrections = globalTagCorrector->correction(jet, iEvent, iSetup);
+    } else {
+      mTxtCorrector->setJetEta(jet.eta());
+      mTxtCorrector->setJetPt(jet.pt());
+      mTxtCorrector->setRho(rho);
+      mTxtCorrector->setJetA(jet.jetArea());
+      mTxtCorrector->setNPV(vertices.size());
+      corrections = mTxtCorrector->getCorrection();
+    }
+       
     jet.scaleEnergy(corrections);
 #if DEBUG
     std::cout << "Corrected pt: " << jet.pt() << std::endl;

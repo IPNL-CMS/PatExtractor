@@ -85,13 +85,16 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
        input              = cms.InputTag("selectedPatJetsPFlow"),
 
        # Jets correction : needs a valid global tags, or an external DB where JEC are stored
-       redoJetCorrection  = cms.untracked.bool(False),
-       jetCorrectorLabel  = cms.string("ak5PFchsL1FastL2L3"), # Use "ak5PFchsL1FastL2L3" for MC and "ak5PFchsL1FastL2L3Residual" for Data
-       doJER              = cms.untracked.bool(True),
-       jerSign            = cms.untracked.int32(0), # Use 0 for no JER systematics, 1 for 1-sigma up and -1 for 1-sigma down
-       jesSign            = cms.untracked.int32(0), # Use 0 for no JES systematics, 1 for 1-sigma up and -1 for 1-sigma down
+       redoJetCorrection      = cms.untracked.bool(False),
+       jetCorrectorLabel      = cms.string("ak5PFchsL1FastL2L3"), # Use "ak5PFchsL1FastL2L3" for MC and "ak5PFchsL1FastL2L3Residual" for Data
+       doJER                  = cms.untracked.bool(True),
+       jerSign                = cms.untracked.int32(0), # Use 0 for no JER systematics, 1 for 1-sigma up and -1 for 1-sigma down
+       jesSign                = cms.untracked.int32(0), # Use 0 for no JES systematics, 1 for 1-sigma up and -1 for 1-sigma down
        jes_uncertainties_file = cms.untracked.string(""),
-       doLooseJetID       = cms.untracked.bool(True)
+       doLooseJetID           = cms.untracked.bool(True),
+       useGlobalTagForJEC     = cms.untracked.bool(True),
+       jecPayload             = cms.untracked.string("Extractors/PatExtractor/data/jec_payloads.xml"), 
+       jecJetAlgo             = cms.untracked.string("AK5PFchs") 
    ),
 
    # Add MET information
