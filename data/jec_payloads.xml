@@ -9,13 +9,10 @@
 <!ATTLIST correction onlyondata (true|false) "false">
 ]>
 <payloads>
-  <!--
-  <corrections path="/gridgroup/cms/brochet/CMSSW/CMSSW_5_2_5/src/JetMETCorrections/GammaJetFilter/analysis/jec_payloads/" prefix="Summer12_V7">
-  -->
-  <corrections path="Extractors/PatExtractor/data/" prefix="Summer12_V7">
+  <corrections path="Extractors/PatExtractor/data/" prefix="Summer13_V4">
     <correction name="L1FastJet" />
     <correction name="L2Relative" />
     <correction name="L3Absolute" />
-    <correction name="L2L3Residual" onlyondata="true" />
+    <correction name="L2L3Residual_test" onlyondata="true" />
   </corrections>
 </payloads>

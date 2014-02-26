@@ -114,10 +114,10 @@ FactorizedJetCorrector* makeFactorizedJetCorrectorFromXML(const std::string& xml
           onlyOnData = XMLString::equals(foo, trueStr);
         }
 
-        std::string filename = path.get() + prefix.get() + "_" + mcDataText + "_" + jetAlgo + "_" + name.get() + ".txt";
+        std::string filename = path.get() + prefix.get() + "_" + mcDataText + "_" + name.get() + "_" + jetAlgo + ".txt";
         //std::string filename = path.get() + prefix.get() + "_" + name.get() + "_" + jetAlgo + ".txt";
-        filename = edm::FileInPath(filename).fullPath();
         if (!onlyOnData || (onlyOnData && !isMC)) {
+          filename = edm::FileInPath(filename).fullPath();
           std::cout << "Using payload '" << filename << "'" << std::endl;
           correctors.push_back(JetCorrectorParameters(filename));
         }
