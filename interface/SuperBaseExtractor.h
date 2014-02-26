@@ -30,6 +30,9 @@ class SuperBaseExtractor
       m_scaleFactorService = service;
     }
 
+    virtual void beginJob() {}
+    virtual void endJob() {}
+
   protected:
     bool m_isMC;
     bool m_OK;

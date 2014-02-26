@@ -85,6 +85,9 @@ PatExtractor::PatExtractor(const edm::ParameterSet& config) :
 // Job initialization
 void PatExtractor::beginJob()
 {
+  for (auto& extractor: m_extractors) {
+    extractor->beginJob();
+  }
 }
 
 
@@ -151,6 +154,9 @@ void PatExtractor::endJob() {
 
   std::cout << "Total # of events for this job   = "<< nevent_tot     << std::endl;
 
+  for (auto& extractor: m_extractors) {
+    extractor->endJob();
+  }
 
   m_outfile->cd();
 
@@ -285,9 +291,6 @@ void PatExtractor::initialize(const edm::ParameterSet& config)
     extractor->setScaleFactorsService(m_scaleFactors);
   }
 }
-
-
-
 
 // Here are the initializations when starting from already extracted stuff
 
