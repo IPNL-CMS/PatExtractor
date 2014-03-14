@@ -125,8 +125,10 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   m_tree_jet->Branch("jet_scaleFactor", &m_scaleFactors.getBackingArray());
 
   m_tree_met = NULL;
-  m_tree_met      = new TTree(met_name.c_str(), "PAT PF MET info");  
+  m_tree_met = new TTree(met_name.c_str(), "PAT PF MET info");  
   m_tree_met->Branch("met_4vector","TClonesArray",&m_met_lorentzvector, 1000, 0);
+  m_tree_met->Branch("sumEt", &m_met_sumEt, "sumEt/F");  
+
 }
 
 void JetMETExtractor::beginJob() {
@@ -230,7 +232,10 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   m_met_lorentzvector = new TClonesArray("TLorentzVector");
 
   if (m_tree_met->FindBranch("met_4vector"))
-    m_tree_met->SetBranchAddress("met_4vector",&m_met_lorentzvector);
+    m_tree_met->SetBranchAddress("met_4vector", &m_met_lorentzvector);
+
+  if (m_tree_met->FindBranch("sumEt")) 
+      m_tree_met->SetBranchAddress("sumEt", &m_met_sumEt);
 }
 
 
@@ -394,7 +399,7 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
 #if DEBUG
   std::cout << "---" << std::endl;
   std::cout << "Writing jet #" << index << std::endl;
-  std::cout << "Pt: " << part.pt() << "; Px / Pz / Pz / E : " << part.px() << " / " << part.py() << " / " << part.pz() << " / " << part.energy() << std::endl;
+  std::cout << "Pt: " << part.pt() << "; Px / Py / Pz / E : " << part.px() << " / " << part.py() << " / " << part.pz() << " / " << part.energy() << std::endl;
   std::cout << "Eta: " << part.eta() << "; Phi : " << part.phi() << std::endl;
 #endif
 
@@ -465,7 +470,7 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
 #if DEBUG
   std::cout << "---" << std::endl;
   std::cout << "Writing MET #" << index << std::endl;
-  std::cout << "Pt: " << part.pt() << "; Px / Pz / Pz : " << part.px() << " / " << part.py() << " / " << part.pz() << std::endl;
+  std::cout << "Pt: " << part.pt() << "; Px / Py / Pz : " << part.px() << " / " << part.py() << " / " << part.pz() << std::endl;
   std::cout << "Eta: " << part.eta() << "; Phi : " << part.phi() << std::endl;
 #endif
 
@@ -531,6 +536,8 @@ void JetMETExtractor::reset()
     m_rawjet_lorentzvector->Clear();
   if (m_met_lorentzvector)
     m_met_lorentzvector->Clear();
+
+  m_met_sumEt = 0.;
 }
 
 
@@ -672,6 +679,7 @@ void JetMETExtractor::correctJetsMETresolution(pat::JetCollection& jets, pat::ME
       
       correctedMetPx += (rawJet->px());
       correctedMetPy += (rawJet->py());
+      m_met_sumEt -= (rawJet->pt());
 
       jet.scaleEnergy(scalefac);
       //rawJet->scaleEnergy(ptscale); 
@@ -682,6 +690,7 @@ void JetMETExtractor::correctJetsMETresolution(pat::JetCollection& jets, pat::ME
     
       correctedMetPx -= (rawJet->px()*scalefac);
       correctedMetPy -= (rawJet->py()*scalefac);
+      m_met_sumEt += (rawJet->pt()*scalefac);
     }
   }
 
@@ -697,7 +706,7 @@ void JetMETExtractor::correctJetsMETresolution(pat::JetCollection& jets, pat::ME
     
 
 void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets) {
-  double deltaPx = 0., deltaPy = 0.;
+  double deltaPx = 0., deltaPy = 0., deltaPt = 0.;
 #if DEBUG
     std::cout << "---" << std::endl;
     std::cout << "Computing TypeI correction" << std::endl;
@@ -734,6 +743,7 @@ void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met,
 
       deltaPx += (jet.px() - L1JetP4.px());
       deltaPy += (jet.py() - L1JetP4.py());
+      deltaPt += (jet.pt() - L1JetP4.pt());
     }
   }
 
@@ -742,9 +752,12 @@ void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met,
   double correctedMetPt = sqrt(correctedMetPx * correctedMetPx + correctedMetPy * correctedMetPy);
 
   met.setP4(reco::Candidate::LorentzVector(correctedMetPx, correctedMetPy, 0., correctedMetPt));
+  m_met_sumEt = rawMet.sumEt() + deltaPt;
 
 #if DEBUG
     std::cout << "Handmade corrected MET et: " << met.et() << std::endl;
+    std::cout << "Raw MET sumEt: " << rawMet.sumEt() << std::endl;
+    std::cout << "Handmade corrected MET sumEt: " << m_met_sumEt() << std::endl;
 #endif
 }
 
@@ -822,6 +835,7 @@ void JetMETExtractor::doJESSystematics(pat::JetCollection& jets, pat::MET& met) 
 
     correctedMetPx += (jet.px());
     correctedMetPy += (jet.py());
+    m_met_sumEt -= (jet.pt());
 
 #if DEBUG
     std::cout << "---" << std::endl;
@@ -836,6 +850,7 @@ void JetMETExtractor::doJESSystematics(pat::JetCollection& jets, pat::MET& met) 
 
     correctedMetPx -= (jet.px());
     correctedMetPy -= (jet.py());
+    m_met_sumEt += (jet.pt());
   }
 
   double correctedMetPt = sqrt(correctedMetPx * correctedMetPx + correctedMetPy * correctedMetPy);

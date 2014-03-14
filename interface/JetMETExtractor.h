@@ -222,6 +222,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     edm::InputTag m_metTag;
     TTree* m_tree_met;
     TClonesArray* m_met_lorentzvector;
+    float m_met_sumEt;
 
     ScaleFactorCollection m_scaleFactors;
 
