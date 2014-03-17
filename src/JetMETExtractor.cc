@@ -131,10 +131,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   m_tree_met = new TTree(met_name.c_str(), "PAT PF MET info");  
   m_tree_met->Branch("met_4vector","TClonesArray",&m_met_lorentzvector, 1000, 0);
   m_tree_met->Branch("sumEt", &m_met_sumEt, "sumEt/F");  
-<<<<<<< Updated upstream
-=======
   m_tree_met->Branch("unclustered_particle_4vector","TClonesArray",&m_unclustered_particle_lorentzvector, 1000, 0);
->>>>>>> Stashed changes
 
 }
 
@@ -243,14 +240,11 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
 
   if (m_tree_met->FindBranch("sumEt")) 
       m_tree_met->SetBranchAddress("sumEt", &m_met_sumEt);
-<<<<<<< Updated upstream
-=======
 
   m_unclustered_particle_lorentzvector = new TClonesArray("TLorentzVector");
 
   if (m_tree_met->FindBranch("unclustered_particle_4vector"))
     m_tree_met->SetBranchAddress("unclustered_particle_4vector", &m_unclustered_particle_lorentzvector);
->>>>>>> Stashed changes
 }
 
 
