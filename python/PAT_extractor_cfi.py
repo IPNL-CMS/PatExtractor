@@ -104,6 +104,7 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
 
        redoMetPhiCorrection   = cms.untracked.bool(False),
        redoMetTypeICorrection = cms.untracked.bool(False),
+       saveUnclusteredParticles = cms.untracked.bool(False)
    ),
 
    # Add PV information

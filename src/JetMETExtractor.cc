@@ -5,6 +5,7 @@
 
 #include <FWCore/ParameterSet/interface/ParameterSet.h>
 #include <DataFormats/VertexReco/interface/Vertex.h>
+#include "DataFormats/Math/interface/deltaR.h"
 
 #include <CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h>
 #include <CondFormats/JetMETObjects/interface/JetCorrectorParameters.h>
@@ -64,6 +65,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
 
   mCorrectSysShiftMet = metConfig.getUntrackedParameter<bool>("redoMetPhiCorrection", false);
   mRedoTypeI  = metConfig.getUntrackedParameter<bool>("redoMetTypeICorrection", false);
+  mSaveUnclusteredParticles = metConfig.getUntrackedParameter<bool>("saveUnclusteredParticles", false);
 
   mJecFilename = jetConfig.getUntrackedParameter<std::string>("jes_uncertainties_file", "");
   if (mJESSign != 0 && mJecFilename.length() > 0) {
@@ -83,6 +85,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   m_genjet_lorentzvector = new TClonesArray("TLorentzVector");
   m_rawjet_lorentzvector = new TClonesArray("TLorentzVector");
   m_met_lorentzvector = new TClonesArray("TLorentzVector");
+  m_unclustered_particle_lorentzvector = new TClonesArray("TLorentzVector");
   m_scaleFactors.setWriteMode();
 
   reset();
@@ -128,6 +131,10 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   m_tree_met = new TTree(met_name.c_str(), "PAT PF MET info");  
   m_tree_met->Branch("met_4vector","TClonesArray",&m_met_lorentzvector, 1000, 0);
   m_tree_met->Branch("sumEt", &m_met_sumEt, "sumEt/F");  
+<<<<<<< Updated upstream
+=======
+  m_tree_met->Branch("unclustered_particle_4vector","TClonesArray",&m_unclustered_particle_lorentzvector, 1000, 0);
+>>>>>>> Stashed changes
 
 }
 
@@ -236,6 +243,14 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
 
   if (m_tree_met->FindBranch("sumEt")) 
       m_tree_met->SetBranchAddress("sumEt", &m_met_sumEt);
+<<<<<<< Updated upstream
+=======
+
+  m_unclustered_particle_lorentzvector = new TClonesArray("TLorentzVector");
+
+  if (m_tree_met->FindBranch("unclustered_particle_4vector"))
+    m_tree_met->SetBranchAddress("unclustered_particle_4vector", &m_unclustered_particle_lorentzvector);
+>>>>>>> Stashed changes
 }
 
 
@@ -271,7 +286,8 @@ int JetMETExtractor::valPuJetFullId(const edm::Event& event, const pat::Jet& jet
     edm::Handle<edm::ValueMap<int> > puJetFullIdFlag;
     event.getByLabel(edm::InputTag("puJetMva", "full53xId"),puJetFullIdFlag);
 
-    
+    if (!puJetFullIdFlag.isValid())
+      return 0;
 
     if (! jet.isPFJet())
       return 0;
@@ -287,6 +303,8 @@ int JetMETExtractor::valPuJetCutBasedId(const edm::Event& event, const pat::Jet&
     edm::Handle<edm::ValueMap<int> > puJetCutBasedIdFlag;
     event.getByLabel(edm::InputTag("puJetMva", "cutbasedId"),puJetCutBasedIdFlag);    
     
+    if (! puJetCutBasedIdFlag.isValid())
+      return 0;
 
     if (! jet.isPFJet())
       return 0;
@@ -385,9 +403,39 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
     m_size++;
   }
 
-  
-
   writeInfo(event, iSetup, MET, 0);
+
+  if (mSaveUnclusteredParticles) {
+    edm::Handle<reco::PFCandidateCollection>  PFParticleHandle;
+    event.getByLabel("particleFlow", PFParticleHandle);
+    reco::PFCandidateCollection p_PFParticle = *PFParticleHandle;
+
+    int PFParticle_size = 0;
+
+    for (unsigned int i = 0; i < p_PFParticle.size(); ++i)
+    {
+      reco::PFCandidate& mainPFPart = p_PFParticle[i];
+      int pdgId = mainPFPart.pdgId();
+      if (pdgId == 11 || pdgId == 13)
+        continue;
+      bool found = false;
+      for (unsigned int j = 0; j < p_jets.size(); ++j) {
+        pat::Jet& jet = p_jets[j];
+        double mainDeltaR = deltaR(mainPFPart, jet);
+        if (mainDeltaR < 0.5) {
+          found = true;
+          break;
+        }
+        if (found)
+          break;
+      }
+      if (!found) {
+        writeInfo(event, iSetup, mainPFPart, PFParticle_size);
+        PFParticle_size ++;
+      }
+    }
+  }
+
 
   fillTree();
 }
@@ -477,6 +525,18 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
   new((*m_met_lorentzvector)[index]) TLorentzVector(part.px(),part.py(),part.pz(),part.energy());
 }
 
+void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const reco::PFCandidate& part, int index)
+{
+#if DEBUG
+  std::cout << "---" << std::endl;
+  std::cout << "Writing PF particle #" << index << std::endl;
+  std::cout << "Pt: " << part.pt() << "; Px / Py / Pz / E : " << part.px() << " / " << part.py() << " / " << part.pz() << " / " << part.energy() << std::endl;
+  std::cout << "Eta: " << part.eta() << "; Phi : " << part.phi() << std::endl;
+#endif
+
+  new((*m_unclustered_particle_lorentzvector)[index]) TLorentzVector(part.px(),part.py(),part.pz(),part.energy());
+}
+
 //
 // Method getting the info from an input file
 //
@@ -538,6 +598,9 @@ void JetMETExtractor::reset()
     m_met_lorentzvector->Clear();
 
   m_met_sumEt = 0.;
+
+  if (m_unclustered_particle_lorentzvector)
+    m_unclustered_particle_lorentzvector->Clear();
 }
 
 

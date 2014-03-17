@@ -19,8 +19,8 @@
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/Common/interface/View.h"
 #include <CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h>
-
 #include "CMGTools/External/interface/PileupJetIdentifier.h"
+#include <DataFormats/ParticleFlowCandidate/interface/PFCandidate.h>
 
 #include "../interface/BaseExtractor.h"
 #include "../interface/MCExtractor.h"
@@ -52,6 +52,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Jet& part, int index, const pat::JetRef& ref); 
     void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Jet& part, int index) {}
     void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::MET& part, int index); 
+    void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const reco::PFCandidate& part, int index);
 
     void getInfo(int ievt); 
 
@@ -126,6 +127,10 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     TLorentzVector *getMETLorentzVector(int metidx) {return (TLorentzVector*)m_met_lorentzvector->At(metidx);}
     void setMETLorentzVector(int idx, float E, float Px, float Py, float Pz);
 
+    int getNumberOfUnclusteredParticles() {return m_unclustered_particle_lorentzvector->GetEntriesFast();}
+    
+    TLorentzVector *getUnclusteredParticleLorentzVector(int unclustpcidx) {return (TLorentzVector*)m_unclustered_particle_lorentzvector->At(unclustpcidx);}
+
     // Jet ID
     bool isPFJetLoose(const pat::Jet& jet);
     int isPFJetLoose(int muidx) const { return m_jet_isPFJetLoose[muidx]; }
@@ -166,6 +171,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
 
     bool mCorrectJets;
     bool mUseGlobalTagForJEC;
+    bool mSaveUnclusteredParticles;
     std::string mJecPayload;
     std::string mJecJetAlgo;
     bool mCorrectSysShiftMet;
@@ -223,6 +229,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     TTree* m_tree_met;
     TClonesArray* m_met_lorentzvector;
     float m_met_sumEt;
+    TClonesArray* m_unclustered_particle_lorentzvector;
 
     ScaleFactorCollection m_scaleFactors;
 
