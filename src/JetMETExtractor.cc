@@ -410,7 +410,7 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
     {
       reco::PFCandidate& mainPFPart = p_PFParticle[i];
       int pdgId = mainPFPart.pdgId();
-      if (pdgId == 11 || pdgId == 13)
+      if (fabs(pdgId) == 11 || fabs(pdgId) == 13)
         continue;
       bool found = false;
       for (unsigned int j = 0; j < p_jets.size(); ++j) {
