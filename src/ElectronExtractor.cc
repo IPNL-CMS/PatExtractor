@@ -6,15 +6,20 @@
 #include <DataFormats/RecoCandidate/interface/IsoDeposit.h>
 #include <DataFormats/RecoCandidate/interface/IsoDepositVetos.h>
 
-ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTag& tag, bool doTree)
-  : BaseExtractor(name), m_ele_lorentzvector(nullptr)
+ElectronExtractor::ElectronExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, const edm::InputTag& tag, bool doTree)
+  : BaseExtractor(name, sf), m_ele_lorentzvector(nullptr)
 {
   m_tag = tag;
 
   m_deltaR_cut = 0.5; // Maximum acceptable distance for MC matching
   m_ele_lorentzvector = new TClonesArray("TLorentzVector");
-  m_scaleFactorsLoose.setWriteMode();
-  m_scaleFactorsTight.setWriteMode();
+
+  const auto& sfWorkingPoints = m_scaleFactorService->getElectronScaleFactorWorkingPoints();
+  for (auto& it: sfWorkingPoints) {
+      std::string name = "electron_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
+      m_scaleFactors[name] = ScaleFactorCollection();
+      m_scaleFactors[name].setWriteMode();
+  };
 
   // Set everything to 0
 
@@ -80,13 +85,14 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTa
     m_tree_electron->Branch("electron_passMediumID",             &m_ele_passMediumID, "electron_passMediumID[n_electrons]/O");
     m_tree_electron->Branch("electron_passTightID",              &m_ele_passTightID, "electron_passTightID[n_electrons]/O");
 
-    m_tree_electron->Branch("electron_scaleFactorTight",         &m_scaleFactorsTight.getBackingArray());
-    m_tree_electron->Branch("electron_scaleFactorLoose",         &m_scaleFactorsLoose.getBackingArray());
+    for (auto& it: m_scaleFactors) {
+      m_tree_electron->Branch(it.first.c_str(), & it.second.getBackingArray());
+    }
   }
 }
 
-  ElectronExtractor::ElectronExtractor(const std::string& name, TFile* a_file)
-:  BaseExtractor(name), m_ele_lorentzvector(nullptr)
+  ElectronExtractor::ElectronExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, TFile* a_file)
+:  BaseExtractor(name, sf), m_ele_lorentzvector(nullptr)
 {
   m_file = a_file;
 
@@ -203,11 +209,10 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::InputTa
   if (m_tree_electron->FindBranch("electron_deltaBetaCorrectedRelIsolation"))
     m_tree_electron->SetBranchAddress("electron_deltaBetaCorrectedRelIsolation", &m_ele_deltaBetaCorrectedRelIsolation);
 
-  if (m_tree_electron->FindBranch("electron_scaleFactorTight"))
-    m_tree_electron->SetBranchAddress("electron_scaleFactorTight", &m_scaleFactorsTight.getBackingArray());
-
-  if (m_tree_electron->FindBranch("electron_scaleFactorLoose"))
-    m_tree_electron->SetBranchAddress("electron_scaleFactorLoose", &m_scaleFactorsLoose.getBackingArray());
+  for (auto& it: m_scaleFactors) {
+    if (m_tree_electron->FindBranch(it.first.c_str()))
+      m_tree_electron->Branch(it.first.c_str(), & it.second.getBackingArray());
+  }
 }
 
 
@@ -423,8 +428,10 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
   }
 
   if (m_isMC) {
-    m_scaleFactorsTight.push_back(m_scaleFactorService->getElectronScaleFactor(ScaleFactorService::TIGHT, ScaleFactorService::TIGHT, part.pt(), part.eta()));
-    m_scaleFactorsLoose.push_back(m_scaleFactorService->getElectronScaleFactor(ScaleFactorService::LOOSE, ScaleFactorService::TIGHT, part.pt(), part.eta()));
+    for (auto& it: m_scaleFactors) {
+      std::pair<ScaleFactorService::WorkingPoint, ScaleFactorService::WorkingPoint> workingPoints = ScaleFactorService::getWorkingPointFromName(it.first);
+      it.second.push_back(m_scaleFactorService->getElectronScaleFactor(workingPoints.first, workingPoints.second, part.pt(), part.eta()));
+    }
   }
 }
 
@@ -442,8 +449,9 @@ void ElectronExtractor::getInfo(int ievt)
 void ElectronExtractor::reset()
 {
   m_size = 0;
-  m_scaleFactorsTight.clear();
-  m_scaleFactorsLoose.clear();
+  for (auto& it: m_scaleFactors) {
+    it.second.clear();
+  }
 
   for (int i=0;i<m_electrons_MAX;++i) 
   {

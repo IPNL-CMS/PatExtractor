@@ -15,8 +15,8 @@
 
 #define DEBUG false
 
-JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met_name, const edm::ParameterSet& config)
-: BaseExtractor(name)
+JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met_name, std::shared_ptr<ScaleFactorService> sf, const edm::ParameterSet& config)
+: BaseExtractor(name, sf)
 {
   if (! config.exists(name))
     throw edm::Exception(edm::errors::ConfigFileReadError) << "No edm::ParameterSet named " << name << " found";
@@ -145,8 +145,8 @@ void JetMETExtractor::beginJob() {
 }
 
 
-JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met_name, TFile *a_file)
-: BaseExtractor(name)
+JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met_name, std::shared_ptr<ScaleFactorService> sf, TFile *a_file)
+: BaseExtractor(name, sf)
 {
   std::cout << "JetMETExtractor objet is retrieved" << std::endl;
   m_file = a_file;

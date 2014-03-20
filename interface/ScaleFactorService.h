@@ -6,6 +6,7 @@
 #include <tuple>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/regex.hpp>
 
 #include <CondFormats/PhysicsToolsObjects/interface/BinningPointByMap.h>
 
@@ -249,6 +250,43 @@ class ScaleFactorService {
       return {1., 0, 0};
     }
 
+    // First selection working point, Second isolation working pointc
+    std::vector<std::pair<WorkingPoint, WorkingPoint>> getElectronScaleFactorWorkingPoints() const {
+      return getWorkingPointsFromMap(mElectronScaleFactors);
+    }
+
+    // First selection working point, Second isolation working pointc
+    std::vector<std::pair<WorkingPoint, WorkingPoint>> getMuonScaleFactorWorkingPoints() const {
+      return getWorkingPointsFromMap(mMuonScaleFactors);
+    }
+
+    static std::string nameFromWorkingPoints(WorkingPoint eff, WorkingPoint iso) {
+      return workingPointToString(eff) + "eff_" + workingPointToString(iso) + "iso";
+    }
+
+    static std::string workingPointToString(WorkingPoint wp) {
+      switch (wp) {
+        case LOOSE:
+        return "loose";
+
+        case TIGHT:
+        return "tight";
+      }
+
+      return "";
+    }
+
+    static std::pair<WorkingPoint, WorkingPoint> getWorkingPointFromName(const std::string& name) {
+      static boost::regex regex("([a-z]+)eff_([a-z]+)iso");
+      boost::smatch result;
+
+      if (boost::regex_search(name, result, regex)) {
+        return std::make_pair(stringToWorkingPoint(std::string(result[1].first, result[1].second)), stringToWorkingPoint(std::string(result[2].first, result[2].second)));
+      }
+
+      assert(false);
+      return std::make_pair(LOOSE, LOOSE);
+    }
 
   private:
     ScaleFactor getScaleFactorFromMap(WorkingPoint effWp, WorkingPoint isoWp, double pt, double eta, const ScaleFactorMap& map) const {
@@ -334,19 +372,18 @@ class ScaleFactorService {
       std::cout << std::endl;
     }
 
-    std::string workingPointToString(WorkingPoint wp) const {
-      switch (wp) {
-        case LOOSE:
-        return "loose";
+    static WorkingPoint stringToWorkingPoint(const std::string& name) {
 
-        case TIGHT:
-        return "tight";
-      }
+      if (name == "loose")
+        return LOOSE;
 
-      return "";
+      if (name == "tight")
+        return TIGHT;
+
+      return LOOSE;
     }
 
-    std::string flavorToString(Flavor flavor) const {
+    static std::string flavorToString(Flavor flavor) {
       switch (flavor) {
         case B:
           return "b";
@@ -361,8 +398,14 @@ class ScaleFactorService {
       return "";
     }
 
-    std::string nameFromWorkingPoints(WorkingPoint eff, WorkingPoint iso) const {
-      return workingPointToString(eff) + "eff_" + workingPointToString(iso) + "iso";
+    static std::vector<std::pair<WorkingPoint, WorkingPoint>> getWorkingPointsFromMap(const ScaleFactorMap& map) {
+      std::vector<std::pair<WorkingPoint, WorkingPoint>> result;
+
+      for (const auto& it: map) {
+        result.push_back(getWorkingPointFromName(it.first));
+      }
+
+      return result;
     }
 
     ScaleFactorMap mMuonScaleFactors;

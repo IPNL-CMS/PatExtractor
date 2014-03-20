@@ -2,20 +2,24 @@
 
 #include <DataFormats/VertexReco/interface/Vertex.h>
 
-MuonExtractor::MuonExtractor(const std::string& name, const edm::InputTag& tag, const edm::InputTag& vertexTag, bool doTree, ScaleFactorService::WorkingPoint isolationWp)
-  :  BaseExtractor(name), m_muo_lorentzvector(nullptr)
+MuonExtractor::MuonExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, const edm::InputTag& tag, const edm::InputTag& vertexTag, bool doTree)
+  :  BaseExtractor(name, sf), m_muo_lorentzvector(nullptr)
 {
   m_OK = false;
   m_vertexTag = vertexTag;
-  m_isolationWp = isolationWp;
 
   // Set everything to 0
  
   setPF((tag.label()).find("PFlow")); 
 
   m_muo_lorentzvector = new TClonesArray("TLorentzVector");
-  m_scaleFactorsTight.setWriteMode();
-  m_scaleFactorsLoose.setWriteMode();
+
+  const auto& sfWorkingPoints = m_scaleFactorService->getMuonScaleFactorWorkingPoints();
+  for (auto& it: sfWorkingPoints) {
+      std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
+      m_scaleFactors[name] = ScaleFactorCollection();
+      m_scaleFactors[name].setWriteMode();
+  }
 
   reset();
 
@@ -64,14 +68,14 @@ MuonExtractor::MuonExtractor(const std::string& name, const edm::InputTag& tag, 
     m_tree_muon->Branch("muon_relIsolation",                   &m_muo_relIsolation, "muon_relIsolation[n_muons]/F");
     m_tree_muon->Branch("muon_deltaBetaCorrectedRelIsolation", &m_muo_deltaBetaCorrectedRelIsolation, "muon_deltaBetaCorrectedRelIsolation[n_muons]/F");
 
-    m_tree_muon->Branch("muon_scaleFactorTightEff", &m_scaleFactorsTight.getBackingArray());
-    m_tree_muon->Branch("muon_scaleFactorLooseEff", &m_scaleFactorsLoose.getBackingArray());
+    for (auto& it: m_scaleFactors) {
+      m_tree_muon->Branch(it.first.c_str(), & it.second.getBackingArray());
+    }
   }
-
 }
 
-MuonExtractor::MuonExtractor(const std::string& name, TFile *a_file)
-  :  BaseExtractor(name), m_muo_lorentzvector(nullptr)
+MuonExtractor::MuonExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, TFile *a_file)
+  :  BaseExtractor(name, sf), m_muo_lorentzvector(nullptr)
 {
   m_file = a_file;
   std::cout << "MuonExtractor objet is retrieved" << std::endl;
@@ -165,11 +169,10 @@ MuonExtractor::MuonExtractor(const std::string& name, TFile *a_file)
   if (m_tree_muon->FindBranch("muon_deltaBetaCorrectedRelIsolation"))
     m_tree_muon->SetBranchAddress("muon_deltaBetaCorrectedRelIsolation", &m_muo_deltaBetaCorrectedRelIsolation);
 
-  if (m_tree_muon->FindBranch("muon_scaleFactorTight"))
-    m_tree_muon->SetBranchAddress("muon_scaleFactorTight", &m_scaleFactorsTight.getBackingArray());
-
-  if (m_tree_muon->FindBranch("muon_scaleFactorLoose"))
-    m_tree_muon->SetBranchAddress("muon_scaleFactorLoose", &m_scaleFactorsLoose.getBackingArray());
+  for (auto& it: m_scaleFactors) {
+    if (m_tree_muon->FindBranch(it.first.c_str()))
+      m_tree_muon->Branch(it.first.c_str(), & it.second.getBackingArray());
+  }
 }
 
 MuonExtractor::~MuonExtractor()
@@ -245,8 +248,10 @@ void MuonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iS
   } 
 
   if (m_isMC) {
-    m_scaleFactorsTight.push_back(m_scaleFactorService->getMuonScaleFactor(ScaleFactorService::TIGHT, m_isolationWp, part.pt(), part.eta()));
-    m_scaleFactorsLoose.push_back(m_scaleFactorService->getMuonScaleFactor(ScaleFactorService::LOOSE, m_isolationWp, part.pt(), part.eta()));
+    for (auto& it: m_scaleFactors) {
+      std::pair<ScaleFactorService::WorkingPoint, ScaleFactorService::WorkingPoint> workingPoints = ScaleFactorService::getWorkingPointFromName(it.first);
+      it.second.push_back(m_scaleFactorService->getMuonScaleFactor(workingPoints.first, workingPoints.second, part.pt(), part.eta()));
+    }
   }
 }
 
@@ -256,8 +261,10 @@ void MuonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iS
 void MuonExtractor::reset()
 {
   m_size = 0;
-  m_scaleFactorsTight.clear();
-  m_scaleFactorsLoose.clear();
+
+  for (auto& it: m_scaleFactors) {
+    it.second.clear();
+  }
 
   for (int i=0;i<m_muons_MAX;++i) 
   {

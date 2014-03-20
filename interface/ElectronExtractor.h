@@ -34,8 +34,8 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
 
   public:
 
-    ElectronExtractor(const std::string& name, const edm::InputTag& tag, bool doTree);
-    ElectronExtractor(const std::string& name, TFile* f);
+    ElectronExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, const edm::InputTag& tag, bool doTree);
+    ElectronExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, TFile* f);
     virtual ~ElectronExtractor();
 
     virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Electron& object, int index);
@@ -116,16 +116,11 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
       return m_ele_SCEta[index];
     }
 
-    ScaleFactor getScaleFactor(ScaleFactorService::WorkingPoint wp, int index) const {
-      switch (wp) {
-        case ScaleFactorService::LOOSE:
-          return m_scaleFactorsLoose.at(index);
+    ScaleFactor getScaleFactor(ScaleFactorService::WorkingPoint selWP, ScaleFactorService::WorkingPoint isoWP, int index) const {
+      std::string name = "electron_scaleFactor_" + ScaleFactorService::workingPointToString(selWP) + "eff_"
+          + ScaleFactorService::workingPointToString(isoWP) + "iso";
 
-        case ScaleFactorService::TIGHT:
-          return m_scaleFactorsTight.at(index);
-      }
-
-      return ScaleFactor();
+      return m_scaleFactors.at(name).at(index);
     }
 
   private:
@@ -188,9 +183,7 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
     int   m_ele_numberOfMissedInnerLayer[m_electrons_MAX]; // Access the hit pattern counting (in the Tracker) the number of expected crossed layers  before the first trajectory's hit
     int   m_ele_MCIndex[m_electrons_MAX];
 
-    ScaleFactorCollection m_scaleFactorsTight;
-    ScaleFactorCollection m_scaleFactorsLoose;
-
+    std::map<std::string, ScaleFactorCollection> m_scaleFactors;
 };
 
 #endif

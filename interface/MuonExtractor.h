@@ -36,8 +36,8 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
 
   public:
 
-    MuonExtractor(const std::string& name, const edm::InputTag& tag, const edm::InputTag& vertexTag, bool doTree, ScaleFactorService::WorkingPoint isolationWp);
-    MuonExtractor(const std::string& name, TFile *a_file);
+    MuonExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, const edm::InputTag& tag, const edm::InputTag& vertexTag, bool doTree);
+    MuonExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, TFile *a_file);
     virtual ~MuonExtractor();
 
     virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Muon& object, int index);
@@ -115,25 +115,17 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
       return m_muo_deltaBetaCorrectedRelIsolation[index];
     }
 
-    ScaleFactor getScaleFactor(ScaleFactorService::WorkingPoint wp, int index) const {
-      switch (wp) {
-        case ScaleFactorService::LOOSE:
-          return m_scaleFactorsLoose.at(index);
-          break;
+    ScaleFactor getScaleFactor(ScaleFactorService::WorkingPoint selWP, ScaleFactorService::WorkingPoint isoWP, int index) const {
+      std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(selWP) + "eff_"
+          + ScaleFactorService::workingPointToString(isoWP) + "iso";
 
-        case ScaleFactorService::TIGHT:
-          return m_scaleFactorsTight.at(index);
-          break;
-      }
-
-      return ScaleFactor();
+      return m_scaleFactors.at(name).at(index);
     }
 
 
   private:
 
     edm::InputTag m_vertexTag;
-    ScaleFactorService::WorkingPoint m_isolationWp;
 
     TTree* m_tree_muon;
 
@@ -176,8 +168,7 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
     float m_muo_pixelLayerWithMeasurement[m_muons_MAX];
     float m_muo_globalTrackNumberOfValidHits[m_muons_MAX];
 
-    ScaleFactorCollection m_scaleFactorsTight;
-    ScaleFactorCollection m_scaleFactorsLoose;
+    std::map<std::string, ScaleFactorCollection> m_scaleFactors;
 };
 
 #endif 

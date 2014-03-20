@@ -268,27 +268,26 @@ void PatExtractor::initialize(const edm::ParameterSet& config)
     addExtractor("vertex", new VertexExtractor("Vertices", vtx_tag_, do_Vertex_));
 
   if (do_Electron_)
-    addExtractor("electrons", new ElectronExtractor("electron_PF", electron_tag_, do_Electron_));
+    addExtractor("electrons", new ElectronExtractor("electron_PF", m_scaleFactors, electron_tag_, do_Electron_));
 
   if (do_Muon_)
-    addExtractor("muons", new MuonExtractor("muon_PF", muon_tag_, vtx_tag_, do_Muon_, ScaleFactorService::TIGHT));
+    addExtractor("muons", new MuonExtractor("muon_PF", m_scaleFactors, muon_tag_, vtx_tag_, do_Muon_));
 
   if (do_Jet_ || do_MET_)
-    addExtractor("JetMET", new JetMETExtractor("jet_PF", "MET_PF", config));
+    addExtractor("JetMET", new JetMETExtractor("jet_PF", "MET_PF", m_scaleFactors, config));
 
   if (do_Photon_)
     addExtractor("photons", new PhotonExtractor("photon", photon_tag_, do_Photon_));
 
   // Add non isolated leptons for vetoes
   if (do_Electron_)
-    addExtractor("electrons_loose", new ElectronExtractor("electron_loose_PF", edm::InputTag("selectedPatElectronsLoosePFlow"), true));
+    addExtractor("electrons_loose", new ElectronExtractor("electron_loose_PF", m_scaleFactors, edm::InputTag("selectedPatElectronsLoosePFlow"), true));
 
   if (do_Muon_)
-    addExtractor("muons_loose", new MuonExtractor("muon_loose_PF", edm::InputTag("selectedPatMuonsLoosePFlow"), vtx_tag_, true, ScaleFactorService::LOOSE));
+    addExtractor("muons_loose", new MuonExtractor("muon_loose_PF", m_scaleFactors, edm::InputTag("selectedPatMuonsLoosePFlow"), vtx_tag_, true));
 
   for (auto& extractor: m_extractors) {
     extractor->setIsMC(is_MC_);
-    extractor->setScaleFactorsService(m_scaleFactors);
   }
 }
 
@@ -322,13 +321,13 @@ void PatExtractor::retrieve(const edm::ParameterSet& config)
 
   addExtractor("vertex", new VertexExtractor("Vertices", m_infile));
 
-  addExtractor("electrons", new ElectronExtractor("electron_PF", m_infile));
-  addExtractor("electrons_loose", new ElectronExtractor("electron_loose_PF", m_infile));
+  addExtractor("electrons", new ElectronExtractor("electron_PF", m_scaleFactors, m_infile));
+  addExtractor("electrons_loose", new ElectronExtractor("electron_loose_PF", m_scaleFactors, m_infile));
 
-  addExtractor("muons", new MuonExtractor("muon_PF", m_infile));
-  addExtractor("muons_loose", new MuonExtractor("muon_loose_PF", m_infile));
+  addExtractor("muons", new MuonExtractor("muon_PF", m_scaleFactors, m_infile));
+  addExtractor("muons_loose", new MuonExtractor("muon_loose_PF", m_scaleFactors, m_infile));
 
-  addExtractor("JetMET", new JetMETExtractor("jet_PF", "MET_PF", m_infile));
+  addExtractor("JetMET", new JetMETExtractor("jet_PF", "MET_PF", m_scaleFactors, m_infile));
   addExtractor("photons", new PhotonExtractor("photon", m_infile));
 
   // We set some variables wrt the info retrieved (if the tree is not there, don't go further...)  
@@ -344,7 +343,6 @@ void PatExtractor::retrieve(const edm::ParameterSet& config)
 
   for (auto& extractor: m_extractors) {
     extractor->setIsMC(is_MC_);
-    extractor->setScaleFactorsService(m_scaleFactors);
   }
 }
 

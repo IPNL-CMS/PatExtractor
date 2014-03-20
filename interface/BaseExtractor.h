@@ -33,8 +33,8 @@ class BaseExtractor: public SuperBaseExtractor
 {
 
   public:
-    BaseExtractor(const std::string& name):
-      m_name(name) {}
+    BaseExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf = std::shared_ptr<ScaleFactorService>()):
+        SuperBaseExtractor(sf), m_name(name) {}
     virtual ~BaseExtractor() {}
 
     virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor) {
