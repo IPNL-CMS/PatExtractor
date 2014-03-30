@@ -151,7 +151,7 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
     int iMo1 = -1;
     int iMo2 = -1;
 
-    if (st == 3 || ( _doJpsi && id == 443 && p.numberOfDaughters() == 2 && fabs(p.daughter(0)->pdgId()) ==  13 && fabs(p.daughter(1)->pdgId()) ==  13))
+    if (st == 3 || (st >= 21 && st <= 29) || ( _doJpsi && id == 443 && p.numberOfDaughters() == 2 && fabs(p.daughter(0)->pdgId()) ==  13 && fabs(p.daughter(1)->pdgId()) ==  13))
     {
 
       // MC@NLO use different status code
