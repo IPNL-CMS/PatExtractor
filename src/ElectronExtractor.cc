@@ -1,8 +1,8 @@
 #include "../interface/ElectronExtractor.h"
 
 #include <DataFormats/VertexReco/interface/Vertex.h>
-#include <EGamma/EGammaAnalysisTools/interface/EGammaCutBasedEleId.h>
-#include <EGamma/EGammaAnalysisTools/interface/ElectronEffectiveArea.h>
+#include <EgammaAnalysis/ElectronTools//interface/EGammaCutBasedEleId.h>
+#include <EgammaAnalysis/ElectronTools//interface/ElectronEffectiveArea.h>
 #include <DataFormats/RecoCandidate/interface/IsoDeposit.h>
 #include <DataFormats/RecoCandidate/interface/IsoDepositVetos.h>
 
@@ -354,6 +354,10 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
     const double phIso03 = part.photonIso();
     const double puChIso03 = part.puChargedHadronIso();
 
+    ElectronEffectiveArea::ElectronEffectiveAreaTarget ea = ElectronEffectiveArea::kEleEAData2012;
+    if (m_isMC)
+      ea = ElectronEffectiveArea::kEleEAFall11MC;
+
     m_ele_passVetoID[index] = EgammaCutBasedEleId::PassWP(
         EgammaCutBasedEleId::VETO,
         part,
@@ -363,7 +367,8 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
         chIso03,
         phIso03,
         nhIso03,
-        rhoIso);
+        rhoIso,
+        ea);
 
     m_ele_passLooseID[index] = EgammaCutBasedEleId::PassWP(
         EgammaCutBasedEleId::LOOSE,
@@ -374,7 +379,8 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
         chIso03,
         phIso03,
         nhIso03,
-        rhoIso);
+        rhoIso,
+        ea);
 
     m_ele_passMediumID[index] = EgammaCutBasedEleId::PassWP(
         EgammaCutBasedEleId::MEDIUM,
@@ -385,7 +391,8 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
         chIso03,
         phIso03,
         nhIso03,
-        rhoIso);
+        rhoIso,
+        ea);
 
     m_ele_passTightID[index] = EgammaCutBasedEleId::PassWP(
         EgammaCutBasedEleId::TIGHT,
@@ -396,16 +403,11 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
         chIso03,
         phIso03,
         nhIso03,
-        rhoIso);
+        rhoIso,
+        ea);
 
     // Compute effective area
-    float AEff03 = 0.00;
-
-    if (! m_isMC){
-      AEff03 = ElectronEffectiveArea::GetElectronEffectiveArea(ElectronEffectiveArea::kEleGammaAndNeutralHadronIso03, part.superCluster()->eta(), ElectronEffectiveArea::kEleEAData2012);
-    } else {
-      AEff03 = ElectronEffectiveArea::GetElectronEffectiveArea(ElectronEffectiveArea::kEleGammaAndNeutralHadronIso03, part.superCluster()->eta(), ElectronEffectiveArea::kEleEAFall11MC);
-    }
+    float AEff03 = ElectronEffectiveArea::GetElectronEffectiveArea(ElectronEffectiveArea::kEleGammaAndNeutralHadronIso03, part.superCluster()->eta(), ea);
 
     m_ele_effectiveArea[index] = AEff03;
 

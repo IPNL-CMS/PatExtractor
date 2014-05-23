@@ -200,7 +200,7 @@ void MuonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iS
   m_muo_vx[index]                             = part.vx();
   m_muo_vy[index]                             = part.vy();
   m_muo_vz[index]                             = part.vz();
-  m_muo_isHighPt[index]                       = part.isHighPtMuon(pvHandle->at(0),pat::Muon::improvedTuneP);
+  m_muo_isHighPt[index]                       = part.isHighPtMuon(pvHandle->at(0), reco::improvedTuneP);
   m_muo_isGlobal[index]                       = part.isGlobalMuon();
   m_muo_isGood[index]                         = muon::isGoodMuon(part, muon::TMOneStationTight);
   m_muo_isTracker[index]                      = part.isTrackerMuon();

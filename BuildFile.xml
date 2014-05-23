@@ -41,7 +41,7 @@
 <use   name="DataFormats/VertexReco"/>
 <use   name="CondFormats/JetMETObjects"/>
 <use   name="JetMETCorrections/Objects" />
-<use   name="EGamma/EGammaAnalysisTools" />
+<use   name="EgammaAnalysis/ElectronTools" />
 <use   name="RecoBTag/PerformanceDB" />
 <use   name="RecoBTag/Records" />
 <use   name="PhysicsTools/CandUtils" />
