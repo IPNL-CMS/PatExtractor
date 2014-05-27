@@ -22,21 +22,7 @@ On top of that, there are +analysis+. An +analysis+ is a simple module that is r
 Get the code
 ------------
 
-+PatExtractor+ is not hosted on CMSSW CVS repository, but on +git+. To retrieve it, you simply need to clone the repository on your existing CMSSW directory :
-
-[source,bash]
-----
-src> mkdir Extractors
-src> cd Extractors
-Extractors> git clone https://github.com/IPNL-CMS/PatExtractor.git
-Extractors> cd ..
-src> scram b -j8
-----
-
-Setup a working area
-~~~~~~~~~~~~~~~~~~~~
-
-In order to have PatExtractor working, you need to first correctly setup the package +PatTopProduction+. You can follow the documentation from the +README+ file here: https://github.com/IPNL-CMS/PatTopProduction/blob/master/README.md
+Follow the instructions inside the +INSTALL.md+ file
 
 Operating mode
 --------------
