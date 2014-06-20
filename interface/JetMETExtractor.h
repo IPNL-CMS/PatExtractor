@@ -125,6 +125,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     }
 
     TLorentzVector *getMETLorentzVector(int metidx) {return (TLorentzVector*)m_met_lorentzvector->At(metidx);}
+    TLorentzVector *getGenMETLorentzVector(int metidx) {return (TLorentzVector*)m_genmet_lorentzvector->At(metidx);}
     void setMETLorentzVector(int idx, float E, float Px, float Py, float Pz);
 
     int getNumberOfUnclusteredParticles() {return m_unclustered_particle_lorentzvector->GetEntriesFast();}
@@ -230,6 +231,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     TClonesArray* m_met_lorentzvector;
     float m_met_sumEt;
     TClonesArray* m_unclustered_particle_lorentzvector;
+    TClonesArray* m_genmet_lorentzvector;
 
     ScaleFactorCollection m_scaleFactors;
 

@@ -86,6 +86,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   m_rawjet_lorentzvector = new TClonesArray("TLorentzVector");
   m_met_lorentzvector = new TClonesArray("TLorentzVector");
   m_unclustered_particle_lorentzvector = new TClonesArray("TLorentzVector");
+  m_genmet_lorentzvector = new TClonesArray("TLorentzVector");
   m_scaleFactors.setWriteMode();
 
   reset();
@@ -132,7 +133,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   m_tree_met->Branch("met_4vector","TClonesArray",&m_met_lorentzvector, 1000, 0);
   m_tree_met->Branch("sumEt", &m_met_sumEt, "sumEt/F");  
   m_tree_met->Branch("unclustered_particle_4vector","TClonesArray",&m_unclustered_particle_lorentzvector, 1000, 0);
-
+  m_tree_met->Branch("genmet_4vector","TClonesArray",&m_genmet_lorentzvector, 1000, 0);
 }
 
 void JetMETExtractor::beginJob() {
@@ -234,6 +235,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   m_OK = true;
 
   m_met_lorentzvector = new TClonesArray("TLorentzVector");
+  m_genmet_lorentzvector = new TClonesArray("TLorentzVector");
 
   if (m_tree_met->FindBranch("met_4vector"))
     m_tree_met->SetBranchAddress("met_4vector", &m_met_lorentzvector);
@@ -245,6 +247,9 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
 
   if (m_tree_met->FindBranch("unclustered_particle_4vector"))
     m_tree_met->SetBranchAddress("unclustered_particle_4vector", &m_unclustered_particle_lorentzvector);
+
+  if (m_tree_met->FindBranch("genmet_4vector"))
+    m_tree_met->SetBranchAddress("genmet_4vector",&m_genmet_lorentzvector);
 }
 
 
@@ -517,6 +522,21 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
 #endif
 
   new((*m_met_lorentzvector)[index]) TLorentzVector(part.px(),part.py(),part.pz(),part.energy());
+
+  if (part.genMET()) {
+    const reco::GenMET* genmet = part.genMET();
+    new((*m_genmet_lorentzvector)[index]) TLorentzVector(genmet->px(),genmet->py(),genmet->pz(),genmet->energy());  
+  } else {
+    new((*m_genmet_lorentzvector)[index]) TLorentzVector(0., 0., 0., 0.);
+  }
+
+#if DEBUG
+  std::cout << "---" << std::endl;
+  std::cout << "Writing GenMET #" << index << std::endl;
+  std::cout << "Pt: " << genmet->pt() << "; Px / Pz / Pz : " << genmet->px() << " / " << genmet->py() << " / " << genmet->pz() << std::endl;
+  std::cout << "Eta: " << genmet->eta() << "; Phi : " << genmet->phi() << std::endl;
+#endif
+
 }
 
 void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const reco::PFCandidate& part, int index)
@@ -595,6 +615,9 @@ void JetMETExtractor::reset()
 
   if (m_unclustered_particle_lorentzvector)
     m_unclustered_particle_lorentzvector->Clear();
+
+  if (m_genmet_lorentzvector)
+    m_genmet_lorentzvector->Clear();
 }
 
 
