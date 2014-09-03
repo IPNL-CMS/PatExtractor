@@ -129,8 +129,6 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
 
     static const int 	m_electrons_MAX  = 100;
 
-    float m_deltaR_cut;
-
     TClonesArray* m_ele_lorentzvector;
     float	m_ele_vx[m_electrons_MAX];
     float	m_ele_vy[m_electrons_MAX];

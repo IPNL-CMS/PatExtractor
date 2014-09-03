@@ -1,8 +1,8 @@
 #include "../interface/ElectronExtractor.h"
 
 #include <DataFormats/VertexReco/interface/Vertex.h>
-#include <EgammaAnalysis/ElectronTools//interface/EGammaCutBasedEleId.h>
-#include <EgammaAnalysis/ElectronTools//interface/ElectronEffectiveArea.h>
+#include <EgammaAnalysis/ElectronTools/interface/EGammaCutBasedEleId.h>
+#include <EgammaAnalysis/ElectronTools/interface/ElectronEffectiveArea.h>
 #include <DataFormats/RecoCandidate/interface/IsoDeposit.h>
 #include <DataFormats/RecoCandidate/interface/IsoDepositVetos.h>
 
@@ -11,7 +11,6 @@ ElectronExtractor::ElectronExtractor(const std::string& name, std::shared_ptr<Sc
 {
   m_tag = tag;
 
-  m_deltaR_cut = 0.5; // Maximum acceptable distance for MC matching
   m_ele_lorentzvector = new TClonesArray("TLorentzVector");
 
   const auto& sfWorkingPoints = m_scaleFactorService->getElectronScaleFactorWorkingPoints();
@@ -20,8 +19,6 @@ ElectronExtractor::ElectronExtractor(const std::string& name, std::shared_ptr<Sc
       m_scaleFactors[name] = ScaleFactorCollection();
       m_scaleFactors[name].setWriteMode();
   };
-
-  // Set everything to 0
 
   setPF((tag.label()).find("PFlow"));
   reset();
@@ -40,24 +37,6 @@ ElectronExtractor::ElectronExtractor(const std::string& name, std::shared_ptr<Sc
     m_tree_electron->Branch("electron_vy",                       &m_ele_vy,     "electron_vy[n_electrons]/F");  
     m_tree_electron->Branch("electron_vz",                       &m_ele_vz,     "electron_vz[n_electrons]/F");  
     m_tree_electron->Branch("electron_charge",                   &m_ele_charge,    "electron_charge[n_electrons]/I");  
-
-    /*
-    m_tree_electron->Branch("electron_eidLoose",                 &m_ele_eidLoose,"electron_eidLoose[n_electrons]/I");  
-    m_tree_electron->Branch("electron_eidRobustHighEnergy",      &m_ele_eidRobustHighEnergy,"electron_eidRobustHighEnergy[n_electrons]/I");  
-    m_tree_electron->Branch("electron_eidRobustLoose",           &m_ele_eidRobustLoose,"electron_eidRobustLoose[n_electrons]/I");  
-    m_tree_electron->Branch("electron_eidRobustTight",           &m_ele_eidRobustTight,"electron_eidRobustTight[n_electrons]/I");  
-    m_tree_electron->Branch("electron_eidTight",                 &m_ele_eidTight,"electron_eidTight[n_electrons]/I");  
-
-    m_tree_electron->Branch("electron_eidHyperTight1MC",&m_ele_eidHyperTight1MC,"electron_eidHyperTight1MC[n_electrons]/I");
-    m_tree_electron->Branch("electron_eidLooseMC",      &m_ele_eidLooseMC,      "electron_eidLooseMC[n_electrons]/I");
-    m_tree_electron->Branch("electron_eidMediumMC",     &m_ele_eidMediumMC,     "electron_eidMediumMC[n_electrons]/I");
-    m_tree_electron->Branch("electron_eidSuperTightMC", &m_ele_eidSuperTightMC, "electron_eidSuperTightMC[n_electrons]/I");
-    m_tree_electron->Branch("electron_eidTightMC",      &m_ele_eidTightMC,      "electron_eidTightMC[n_electrons]/I");
-    m_tree_electron->Branch("electron_eidVeryLooseMC",  &m_ele_eidVeryLooseMC,  "electron_eidVeryLooseMC[n_electrons]/I");
-
-    m_tree_electron->Branch("electron_eidpf_evspi",              &m_ele_eidpf_evspi,"electron_eidpf_evspi[n_electrons]/I");  
-    m_tree_electron->Branch("electron_eidpf_evsmu",              &m_ele_eidpf_evsmu,"electron_eidpf_evsmu[n_electrons]/I");  
-    */
 
     m_tree_electron->Branch("electron_dB",                       &m_ele_dB,        "electron_dB[n_electrons]/F");  
     m_tree_electron->Branch("electron_trackIso",                 &m_ele_trackIso,  "electron_trackIso[n_electrons]/F");  
@@ -126,35 +105,6 @@ ElectronExtractor::ElectronExtractor(const std::string& name, std::shared_ptr<Sc
   if (m_tree_electron->FindBranch("electron_charge"))
     m_tree_electron->SetBranchAddress("electron_charge",&m_ele_charge);
 
-  /*
-  if (m_tree_electron->FindBranch("electron_eidLoose"))
-    m_tree_electron->SetBranchAddress("electron_eidLoose",&m_ele_eidLoose);
-  if (m_tree_electron->FindBranch("electron_eidRobustHighEnergy"))
-    m_tree_electron->SetBranchAddress("electron_eidRobustHighEnergy",&m_ele_eidRobustHighEnergy);
-  if (m_tree_electron->FindBranch("electron_eidRobustLoose"))
-    m_tree_electron->SetBranchAddress("electron_eidRobustLoose",&m_ele_eidRobustLoose);
-  if (m_tree_electron->FindBranch("electron_eidRobustTight"))
-    m_tree_electron->SetBranchAddress("electron_eidRobustTight",&m_ele_eidRobustTight);
-  if (m_tree_electron->FindBranch("electron_eidTight"))
-    m_tree_electron->SetBranchAddress("electron_eidTight",&m_ele_eidTight);
-  if (m_tree_electron->FindBranch("electron_eidHyperTight1MC"))
-    m_tree_electron->SetBranchAddress("electron_eidHyperTight1MC",&m_ele_eidHyperTight1MC);
-  if (m_tree_electron->FindBranch("electron_eidLooseMC"))
-    m_tree_electron->SetBranchAddress("electron_eidLooseMC"      ,&m_ele_eidLooseMC);
-  if (m_tree_electron->FindBranch("electron_eidMediumMC"))
-    m_tree_electron->SetBranchAddress("electron_eidMediumMC"     ,&m_ele_eidMediumMC);
-  if (m_tree_electron->FindBranch("electron_eidSuperTightMC"))
-    m_tree_electron->SetBranchAddress("electron_eidSuperTightMC" ,&m_ele_eidSuperTightMC);
-  if (m_tree_electron->FindBranch("electron_eidTightMC"))
-    m_tree_electron->SetBranchAddress("electron_eidTightMC"      ,&m_ele_eidTightMC);
-  if (m_tree_electron->FindBranch("electron_eidVeryLooseMC"))
-    m_tree_electron->SetBranchAddress("electron_eidVeryLooseMC"  ,&m_ele_eidVeryLooseMC);
-  if (m_tree_electron->FindBranch("electron_eidpf_evspi"))
-    m_tree_electron->SetBranchAddress("electron_eidpf_evspi",&m_ele_eidpf_evspi);
-  if (m_tree_electron->FindBranch("electron_eidpf_evsmu"))
-    m_tree_electron->SetBranchAddress("electron_eidpf_evsmu",&m_ele_eidpf_evsmu);
-  */
-
   if (m_tree_electron->FindBranch("electron_dB"))
     m_tree_electron->SetBranchAddress("electron_dB",&m_ele_dB);
   if (m_tree_electron->FindBranch("electron_trackIso"))
@@ -217,11 +167,8 @@ ElectronExtractor::ElectronExtractor(const std::string& name, std::shared_ptr<Sc
 
 
 ElectronExtractor::~ElectronExtractor() {
-  //delete m_tree_electron;
   delete m_ele_lorentzvector;
 }
-
-
 
 //
 // Method filling the main particle tree
@@ -246,41 +193,6 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
   if (part.isElectronIDAvailable("mvaTrigV0"))
     m_ele_eidMVATrigV0[index]        = part.electronID("mvaTrigV0");
 
-  /*
-  if (part.isElectronIDAvailable("eidLoose"))
-    m_ele_eidLoose[index]            = part.electronID("eidLoose");
-
-  if (part.isElectronIDAvailable("eidRobustHighEnergy"))
-    m_ele_eidRobustHighEnergy[index] = part.electronID("eidRobustHighEnergy");
-
-  if (part.isElectronIDAvailable("eidRobustLoose"))
-    m_ele_eidRobustLoose[index]      = part.electronID("eidRobustLoose");
-
-  if (part.isElectronIDAvailable("eidRobustTight"))
-    m_ele_eidRobustTight[index]      = part.electronID("eidRobustTight");
-
-  if (part.isElectronIDAvailable("eidTight"))
-    m_ele_eidTight[index]            = part.electronID("eidTight");
-
-  if (part.isElectronIDAvailable("eidHyperTight1MC"))
-    m_ele_eidHyperTight1MC[index] = part.electronID("eidHyperTight1MC");
-
-  if (part.isElectronIDAvailable("eidLooseMC"))
-    m_ele_eidLooseMC[index]       = part.electronID("eidLooseMC");
-
-  if (part.isElectronIDAvailable("eidMediumMC"))
-    m_ele_eidMediumMC[index]      = part.electronID("eidMediumMC");
-
-  if (part.isElectronIDAvailable("eidSuperTightMC"))
-    m_ele_eidSuperTightMC[index]  = part.electronID("eidSuperTightMC");
-
-  if (part.isElectronIDAvailable("eidTightMC"))
-    m_ele_eidTightMC[index]       = part.electronID("eidTightMC");
-
-  if (part.isElectronIDAvailable("eidVeryLooseMC"))
-    m_ele_eidVeryLooseMC[index]   = part.electronID("eidVeryLooseMC");
-  */
-
   m_ele_dB[index]               = part.dB() ;
   m_ele_trackIso[index]         = part.trackIso();
   m_ele_ecalIso[index]          = part.ecalIso();
@@ -289,7 +201,7 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
 
   if (part.gsfTrack().isNonnull())
   {
-    m_ele_numberOfMissedInnerLayer[index] = part.gsfTrack()->trackerExpectedHitsInner().numberOfHits();
+    m_ele_numberOfMissedInnerLayer[index] = part.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS);
   }
 
   if (m_isPF)
@@ -298,11 +210,6 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
     m_ele_pfChargedHadronIso[index] = part.chargedHadronIso();
     m_ele_pfNeutralHadronIso[index] = part.neutralHadronIso();
     m_ele_pfPhotonIso[index]        = part.photonIso();
-
-    /*
-    m_ele_eidpf_evspi[index]        = part.electronID("pf_evspi");
-    m_ele_eidpf_evsmu[index]        = part.electronID("pf_evsmu");
-    */
   }
 
   // See https://twiki.cern.ch/twiki/bin/viewauth/CMS/TWikiTopRefEventSel#Electrons
@@ -419,14 +326,6 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
 
     const double relIsoDeltaBetacCorrected = (chIso03 + std::max(0.0, (nhIso03 + phIso03) - 0.5 * puChIso03)) / part.pt();
     m_ele_deltaBetaCorrectedRelIsolation[index] = relIsoDeltaBetacCorrected;
-
-    /*
-    for (auto& veto: chargedHadronVetos)
-      delete veto;
-
-    for (auto& veto: photonVetos)
-      delete veto;
-    */
   }
 
   if (m_isMC) {
@@ -461,23 +360,6 @@ void ElectronExtractor::reset()
     m_ele_vy[i] = 0.;
     m_ele_vz[i] = 0.;
     m_ele_charge[i] = 0;
-
-    /*
-    m_ele_eidLoose[i]            = -1; 
-    m_ele_eidRobustHighEnergy[i] = -1; 
-    m_ele_eidRobustLoose[i]      = -1; 
-    m_ele_eidRobustTight[i]      = -1; 
-    m_ele_eidTight[i]            = -1; 
-    m_ele_eidHyperTight1MC[i]    = -1;
-    m_ele_eidLooseMC[i]          = -1;
-    m_ele_eidMediumMC[i]         = -1;
-    m_ele_eidSuperTightMC[i]     = -1;
-    m_ele_eidTightMC[i]          = -1;
-    m_ele_eidVeryLooseMC[i]      = -1;
-
-    m_ele_eidpf_evspi[i]=0; 
-    m_ele_eidpf_evsmu[i]=0; 
-    */
 
     m_ele_dB[i]=0;                          
     m_ele_trackIso[i]=0;                      
