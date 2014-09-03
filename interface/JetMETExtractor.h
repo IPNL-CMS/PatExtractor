@@ -136,10 +136,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     int isPFJetLoose(int muidx) const { return m_jet_isPFJetLoose[muidx]; }
     
     // PU jet ID
-    int valPuJetFullId(const edm::Event& event, const pat::Jet& jet, const pat::JetRef& ref);
     int getPuJetFullId(int muidx) const { return m_jet_puJetFullId[muidx]; }
-    
-    int valPuJetCutBasedId(const edm::Event& event, const pat::Jet& jet, const pat::JetRef& ref);
     int getPuJetCutBasedId(int muidx) const { return m_jet_puJetCutBasedId[muidx]; }
 
 

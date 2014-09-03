@@ -282,40 +282,6 @@ bool JetMETExtractor::isPFJetLoose(const pat::Jet& jet)
   return isValid;
 }
 
-int JetMETExtractor::valPuJetFullId(const edm::Event& event, const pat::Jet& jet, const pat::JetRef& ref)
-{
-
-    edm::Handle<edm::ValueMap<int> > puJetFullIdFlag;
-    event.getByLabel(edm::InputTag("puJetMva", "full53xId"),puJetFullIdFlag);
-
-    if (!puJetFullIdFlag.isValid())
-      return 0;
-
-    if (! jet.isPFJet())
-      return 0;
-    
-    int idflag = (*puJetFullIdFlag)[ref]; 
-
-    return idflag;
-}
-
-int JetMETExtractor::valPuJetCutBasedId(const edm::Event& event, const pat::Jet& jet, const pat::JetRef& ref)
-{
-
-    edm::Handle<edm::ValueMap<int> > puJetCutBasedIdFlag;
-    event.getByLabel(edm::InputTag("puJetMva", "cutbasedId"),puJetCutBasedIdFlag);    
-    
-    if (! puJetCutBasedIdFlag.isValid())
-      return 0;
-
-    if (! jet.isPFJet())
-      return 0;
-    
-    int idflag = (*puJetCutBasedIdFlag)[ref]; 
-
-    return idflag;
-}
-
 //
 // Method filling the main particle tree
 //
@@ -479,8 +445,11 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
     m_jet_nhadEfrac[index]     = part.neutralHadronEnergyFraction();
     
     m_jet_isPFJetLoose[index]  = int(isPFJetLoose(part));
-    m_jet_puJetFullId[index]       = valPuJetFullId(event, part, ref);
-    m_jet_puJetCutBasedId[index]   = valPuJetCutBasedId(event, part, ref);
+
+    // PU Jet ID from JetToolBox
+    // https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetToolbox
+    m_jet_puJetFullId[index]       = part.hasUserInt("pileupJetIdEvaluator:fullId") ? part.userFloat("pileupJetIdEvaluator:fullId") : -1;
+    m_jet_puJetCutBasedId[index]   = part.hasUserInt("pileupJetIdEvaluator:cutbasedId") ? part.userFloat("pileupJetIdEvaluator:cutbasedId") : -1;
 
     //m_jet_btag_jetProb[index]  = part.bDiscriminator("jetProbabilityBJetTags");
     //m_jet_btag_BjetProb[index] = part.bDiscriminator("jetBProbabilityBJetTags");
