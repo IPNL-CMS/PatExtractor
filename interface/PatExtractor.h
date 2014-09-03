@@ -27,7 +27,6 @@
 #include "../interface/VertexExtractor.h"
 #include "../interface/EventExtractor.h"
 #include "../interface/HLTExtractor.h"
-#include "../interface/AnalysisSettings.h"
 #include "../interface/TrackExtractor.h"
 #include "../interface/PFpartExtractor.h"
 #include "../interface/ScaleFactorService.h"
@@ -110,8 +109,6 @@ class PatExtractor : public edm::EDAnalyzer {
   std::map<std::string, size_t> m_extractorsIndexes;
 
   std::vector<std::shared_ptr<patextractor::Plugin>> m_plugins;
-
-  AnalysisSettings*  m_ana_settings;
 
   int iseventselected;
 

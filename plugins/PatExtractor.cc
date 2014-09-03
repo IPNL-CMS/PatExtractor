@@ -30,13 +30,8 @@ PatExtractor::PatExtractor(const edm::ParameterSet& config) :
   pf_tag_        (config.getParameter<edm::InputTag>("pf_tag")),
 
   outFilename_   (config.getParameter<std::string>("extractedRootFile")),
-  inFilename_    (config.getParameter<std::string>("inputRootFile")),
-  m_settings_    (config.getUntrackedParameter<std::vector<std::string> >("analysisSettings"))
+  inFilename_    (config.getParameter<std::string>("inputRootFile"))
 {
-  // We parse the analysis settings
-  m_ana_settings = new AnalysisSettings(&m_settings_);
-  m_ana_settings->parseSettings();
-
   // Initializations
 
   nevent_tot = 0;
