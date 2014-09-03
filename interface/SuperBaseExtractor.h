@@ -26,8 +26,8 @@ class SuperBaseExtractor
       m_isMC = isMC;
     }
 
-    virtual void beginJob() {}
-    virtual void endJob() {}
+    virtual void beginJob(bool isInAnalysisMode) {}
+    virtual void endJob(bool isInAnalysisMode) {}
 
   protected:
     bool m_isMC;

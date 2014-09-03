@@ -135,7 +135,10 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
 
 }
 
-void JetMETExtractor::beginJob() {
+void JetMETExtractor::beginJob(bool isInAnalysisMode) {
+  if (isInAnalysisMode)
+    return;
+
   if (!mUseGlobalTagForJEC) {
     mTxtCorrector = makeFactorizedJetCorrectorFromXML(mJecPayload, mJecJetAlgo, m_isMC);
     std::cout << "Using text files for JEC" << std::endl;

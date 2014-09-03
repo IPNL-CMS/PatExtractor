@@ -86,7 +86,7 @@ PatExtractor::PatExtractor(const edm::ParameterSet& config) :
 void PatExtractor::beginJob()
 {
   for (auto& extractor: m_extractors) {
-    extractor->beginJob();
+    extractor->beginJob(!do_fill_);
   }
 }
 
@@ -155,7 +155,7 @@ void PatExtractor::endJob() {
   std::cout << "Total # of events for this job   = "<< nevent_tot     << std::endl;
 
   for (auto& extractor: m_extractors) {
-    extractor->endJob();
+    extractor->endJob(!do_fill_);
   }
 
   m_outfile->cd();
