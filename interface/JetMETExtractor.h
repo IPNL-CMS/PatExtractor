@@ -19,7 +19,6 @@
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/Common/interface/View.h"
 #include <CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h>
-#include "CMGTools/External/interface/PileupJetIdentifier.h"
 #include <DataFormats/ParticleFlowCandidate/interface/PFCandidate.h>
 
 #include "../interface/BaseExtractor.h"
