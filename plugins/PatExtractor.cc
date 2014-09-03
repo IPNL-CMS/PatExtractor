@@ -19,9 +19,6 @@ PatExtractor::PatExtractor(const edm::ParameterSet& config) :
   do_Vertex_     (config.getUntrackedParameter<bool>("doVertex", false)),
   do_Trk_        (config.getUntrackedParameter<bool>("doTrack", false)),
   do_PF_         (config.getUntrackedParameter<bool>("doPF", false)),
-  do_Mtt_        (config.getUntrackedParameter<bool>("doMtt", false)),
-  do_dimu_       (config.getUntrackedParameter<bool>("doDimuon", false)),
-  do_ftt_        (config.getUntrackedParameter<bool>("do4TopHLT", false)),
   nevts_         (config.getUntrackedParameter<int>("n_events", 10000)),
 
   photon_tag_    (config.getParameter<edm::InputTag>("photon_tag")),
@@ -39,10 +36,6 @@ PatExtractor::PatExtractor(const edm::ParameterSet& config) :
   // We parse the analysis settings
   m_ana_settings = new AnalysisSettings(&m_settings_);
   m_ana_settings->parseSettings();
-
-  if (do_Mtt_ && config.exists("mtt")) {
-    m_mttParameterSet = config.getParameter<edm::ParameterSet>("mtt");
-  }
 
   // Initializations
 
@@ -70,15 +63,6 @@ PatExtractor::PatExtractor(const edm::ParameterSet& config) :
       m_plugins.back()->setIsMC(is_MC_);
     }
   }
-
-  // Here is the small example analysis (dimuon mass spectra)
-
-  if (do_dimu_ && do_Muon_)      
-    m_dimuon_analysis = new dimuon_analysis(m_ana_settings);
-
-
-  if (do_ftt_ && do_HLT_ && do_MC_)      
-    m_fourtop_trigger_analysis = new fourtop_trigger_analysis(m_ana_settings);
 }
 
 
@@ -175,9 +159,6 @@ void PatExtractor::endJob() {
     m_outfile->Write();
     m_outfile->Close();
   }
-
-  if (do_ftt_&& do_HLT_ && do_MC_) 
-    m_fourtop_trigger_analysis->fourtop_trigger_finalize(nevent_tot);
 
 }
 
@@ -297,20 +278,6 @@ void PatExtractor::retrieve(const edm::ParameterSet& config)
 {
   m_infile     = TFile::Open(inFilename_.c_str(), "READ");
   m_outfile    = TFile::Open(outFilename_.c_str(), "RECREATE");
-
-  // AOD content
-  //m_event      = new EventExtractor(m_infile);
-  //m_HLT        = new HLTExtractor(m_infile);
-  //m_MC         = new MCExtractor(m_infile);
-  //m_vertex     = new VertexExtractor(m_infile);
-  //m_track      = new TrackExtractor(m_infile);
-
-  // PAT content
-  //m_MET        = new METExtractor(m_infile);
-  //m_muon       = new MuonExtractor(m_infile);
-  //m_photon     = new PhotonExtractor(m_infile);
-  //m_electron   = new ElectronExtractor(m_infile);
-  //m_jet        = new JetExtractor(m_infile);
 
   // Register extractors
   addExtractor("event", new EventExtractor("event", m_infile));

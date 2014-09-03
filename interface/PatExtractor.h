@@ -34,9 +34,6 @@
 
 #include <Extractors/PatExtractor/interface/ExtractorPlugin.h>
 
-#include "../interface/dimuon_analysis.h"
-#include "../interface/fourtop_trigger_analysis.h"
-
 #include "TFile.h"
 
 class PatExtractor : public edm::EDAnalyzer {
@@ -89,9 +86,6 @@ class PatExtractor : public edm::EDAnalyzer {
   bool do_Trk_;
   bool do_PF_;
 
-  bool do_Mtt_;
-  bool do_dimu_;
-  bool do_ftt_;
   int  nevts_;
 
   edm::InputTag photon_tag_;   // 
@@ -109,8 +103,6 @@ class PatExtractor : public edm::EDAnalyzer {
 
   std::vector<std::string> m_settings_;
 
-  edm::ParameterSet m_mttParameterSet;
-
   TFile* m_infile;
   TFile* m_outfile;
 
@@ -120,9 +112,6 @@ class PatExtractor : public edm::EDAnalyzer {
   std::vector<std::shared_ptr<patextractor::Plugin>> m_plugins;
 
   AnalysisSettings*  m_ana_settings;
-
-  dimuon_analysis*            m_dimuon_analysis;
-  fourtop_trigger_analysis*   m_fourtop_trigger_analysis;
 
   int iseventselected;
 
