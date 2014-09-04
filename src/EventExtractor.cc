@@ -1,12 +1,7 @@
 #include "../interface/EventExtractor.h"
 
-#include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
-
 EventExtractor::EventExtractor(const std::string& name)
 {
-  //std::cout << "EventExtractor objet is created" << std::endl;
-
-
   // Tree definition
 
   m_tree_event    = new TTree(name.c_str(), "Event info");  
@@ -59,7 +54,14 @@ EventExtractor::EventExtractor(const std::string& name, TFile *a_file)
 EventExtractor::~EventExtractor()
 {}
 
+void EventExtractor::beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode) {
+  SuperBaseExtractor::beginJob(std::forward<edm::ConsumesCollector>(collector), isInAnalysisMode);
 
+  if (m_isMC) {
+    m_puSummaryToken = collector.consumes<std::vector<PileupSummaryInfo>>(edm::InputTag("addPileupInfo"));
+    m_generatorToken = collector.consumes<GenEventInfoProduct>(edm::InputTag("generator"));
+  }
+}
 
 //
 // Method filling the main particle tree
@@ -78,10 +80,9 @@ void EventExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& i
   if (mcExtractor) 
   {
     edm::Handle<std::vector< PileupSummaryInfo > >  PupInfo;
-    event.getByLabel(edm::InputTag("addPileupInfo"), PupInfo);
+    event.getByToken(m_puSummaryToken, PupInfo);
 
     std::vector<PileupSummaryInfo>::const_iterator PVI;
-
     for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
       int BX = PVI->getBunchCrossing();
       if(BX == 0) { 
@@ -94,7 +95,7 @@ void EventExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& i
 
   if (m_isMC) {
     edm::Handle<GenEventInfoProduct> generatorInfo;
-    event.getByLabel("generator", generatorInfo);
+    event.getByToken(m_generatorToken, generatorInfo);
 
     if (generatorInfo.isValid()) {
       m_generator_weight = generatorInfo->weight();

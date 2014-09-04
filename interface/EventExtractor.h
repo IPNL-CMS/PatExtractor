@@ -9,7 +9,9 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Utilities/interface/InputTag.h"
-#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
+
+#include <SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h>
+#include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
 
 #include "../interface/BaseExtractor.h"
 #include "../interface/MCExtractor.h"
@@ -31,7 +33,7 @@ class EventExtractor: public SuperBaseExtractor
   EventExtractor(const std::string& name);
   EventExtractor(const std::string& name, TFile *a_file);
   virtual ~EventExtractor();
-
+  virtual void beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode);
 
   virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor);
 
@@ -58,6 +60,8 @@ class EventExtractor: public SuperBaseExtractor
  private:
   
   TTree* m_tree_event;
+  edm::EDGetTokenT<std::vector<PileupSummaryInfo>> m_puSummaryToken;
+  edm::EDGetTokenT<GenEventInfoProduct> m_generatorToken;
 
   unsigned int   m_evtID;
   int   m_BCID;

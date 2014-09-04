@@ -136,7 +136,22 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   m_tree_met->Branch("genmet_4vector","TClonesArray",&m_genmet_lorentzvector, 1000, 0);
 }
 
-void JetMETExtractor::beginJob(bool isInAnalysisMode) {
+void JetMETExtractor::beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode) {
+  BaseExtractor::beginJob(std::forward<edm::ConsumesCollector>(collector), isInAnalysisMode);
+
+  m_metToken = collector.consumes<pat::METCollection>(m_metTag);
+
+  if (mCorrectJets || mRedoTypeI) {
+    m_rawMetToken = collector.consumes<pat::METCollection>(edm::InputTag("patPFMetPFlow"));
+  }
+
+  if (mSaveUnclusteredParticles) {
+    m_particleFlowToken = collector.consumes<reco::PFCandidateCollection>(edm::InputTag("particleFlow"));
+  }
+
+  m_primaryVerticesToken = collector.consumes<reco::VertexCollection>(edm::InputTag("goodOfflinePrimaryVertices"));
+  m_rhoToken = collector.consumes<double>(edm::InputTag("kt6PFJets", "rho", "RECO"));
+
   if (isInAnalysisMode)
     return;
 
@@ -289,7 +304,7 @@ bool JetMETExtractor::isPFJetLoose(const pat::Jet& jet)
 void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* m_MC) 
 {
   edm::Handle<pat::JetCollection>  jetHandle;
-  event.getByLabel(m_tag, jetHandle);
+  event.getByToken(m_token, jetHandle);
   pat::JetCollection p_jets = *jetHandle;
 
   reset();
@@ -317,14 +332,14 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
   }
 
   edm::Handle<pat::METCollection> metHandle;
-  event.getByLabel(m_metTag, metHandle);
+  event.getByToken(m_metToken, metHandle);
   pat::MET MET = (*metHandle).at(0);
 
   // If we are redoing jet correction, or if the user forces it, recompute TypeI MEt corrections
   if (mCorrectJets || mRedoTypeI) {
     // Raw MET
     edm::Handle<pat::METCollection> rawMetHandle;
-    event.getByLabel("patPFMetPFlow", rawMetHandle);
+    event.getByToken(m_rawMetToken, rawMetHandle);
 
     if (rawMetHandle.isValid()) {
       const pat::MET& rawMet = rawMetHandle->back();
@@ -375,7 +390,7 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
 
   if (mSaveUnclusteredParticles) {
     edm::Handle<reco::PFCandidateCollection>  PFParticleHandle;
-    event.getByLabel("particleFlow", PFParticleHandle);
+    event.getByToken(m_particleFlowToken, PFParticleHandle);
     reco::PFCandidateCollection p_PFParticle = *PFParticleHandle;
 
     int PFParticle_size = 0;
@@ -617,11 +632,11 @@ void JetMETExtractor::correctJets(pat::JetCollection& jets, const edm::Event& iE
   }
 
   edm::Handle<reco::VertexCollection>  vertexHandle;
-  iEvent.getByLabel("goodOfflinePrimaryVertices", vertexHandle);
+  iEvent.getByToken(m_primaryVerticesToken, vertexHandle);
   reco::VertexCollection vertices = *vertexHandle;
 
   edm::Handle<double> rhos;
-  iEvent.getByLabel(edm::InputTag("kt6PFJets", "rho", "RECO"), rhos);
+  iEvent.getByToken(m_rhoToken, rhos);
   double rho = *rhos;
 
   // Correct jets
@@ -829,7 +844,7 @@ double JetMETExtractor::getSysShifCorrFactorY(const int Nvtx){
 void JetMETExtractor::correctMETWithSysShift(const edm::Event& event, pat::MET& met) {
 
   edm::Handle<reco::VertexCollection>  vertexHandle;
-  event.getByLabel("goodOfflinePrimaryVertices", vertexHandle);
+  event.getByToken(m_primaryVerticesToken, vertexHandle);
   reco::VertexCollection vertices = *vertexHandle;
 
   int Nvtx=0;

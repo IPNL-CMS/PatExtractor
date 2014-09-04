@@ -180,6 +180,12 @@ MuonExtractor::~MuonExtractor()
   delete m_muo_lorentzvector;
 }
 
+void MuonExtractor::beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode) {
+  BaseExtractor::beginJob(std::forward<edm::ConsumesCollector>(collector), isInAnalysisMode);
+
+  m_vertexToken = collector.consumes<reco::VertexCollection>(m_vertexTag);
+}
+
 //
 // Method getting the info from an input file
 //
@@ -194,7 +200,7 @@ void MuonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iS
   if (index>=m_muons_MAX) return;
 
   edm::Handle<std::vector<reco::Vertex>> pvHandle;
-  event.getByLabel(m_vertexTag, pvHandle);
+  event.getByToken(m_vertexToken, pvHandle);
 
   new((*m_muo_lorentzvector)[index]) TLorentzVector(part.px(),part.py(),part.pz(),part.energy());
   m_muo_vx[index]                             = part.vx();

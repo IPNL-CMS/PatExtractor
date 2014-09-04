@@ -77,6 +77,17 @@ PhotonExtractor::PhotonExtractor(const std::string& name, TFile *a_file)
 PhotonExtractor::~PhotonExtractor()
 {}
 
+
+void PhotonExtractor::beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode) {
+  BaseExtractor::beginJob(std::forward<edm::ConsumesCollector>(collector), isInAnalysisMode);
+
+  m_rhoToken = collector.consumes<double>(edm::InputTag("kt6PFJets", "rho", "RECO"));
+  m_matchedPromptElectronToken = collector.consumes<edm::ValueMap<bool>>(edm::InputTag("photonPFIsolation", "hasMatchedPromptElectron", "PAT"));
+  m_chargedHadronsIsolationToken = collector.consumes<edm::ValueMap<double>>(edm::InputTag("photonPFIsolation", "chargedHadronsIsolation", "PAT"));
+  m_neutralHadronsIsolationToken = collector.consumes<edm::ValueMap<double>>(edm::InputTag("photonPFIsolation", "neutralHadronsIsolation", "PAT"));
+  m_photonsIsolationToken = collector.consumes<edm::ValueMap<double>>(edm::InputTag("photonPFIsolation", "photonsIsolation", "PAT"));
+}
+
 enum class IsolationType {
   CHARGED_HADRONS,
   NEUTRAL_HADRONS,
@@ -157,7 +168,7 @@ double getCorrectedPFIsolation(double isolation, double rho, float eta, Isolatio
 void PhotonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* m_MC) 
 {
   edm::Handle<pat::PhotonCollection>  photonHandle;
-  event.getByLabel(m_tag, photonHandle);
+  event.getByToken(m_token, photonHandle);
   pat::PhotonCollection p_photons = *photonHandle;
 
   reset();
@@ -193,23 +204,23 @@ void PhotonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
   m_pho_sigmaIetaIeta[index] = photonRef->sigmaIetaIeta();
   
   edm::Handle<double> rhos;
-  event.getByLabel(edm::InputTag("kt6PFJets", "rho", "RECO"), rhos);
+  event.getByToken(m_rhoToken, rhos);
   double rho = *rhos;
 
   // Isolations are produced at PAT level by the P\u1e27otonPFIsolation producer
   edm::Handle<edm::ValueMap<bool>> hasMatchedPromptElectronHandle;
-  event.getByLabel(edm::InputTag("photonPFIsolation", "hasMatchedPromptElectron", "PAT"), hasMatchedPromptElectronHandle);
+  event.getByToken(m_matchedPromptElectronToken, hasMatchedPromptElectronHandle);
   m_pho_hasMatchedPromptElectron[index] = (*hasMatchedPromptElectronHandle)[photonRef];
 
   // Now, isolations
   edm::Handle<edm::ValueMap<double>> chargedHadronsIsolationHandle;
-  event.getByLabel(edm::InputTag("photonPFIsolation", "chargedHadronsIsolation", "PAT"), chargedHadronsIsolationHandle);
+  event.getByToken(m_chargedHadronsIsolationToken, chargedHadronsIsolationHandle);
 
   edm::Handle<edm::ValueMap<double>> neutralHadronsIsolationHandle;
-  event.getByLabel(edm::InputTag("photonPFIsolation", "neutralHadronsIsolation", "PAT"), neutralHadronsIsolationHandle);
+  event.getByToken(m_neutralHadronsIsolationToken, neutralHadronsIsolationHandle);
 
   edm::Handle<edm::ValueMap<double>> photonIsolationHandle;
-  event.getByLabel(edm::InputTag("photonPFIsolation", "photonIsolation", "PAT"), photonIsolationHandle);
+  event.getByToken(m_photonsIsolationToken, photonIsolationHandle);
 
   m_pho_chargedHadronsIsolation[index] = getCorrectedPFIsolation((*chargedHadronsIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::CHARGED_HADRONS);
   m_pho_neutralHadronsIsolation[index] = getCorrectedPFIsolation((*neutralHadronsIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::NEUTRAL_HADRONS);

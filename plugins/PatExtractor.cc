@@ -65,7 +65,8 @@ PatExtractor::PatExtractor(const edm::ParameterSet& config) :
 void PatExtractor::beginJob()
 {
   for (auto& extractor: m_extractors) {
-    extractor->beginJob(!do_fill_);
+    extractor->beginJob(consumesCollector(), !do_fill_);
+    extractor->check();
   }
 }
 

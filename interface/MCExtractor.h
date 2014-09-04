@@ -33,6 +33,7 @@ class MCExtractor: public SuperBaseExtractor
   MCExtractor(const std::string& name, bool doTree, bool doJpsi = false);
   MCExtractor(const std::string& name, TFile *a_file, bool doJpsi = false);
   virtual ~MCExtractor();
+  virtual void beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode);
 
   virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor);
 
@@ -60,6 +61,7 @@ class MCExtractor: public SuperBaseExtractor
  private:
   
   TTree* m_tree_MC;
+  edm::EDGetTokenT<reco::GenParticleCollection> m_genParticleToken;
 
   static const int 	m_MCs_MAX        = 1000;
 

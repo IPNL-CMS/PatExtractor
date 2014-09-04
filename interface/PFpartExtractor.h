@@ -38,6 +38,7 @@ class PFpartExtractor: public BaseExtractor<reco::PFCandidate>
     PFpartExtractor(const std::string& name, const edm::InputTag& tag, bool doTree);
     PFpartExtractor(const std::string& name, TFile* a_file);
     virtual ~PFpartExtractor();
+    virtual void beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode);
     
     // Dummy pure virtual function in BaseExtractor
     void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const reco::PFCandidate& part, int index);
@@ -81,6 +82,7 @@ class PFpartExtractor: public BaseExtractor<reco::PFCandidate>
   private:
 
     TTree* m_tree_pfpart;
+    edm::EDGetTokenT<reco::VertexCollection> m_primaryVerticesToken;
 
     static const int 	m_pfpart_MAX  = 100;
 

@@ -44,7 +44,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     JetMETExtractor(const std::string& name, const std::string& met_name, std::shared_ptr<ScaleFactorService> sf, const edm::ParameterSet& config);
     JetMETExtractor(const std::string& name, const std::string& met_name, std::shared_ptr<ScaleFactorService> sf, TFile *a_file);
     virtual ~JetMETExtractor();
-    virtual void beginJob(bool isInAnalysisMode);
+    virtual void beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode);
 
     void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* m_MC); 
 
@@ -165,6 +165,11 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
   private:
 
     TTree* m_tree_jet;
+    edm::EDGetTokenT<pat::METCollection> m_metToken;
+    edm::EDGetTokenT<pat::METCollection>  m_rawMetToken;
+    edm::EDGetTokenT<reco::PFCandidateCollection> m_particleFlowToken;
+    edm::EDGetTokenT<reco::VertexCollection> m_primaryVerticesToken;
+    edm::EDGetTokenT<double> m_rhoToken;
 
     bool mCorrectJets;
     bool mUseGlobalTagForJEC;

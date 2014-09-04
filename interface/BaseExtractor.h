@@ -37,10 +37,17 @@ class BaseExtractor: public SuperBaseExtractor
         SuperBaseExtractor(sf), m_name(name) {}
     virtual ~BaseExtractor() {}
 
+    virtual void beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode) {
+      SuperBaseExtractor::beginJob(std::forward<edm::ConsumesCollector>(collector), isInAnalysisMode);
+
+      // Register tokens
+      m_token = collector.consumes<edm::View<ObjectType>>(m_tag);
+    }
+
     virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor) {
 
       edm::Handle<edm::View<ObjectType>> handle;
-      event.getByLabel(m_tag, handle);
+      event.getByToken(m_token, handle);
       if (!handle.isValid())
         return;
 
@@ -190,6 +197,8 @@ class BaseExtractor: public SuperBaseExtractor
     }
 
     std::string m_name;
+
+    edm::EDGetTokenT<edm::View<ObjectType>> m_token;
     edm::InputTag m_tag;
 
     bool  m_isPF;

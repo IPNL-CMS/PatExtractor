@@ -39,6 +39,7 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
     MuonExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, const edm::InputTag& tag, const edm::InputTag& vertexTag, bool doTree);
     MuonExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, TFile *a_file);
     virtual ~MuonExtractor();
+    virtual void beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode);
 
     virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Muon& object, int index);
 
@@ -126,6 +127,7 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
   private:
 
     edm::InputTag m_vertexTag;
+    edm::EDGetTokenT<reco::VertexCollection> m_vertexToken;
 
     TTree* m_tree_muon;
 

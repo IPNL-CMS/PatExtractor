@@ -110,7 +110,11 @@ MCExtractor::MCExtractor(const std::string& name, TFile *a_file, bool doJpsi)
 MCExtractor::~MCExtractor()
 {}
 
+void MCExtractor::beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode) {
+  SuperBaseExtractor::beginJob(std::forward<edm::ConsumesCollector>(collector), isInAnalysisMode);
 
+  m_genParticleToken = collector.consumes<reco::GenParticleCollection>(edm::InputTag("genParticles"));
+}
 
 //
 // Method filling the main particle tree
@@ -120,7 +124,7 @@ MCExtractor::~MCExtractor()
 void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor)
 {
   edm::Handle<reco::GenParticleCollection> genParticles;
-  event.getByLabel("genParticles", genParticles);
+  event.getByToken(m_genParticleToken, genParticles);
 
   MCExtractor::reset();
   m_n_MCs = static_cast<int>(genParticles->size());
@@ -267,8 +271,7 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
 
       ++ipart;
     }
-  }  
-
+  }
 
   m_n_MCs = ipart;
 

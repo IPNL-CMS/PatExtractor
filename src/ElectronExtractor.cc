@@ -170,6 +170,22 @@ ElectronExtractor::~ElectronExtractor() {
   delete m_ele_lorentzvector;
 }
 
+void ElectronExtractor::beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode) {
+  BaseExtractor::beginJob(std::forward<edm::ConsumesCollector>(collector), isInAnalysisMode);
+
+  m_allConversionsToken = collector.consumes<reco::ConversionCollection>(edm::InputTag("allConversions"));
+  m_offlineBeamSpotToken = collector.consumes<reco::BeamSpot>(edm::InputTag("offlineBeamSpot"));
+  m_primaryVerticesToken = collector.consumes<reco::VertexCollection>(edm::InputTag("goodOfflinePrimatryVertices"));
+
+  edm::InputTag rhoInputTag;
+  if (! m_isMC)
+    rhoInputTag = edm::InputTag("kt6PFJets", "rho", "RECO");
+  else
+    rhoInputTag = edm::InputTag("kt6PFJetsForIsolation", "rho", "PAT");
+
+  m_rhoToken = collector.consumes<double>(rhoInputTag);
+}
+
 //
 // Method filling the main particle tree
 //
@@ -217,24 +233,19 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
   {
     // Check if this electron pass VETO criteria
     edm::Handle<reco::ConversionCollection> hConversions;
-    event.getByLabel("allConversions", hConversions);
+    event.getByToken(m_allConversionsToken, hConversions);
 
     // beam spot
     edm::Handle<reco::BeamSpot> hBeamspot;
-    event.getByLabel("offlineBeamSpot", hBeamspot);
+    event.getByToken(m_offlineBeamSpotToken, hBeamspot);
     const reco::BeamSpot &beamSpot = *hBeamspot;
 
     // vertices
     edm::Handle<reco::VertexCollection> hVtx;
-    event.getByLabel("goodOfflinePrimaryVertices", hVtx);
+    event.getByToken(m_primaryVerticesToken, hVtx);
 
     edm::Handle<double> hRhoIso;
-
-    if (! m_isMC)
-      event.getByLabel(edm::InputTag("kt6PFJets", "rho", "RECO"), hRhoIso);
-    else
-      event.getByLabel(edm::InputTag("kt6PFJetsForIsolation", "rho", "PAT"), hRhoIso);
-
+    event.getByToken(m_rhoToken, hRhoIso);
     double rhoIso = *hRhoIso;
 
     // Compute isolation in a cone of 0.3. One can use PAT functions chargedHadronIso(), neutralHadronIso() and photonIso(). They are supposed to do the same thing that what follow.

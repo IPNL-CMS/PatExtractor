@@ -35,6 +35,7 @@ class PhotonExtractor: public BaseExtractor<pat::Photon>
     PhotonExtractor(const std::string& name, const edm::InputTag& tag, bool doTree);
     PhotonExtractor(const std::string& name, TFile *a_file);
     virtual ~PhotonExtractor();
+    virtual void beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode);
     
     void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* m_MC); 
 
@@ -89,6 +90,11 @@ class PhotonExtractor: public BaseExtractor<pat::Photon>
   private:
 
     TTree* m_tree_photon;
+    edm::EDGetTokenT<double> m_rhoToken;
+    edm::EDGetTokenT<edm::ValueMap<bool>> m_matchedPromptElectronToken;
+    edm::EDGetTokenT<edm::ValueMap<double>> m_chargedHadronsIsolationToken;
+    edm::EDGetTokenT<edm::ValueMap<double>> m_neutralHadronsIsolationToken;
+    edm::EDGetTokenT<edm::ValueMap<double>> m_photonsIsolationToken;
 
     static const int 	m_photons_MAX    = 100;
 

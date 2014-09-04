@@ -192,7 +192,11 @@ void printout(const RefCountedKinematicTree& myTree)
 PFpartExtractor::~PFpartExtractor()
 {}
 
+void PFpartExtractor::beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode) {
+  BaseExtractor::beginJob(std::forward<edm::ConsumesCollector>(collector), isInAnalysisMode);
 
+  m_primaryVerticesToken = collector.consumes<reco::VertexCollection>(edm::InputTag("offlinePrimaryVertices"));
+}
 
 //
 // Method filling the main particle tree
@@ -207,7 +211,7 @@ void PFpartExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
 void PFpartExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor)
 {
   edm::Handle<reco::PFCandidateCollection>  pfHandle;
-  event.getByLabel(m_tag, pfHandle);
+  event.getByToken(m_token, pfHandle);
   reco::PFCandidateCollection pfs = *pfHandle;
   if ( !pfHandle.isValid() ) {
     std::cout << "PFpartExtractor::writeInfo(): pfHandle is not valid..." << std::endl;
@@ -393,8 +397,7 @@ void PFpartExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
         //----------------------------------------------------------
 
         edm::Handle<reco::VertexCollection>  vtxHandle;
-        edm::InputTag tagVtx("offlinePrimaryVertices");
-        event.getByLabel(tagVtx, vtxHandle);
+        event.getByToken(m_primaryVerticesToken, vtxHandle);
         const reco::VertexCollection vtx = *(vtxHandle.product());
 
         GlobalPoint svPos    = jpsi1_vertex->position();

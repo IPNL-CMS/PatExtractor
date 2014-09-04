@@ -82,7 +82,11 @@ HLTExtractor::HLTExtractor(const std::string& name, TFile *a_file)
 HLTExtractor::~HLTExtractor()
 {}
 
+void HLTExtractor::beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode) {
+  SuperBaseExtractor::beginJob(std::forward<edm::ConsumesCollector>(collector), isInAnalysisMode);
 
+  m_triggerResultsToken = collector.consumes<edm::TriggerResults>(edm::InputTag("TriggerResults", "", "HLT"));
+}
 
 //
 // Method filling the main particle tree
@@ -100,8 +104,7 @@ void HLTExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
   }
 
   edm::Handle<edm::TriggerResults> triggerResults ;
-  edm::InputTag tag("TriggerResults", "", "HLT");
-  event.getByLabel(tag,triggerResults);
+  event.getByToken(m_triggerResultsToken, triggerResults);
 
   if (triggerResults.isValid())
   {
@@ -126,7 +129,6 @@ void HLTExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
       }
     }
   }
-
 
   fillTree();
 }

@@ -110,7 +110,7 @@ class HLTExtractor: public SuperBaseExtractor
   HLTExtractor(const std::string& name, bool doTree, const edm::ParameterSet& config);
   HLTExtractor(const std::string& name, TFile *a_file);
   ~HLTExtractor();
-
+  virtual void beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode);
 
   virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor);
   void getInfo(int ievt); 
@@ -122,7 +122,9 @@ class HLTExtractor: public SuperBaseExtractor
 
   // Setters/Getters
 
-  std::string paths(int i) {return m_HLT_vector->at(i);}
+  std::string paths(int i) {
+    return m_HLT_vector->at(i);
+  }
 
   std::vector<std::string>* getPaths() {
     return m_HLT_vector;
@@ -135,6 +137,7 @@ class HLTExtractor: public SuperBaseExtractor
  private:
   
   TTree* m_tree_HLT;
+  edm::EDGetTokenT<edm::TriggerResults> m_triggerResultsToken;
 
   int m_n_HLTs;
   std::vector< std::string > *m_HLT_vector;
