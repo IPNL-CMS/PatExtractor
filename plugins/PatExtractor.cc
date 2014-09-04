@@ -65,8 +65,7 @@ PatExtractor::PatExtractor(const edm::ParameterSet& config) :
 void PatExtractor::beginJob()
 {
   for (auto& extractor: m_extractors) {
-    extractor->beginJob(consumesCollector(), !do_fill_);
-    extractor->check();
+    extractor->beginJob(!do_fill_);
   }
 }
 
@@ -265,6 +264,8 @@ void PatExtractor::initialize(const edm::ParameterSet& config)
 
   for (auto& extractor: m_extractors) {
     extractor->setIsMC(is_MC_);
+    extractor->doConsumes(consumesCollector());
+    extractor->check();
   }
 }
 

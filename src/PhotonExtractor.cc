@@ -78,8 +78,8 @@ PhotonExtractor::~PhotonExtractor()
 {}
 
 
-void PhotonExtractor::beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode) {
-  BaseExtractor::beginJob(std::forward<edm::ConsumesCollector>(collector), isInAnalysisMode);
+void PhotonExtractor::doConsumes(edm::ConsumesCollector&& collector) {
+  BaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
 
   m_rhoToken = collector.consumes<double>(edm::InputTag("kt6PFJets", "rho", "RECO"));
   m_matchedPromptElectronToken = collector.consumes<edm::ValueMap<bool>>(edm::InputTag("photonPFIsolation", "hasMatchedPromptElectron", "PAT"));

@@ -33,7 +33,7 @@ class EventExtractor: public SuperBaseExtractor
   EventExtractor(const std::string& name);
   EventExtractor(const std::string& name, TFile *a_file);
   virtual ~EventExtractor();
-  virtual void beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode);
+  virtual void doConsumes(edm::ConsumesCollector&& collector);
 
   virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor);
 

@@ -38,7 +38,7 @@ class PFpartExtractor: public BaseExtractor<reco::PFCandidate>
     PFpartExtractor(const std::string& name, const edm::InputTag& tag, bool doTree);
     PFpartExtractor(const std::string& name, TFile* a_file);
     virtual ~PFpartExtractor();
-    virtual void beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode);
+    virtual void doConsumes(edm::ConsumesCollector&& collector);
     
     // Dummy pure virtual function in BaseExtractor
     void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const reco::PFCandidate& part, int index);

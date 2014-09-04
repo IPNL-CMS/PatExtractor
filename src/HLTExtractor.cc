@@ -82,8 +82,8 @@ HLTExtractor::HLTExtractor(const std::string& name, TFile *a_file)
 HLTExtractor::~HLTExtractor()
 {}
 
-void HLTExtractor::beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode) {
-  SuperBaseExtractor::beginJob(std::forward<edm::ConsumesCollector>(collector), isInAnalysisMode);
+void HLTExtractor::doConsumes(edm::ConsumesCollector&& collector) {
+  SuperBaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
 
   m_triggerResultsToken = collector.consumes<edm::TriggerResults>(edm::InputTag("TriggerResults", "", "HLT"));
 }

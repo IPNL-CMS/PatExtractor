@@ -37,7 +37,7 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
     ElectronExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, const edm::InputTag& tag, bool doTree);
     ElectronExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, TFile* f);
     virtual ~ElectronExtractor();
-    virtual void beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode);
+    virtual void doConsumes(edm::ConsumesCollector&& collector);
 
     virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Electron& object, int index);
 

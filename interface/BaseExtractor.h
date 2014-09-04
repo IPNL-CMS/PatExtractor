@@ -37,8 +37,8 @@ class BaseExtractor: public SuperBaseExtractor
         SuperBaseExtractor(sf), m_name(name) {}
     virtual ~BaseExtractor() {}
 
-    virtual void beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode) {
-      SuperBaseExtractor::beginJob(std::forward<edm::ConsumesCollector>(collector), isInAnalysisMode);
+    virtual void doConsumes(edm::ConsumesCollector&& collector) {
+      SuperBaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
 
       // Register tokens
       m_token = collector.consumes<edm::View<ObjectType>>(m_tag);
