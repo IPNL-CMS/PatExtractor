@@ -30,8 +30,8 @@ class EventExtractor: public SuperBaseExtractor
 
  public:
 
-  EventExtractor(const std::string& name);
-  EventExtractor(const std::string& name, TFile *a_file);
+  EventExtractor(const std::string& name, const edm::ParameterSet& parameters);
+  EventExtractor(const std::string& name, const edm::ParameterSet&, TFile *file);
   virtual ~EventExtractor();
   virtual void doConsumes(edm::ConsumesCollector&& collector);
 

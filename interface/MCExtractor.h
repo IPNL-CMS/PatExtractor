@@ -30,8 +30,8 @@ class MCExtractor: public SuperBaseExtractor
 
  public:
 
-  MCExtractor(const std::string& name, bool doTree, bool doJpsi = false);
-  MCExtractor(const std::string& name, TFile *a_file, bool doJpsi = false);
+  MCExtractor(const std::string& name, const edm::ParameterSet&);
+  MCExtractor(const std::string& name, const edm::ParameterSet&, TFile*);
   virtual ~MCExtractor();
   virtual void doConsumes(edm::ConsumesCollector&& collector);
 

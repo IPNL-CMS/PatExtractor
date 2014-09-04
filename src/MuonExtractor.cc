@@ -2,19 +2,18 @@
 
 #include <DataFormats/VertexReco/interface/Vertex.h>
 
-MuonExtractor::MuonExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, const edm::InputTag& tag, const edm::InputTag& vertexTag, bool doTree)
-  :  BaseExtractor(name, sf), m_muo_lorentzvector(nullptr)
+MuonExtractor::MuonExtractor(const std::string& name, const edm::ParameterSet& settings)
+  :  BaseExtractor(name, settings), m_muo_lorentzvector(nullptr)
 {
-  m_OK = false;
-  m_vertexTag = vertexTag;
+  m_vertexTag = settings.getParameter<edm::InputTag>("vertices");
 
   // Set everything to 0
  
-  setPF((tag.label()).find("PFlow")); 
+  setPF((m_tag.label()).find("PFlow")); 
 
   m_muo_lorentzvector = new TClonesArray("TLorentzVector");
 
-  const auto& sfWorkingPoints = m_scaleFactorService->getMuonScaleFactorWorkingPoints();
+  const auto& sfWorkingPoints = ScaleFactorService::getInstance().getMuonScaleFactorWorkingPoints();
   for (auto& it: sfWorkingPoints) {
       std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
       m_scaleFactors[name] = ScaleFactorCollection();
@@ -23,59 +22,55 @@ MuonExtractor::MuonExtractor(const std::string& name, std::shared_ptr<ScaleFacto
 
   reset();
 
-  m_tag = tag;
   m_deltaR_cut = 0.5; // Maximum acceptable distance for MC matching
 
   // Tree definition
 
-  if (doTree)
-  {
-    m_OK = true;
+  m_OK = true;
 
-    m_tree_muon         = new TTree(m_name.c_str(), "PAT PF muon info"); 
-    m_tree_muon->Branch("n_muons",  &m_size,  "n_muons/i");  
-    m_tree_muon->Branch("muon_4vector","TClonesArray",&m_muo_lorentzvector, 1000, 0);
-    m_tree_muon->Branch("muon_vx",  &m_muo_vx,   "muon_vx[n_muons]/F");  
-    m_tree_muon->Branch("muon_vy",  &m_muo_vy,   "muon_vy[n_muons]/F");  
-    m_tree_muon->Branch("muon_vz",  &m_muo_vz,   "muon_vz[n_muons]/F");  
-    m_tree_muon->Branch("muon_charge", &m_muo_charge,  "muon_charge[n_muons]/I");
-    m_tree_muon->Branch("muon_isHighPt", 	&m_muo_isHighPt,  "muon_isHighPt[n_muons]/I");
-    m_tree_muon->Branch("muon_isGood", 	&m_muo_isGood,  "muon_isGood[n_muons]/I");
-    m_tree_muon->Branch("muon_isGlobal", 	&m_muo_isGlobal,  "muon_isGlobal[n_muons]/I");
-    m_tree_muon->Branch("muon_isTracker", &m_muo_isTracker, "muon_isTracker[n_muons]/I");
-    m_tree_muon->Branch("muon_dB",        &m_muo_dB,        "muon_dB[n_muons]/F");
-    m_tree_muon->Branch("muon_normChi2",  &m_muo_normChi2,  "muon_normChi2[n_muons]/F");
-    m_tree_muon->Branch("muon_nValTrackerHits",&m_muo_nValTrackerHits,"muon_nValTrackerHits[n_muons]/I");
-    m_tree_muon->Branch("muon_nValPixelHits",  &m_muo_nValPixelHits,"muon_nValPixelHits[n_muons]/I");
-    m_tree_muon->Branch("muon_nMatches",       &m_muo_nMatches,"muon_nMatches[n_muons]/I");
-    m_tree_muon->Branch("muon_trackIso",       &m_muo_trackIso,"muon_trackIso[n_muons]/F");
-    m_tree_muon->Branch("muon_ecalIso",        &m_muo_ecalIso,"muon_ecalIso[n_muons]/F");
-    m_tree_muon->Branch("muon_hcalIso",        &m_muo_hcalIso,"muon_hcalIso[n_muons]/F");
-    m_tree_muon->Branch("muon_pfParticleIso",      &m_muo_pfParticleIso,"muon_pfParticleIso[n_muons]/F");
-    m_tree_muon->Branch("muon_pfChargedHadronIso", &m_muo_pfChargedHadronIso,"muon_pfChargedHadronIso[n_muons]/F");
-    m_tree_muon->Branch("muon_pfNeutralHadronIso", &m_muo_pfNeutralHadronIso,"muon_pfNeutralHadronIso[n_muons]/F");
-    m_tree_muon->Branch("muon_pfPhotonIso",        &m_muo_pfPhotonIso,"muon_pfPhotonIso[n_muons]/F");
-    m_tree_muon->Branch("muon_d0",      &m_muo_d0,"muon_d0[n_muons]/F");
-    m_tree_muon->Branch("muon_d0error", &m_muo_d0error,"muon_d0error[n_muons]/F");
-    m_tree_muon->Branch("muon_mcParticleIndex",&m_muo_MCIndex,"muon_mcParticleIndex[n_muons]/I");
+  m_tree_muon         = new TTree(m_name.c_str(), "PAT PF muon info"); 
+  m_tree_muon->Branch("n_muons",  &m_size,  "n_muons/i");  
+  m_tree_muon->Branch("muon_4vector","TClonesArray",&m_muo_lorentzvector, 1000, 0);
+  m_tree_muon->Branch("muon_vx",  &m_muo_vx,   "muon_vx[n_muons]/F");  
+  m_tree_muon->Branch("muon_vy",  &m_muo_vy,   "muon_vy[n_muons]/F");  
+  m_tree_muon->Branch("muon_vz",  &m_muo_vz,   "muon_vz[n_muons]/F");  
+  m_tree_muon->Branch("muon_charge", &m_muo_charge,  "muon_charge[n_muons]/I");
+  m_tree_muon->Branch("muon_isHighPt", 	&m_muo_isHighPt,  "muon_isHighPt[n_muons]/I");
+  m_tree_muon->Branch("muon_isGood", 	&m_muo_isGood,  "muon_isGood[n_muons]/I");
+  m_tree_muon->Branch("muon_isGlobal", 	&m_muo_isGlobal,  "muon_isGlobal[n_muons]/I");
+  m_tree_muon->Branch("muon_isTracker", &m_muo_isTracker, "muon_isTracker[n_muons]/I");
+  m_tree_muon->Branch("muon_dB",        &m_muo_dB,        "muon_dB[n_muons]/F");
+  m_tree_muon->Branch("muon_normChi2",  &m_muo_normChi2,  "muon_normChi2[n_muons]/F");
+  m_tree_muon->Branch("muon_nValTrackerHits",&m_muo_nValTrackerHits,"muon_nValTrackerHits[n_muons]/I");
+  m_tree_muon->Branch("muon_nValPixelHits",  &m_muo_nValPixelHits,"muon_nValPixelHits[n_muons]/I");
+  m_tree_muon->Branch("muon_nMatches",       &m_muo_nMatches,"muon_nMatches[n_muons]/I");
+  m_tree_muon->Branch("muon_trackIso",       &m_muo_trackIso,"muon_trackIso[n_muons]/F");
+  m_tree_muon->Branch("muon_ecalIso",        &m_muo_ecalIso,"muon_ecalIso[n_muons]/F");
+  m_tree_muon->Branch("muon_hcalIso",        &m_muo_hcalIso,"muon_hcalIso[n_muons]/F");
+  m_tree_muon->Branch("muon_pfParticleIso",      &m_muo_pfParticleIso,"muon_pfParticleIso[n_muons]/F");
+  m_tree_muon->Branch("muon_pfChargedHadronIso", &m_muo_pfChargedHadronIso,"muon_pfChargedHadronIso[n_muons]/F");
+  m_tree_muon->Branch("muon_pfNeutralHadronIso", &m_muo_pfNeutralHadronIso,"muon_pfNeutralHadronIso[n_muons]/F");
+  m_tree_muon->Branch("muon_pfPhotonIso",        &m_muo_pfPhotonIso,"muon_pfPhotonIso[n_muons]/F");
+  m_tree_muon->Branch("muon_d0",      &m_muo_d0,"muon_d0[n_muons]/F");
+  m_tree_muon->Branch("muon_d0error", &m_muo_d0error,"muon_d0error[n_muons]/F");
+  m_tree_muon->Branch("muon_mcParticleIndex",&m_muo_MCIndex,"muon_mcParticleIndex[n_muons]/I");
 
-    m_tree_muon->Branch("muon_nMatchedStations",              &m_muo_nMatchedStations,             "muon_nMatches[n_muons]/I");
-    m_tree_muon->Branch("muon_trackerLayersWithMeasurement",  &m_muo_trackerLayersWithMeasurement, "muon_trackerLayersWithMeasurement[n_muons]/F");
-    m_tree_muon->Branch("muon_dZ",                            &m_muo_dZ,                           "muon_dZ[n_muons]/F");
-    m_tree_muon->Branch("muon_pixelLayerWithMeasurement",     &m_muo_pixelLayerWithMeasurement,    "muon_pixelLayerWithMeasurement[n_muons]/F");
-    m_tree_muon->Branch("muon_globalTrackNumberOfValidHits",  &m_muo_globalTrackNumberOfValidHits, "muon_globalTrackNumberOfValidHits[n_muons]/F");
+  m_tree_muon->Branch("muon_nMatchedStations",              &m_muo_nMatchedStations,             "muon_nMatches[n_muons]/I");
+  m_tree_muon->Branch("muon_trackerLayersWithMeasurement",  &m_muo_trackerLayersWithMeasurement, "muon_trackerLayersWithMeasurement[n_muons]/F");
+  m_tree_muon->Branch("muon_dZ",                            &m_muo_dZ,                           "muon_dZ[n_muons]/F");
+  m_tree_muon->Branch("muon_pixelLayerWithMeasurement",     &m_muo_pixelLayerWithMeasurement,    "muon_pixelLayerWithMeasurement[n_muons]/F");
+  m_tree_muon->Branch("muon_globalTrackNumberOfValidHits",  &m_muo_globalTrackNumberOfValidHits, "muon_globalTrackNumberOfValidHits[n_muons]/F");
 
-    m_tree_muon->Branch("muon_relIsolation",                   &m_muo_relIsolation, "muon_relIsolation[n_muons]/F");
-    m_tree_muon->Branch("muon_deltaBetaCorrectedRelIsolation", &m_muo_deltaBetaCorrectedRelIsolation, "muon_deltaBetaCorrectedRelIsolation[n_muons]/F");
+  m_tree_muon->Branch("muon_relIsolation",                   &m_muo_relIsolation, "muon_relIsolation[n_muons]/F");
+  m_tree_muon->Branch("muon_deltaBetaCorrectedRelIsolation", &m_muo_deltaBetaCorrectedRelIsolation, "muon_deltaBetaCorrectedRelIsolation[n_muons]/F");
 
-    for (auto& it: m_scaleFactors) {
-      m_tree_muon->Branch(it.first.c_str(), & it.second.getBackingArray());
-    }
+  for (auto& it: m_scaleFactors) {
+    m_tree_muon->Branch(it.first.c_str(), & it.second.getBackingArray());
   }
 }
 
-MuonExtractor::MuonExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, TFile *a_file)
-  :  BaseExtractor(name, sf), m_muo_lorentzvector(nullptr)
+MuonExtractor::MuonExtractor(const std::string& name, const edm::ParameterSet& settings, TFile *a_file)
+  :  BaseExtractor(name, settings, a_file), m_muo_lorentzvector(nullptr)
 {
   m_file = a_file;
   std::cout << "MuonExtractor objet is retrieved" << std::endl;
@@ -256,7 +251,7 @@ void MuonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iS
   if (m_isMC) {
     for (auto& it: m_scaleFactors) {
       std::pair<ScaleFactorService::WorkingPoint, ScaleFactorService::WorkingPoint> workingPoints = ScaleFactorService::getWorkingPointFromName(it.first);
-      it.second.push_back(m_scaleFactorService->getMuonScaleFactor(workingPoints.first, workingPoints.second, part.pt(), part.eta()));
+      it.second.push_back(ScaleFactorService::getInstance().getMuonScaleFactor(workingPoints.first, workingPoints.second, part.pt(), part.eta()));
     }
   }
 }
@@ -315,3 +310,6 @@ void MuonExtractor::fillTree()
 {
   m_tree_muon->Fill(); 
 }
+
+DEFINE_EDM_PLUGIN(PatExtractorExtractorFactory, MuonExtractor, "muon_extractor");
+DEFINE_EDM_PLUGIN(PatExtractorExtractorReadOnlyFactory, MuonExtractor, "muon_extractor");

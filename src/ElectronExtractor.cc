@@ -6,72 +6,66 @@
 #include <DataFormats/RecoCandidate/interface/IsoDeposit.h>
 #include <DataFormats/RecoCandidate/interface/IsoDepositVetos.h>
 
-ElectronExtractor::ElectronExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, const edm::InputTag& tag, bool doTree)
-  : BaseExtractor(name, sf), m_ele_lorentzvector(nullptr)
+ElectronExtractor::ElectronExtractor(const std::string& name, const edm::ParameterSet& parameters)
+  : BaseExtractor(name, parameters), m_ele_lorentzvector(nullptr)
 {
-  m_tag = tag;
-
   m_ele_lorentzvector = new TClonesArray("TLorentzVector");
 
-  const auto& sfWorkingPoints = m_scaleFactorService->getElectronScaleFactorWorkingPoints();
+  const auto& sfWorkingPoints = ScaleFactorService::getInstance().getElectronScaleFactorWorkingPoints();
   for (auto& it: sfWorkingPoints) {
       std::string name = "electron_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
       m_scaleFactors[name] = ScaleFactorCollection();
       m_scaleFactors[name].setWriteMode();
   };
 
-  setPF((tag.label()).find("PFlow"));
+  setPF((m_tag.label()).find("PFlow"));
   reset();
 
   // Tree definition
 
-  m_OK = false;
+  m_OK = true;
 
-  if (doTree) {
-    m_OK = true;
+  m_tree_electron     = new TTree(m_name.c_str(), "PAT PF electron info");  
+  m_tree_electron->Branch("n_electrons",                       &m_size, "n_electrons/i");  
+  m_tree_electron->Branch("electron_4vector","TClonesArray",   &m_ele_lorentzvector, 1000, 0);
+  m_tree_electron->Branch("electron_vx",                       &m_ele_vx,     "electron_vx[n_electrons]/F");  
+  m_tree_electron->Branch("electron_vy",                       &m_ele_vy,     "electron_vy[n_electrons]/F");  
+  m_tree_electron->Branch("electron_vz",                       &m_ele_vz,     "electron_vz[n_electrons]/F");  
+  m_tree_electron->Branch("electron_charge",                   &m_ele_charge,    "electron_charge[n_electrons]/I");  
 
-    m_tree_electron     = new TTree(m_name.c_str(), "PAT PF electron info");  
-    m_tree_electron->Branch("n_electrons",                       &m_size, "n_electrons/i");  
-    m_tree_electron->Branch("electron_4vector","TClonesArray",   &m_ele_lorentzvector, 1000, 0);
-    m_tree_electron->Branch("electron_vx",                       &m_ele_vx,     "electron_vx[n_electrons]/F");  
-    m_tree_electron->Branch("electron_vy",                       &m_ele_vy,     "electron_vy[n_electrons]/F");  
-    m_tree_electron->Branch("electron_vz",                       &m_ele_vz,     "electron_vz[n_electrons]/F");  
-    m_tree_electron->Branch("electron_charge",                   &m_ele_charge,    "electron_charge[n_electrons]/I");  
+  m_tree_electron->Branch("electron_dB",                       &m_ele_dB,        "electron_dB[n_electrons]/F");  
+  m_tree_electron->Branch("electron_trackIso",                 &m_ele_trackIso,  "electron_trackIso[n_electrons]/F");  
+  m_tree_electron->Branch("electron_ecalIso",                  &m_ele_ecalIso,   "electron_ecalIso[n_electrons]/F");  
+  m_tree_electron->Branch("electron_hcalIso",                  &m_ele_hcalIso,   "electron_hcalIso[n_electrons]/F");  
 
-    m_tree_electron->Branch("electron_dB",                       &m_ele_dB,        "electron_dB[n_electrons]/F");  
-    m_tree_electron->Branch("electron_trackIso",                 &m_ele_trackIso,  "electron_trackIso[n_electrons]/F");  
-    m_tree_electron->Branch("electron_ecalIso",                  &m_ele_ecalIso,   "electron_ecalIso[n_electrons]/F");  
-    m_tree_electron->Branch("electron_hcalIso",                  &m_ele_hcalIso,   "electron_hcalIso[n_electrons]/F");  
+  m_tree_electron->Branch("electron_pfParticleIso",            &m_ele_pfParticleIso,     "electron_pfParticleIso[n_electrons]/F");
+  m_tree_electron->Branch("electron_pfChargedHadronIso",       &m_ele_pfChargedHadronIso,"electron_pfChargedHadronIso[n_electrons]/F");
+  m_tree_electron->Branch("electron_pfNeutralHadronIso",       &m_ele_pfNeutralHadronIso,"electron_pfNeutralHadronIso[n_electrons]/F");
+  m_tree_electron->Branch("electron_pfPhotonIso",              &m_ele_pfPhotonIso,       "electron_pfPhotonIso[n_electrons]/F");
 
-    m_tree_electron->Branch("electron_pfParticleIso",            &m_ele_pfParticleIso,     "electron_pfParticleIso[n_electrons]/F");
-    m_tree_electron->Branch("electron_pfChargedHadronIso",       &m_ele_pfChargedHadronIso,"electron_pfChargedHadronIso[n_electrons]/F");
-    m_tree_electron->Branch("electron_pfNeutralHadronIso",       &m_ele_pfNeutralHadronIso,"electron_pfNeutralHadronIso[n_electrons]/F");
-    m_tree_electron->Branch("electron_pfPhotonIso",              &m_ele_pfPhotonIso,       "electron_pfPhotonIso[n_electrons]/F");
+  m_tree_electron->Branch("electron_numberOfMissedInnerLayer", &m_ele_numberOfMissedInnerLayer, "electron_numberOfMissedInnerLayer[n_electrons]/I");  
+  m_tree_electron->Branch("electron_mcParticleIndex",          &m_ele_MCIndex,   "electron_mcParticleIndex[n_electrons]/I");  
 
-    m_tree_electron->Branch("electron_numberOfMissedInnerLayer", &m_ele_numberOfMissedInnerLayer, "electron_numberOfMissedInnerLayer[n_electrons]/I");  
-    m_tree_electron->Branch("electron_mcParticleIndex",          &m_ele_MCIndex,   "electron_mcParticleIndex[n_electrons]/I");  
+  m_tree_electron->Branch("electron_eidMVATrigV0",             &m_ele_eidMVATrigV0, "electron_eidMVATrigV0[n_electrons]/F");
+  m_tree_electron->Branch("electron_passConversionVeto",       &m_ele_passConversionVeto, "electron_passConversionVeto[n_electrons]/O");
+  m_tree_electron->Branch("electron_SCEta",                    &m_ele_SCEta, "electron_SCEta[n_electrons]/F");
+  m_tree_electron->Branch("electron_effectiveArea",            &m_ele_effectiveArea, "electron_effectiveArea[n_electrons]/F");
+  m_tree_electron->Branch("electron_relIsolation",             &m_ele_relIsolation, "electron_relIsolation[n_electrons]/F");
+  m_tree_electron->Branch("electron_rhoCorrectedRelIsolation", &m_ele_rhoCorrectedRelIsolation, "electron_rhoCorrectedRelIsolation[n_electrons]/F");
+  m_tree_electron->Branch("electron_deltaBetaCorrectedRelIsolation", &m_ele_deltaBetaCorrectedRelIsolation, "electron_deltaBetaCorrectedRelIsolation[n_electrons]/F");
 
-    m_tree_electron->Branch("electron_eidMVATrigV0",             &m_ele_eidMVATrigV0, "electron_eidMVATrigV0[n_electrons]/F");
-    m_tree_electron->Branch("electron_passConversionVeto",       &m_ele_passConversionVeto, "electron_passConversionVeto[n_electrons]/O");
-    m_tree_electron->Branch("electron_SCEta",                    &m_ele_SCEta, "electron_SCEta[n_electrons]/F");
-    m_tree_electron->Branch("electron_effectiveArea",            &m_ele_effectiveArea, "electron_effectiveArea[n_electrons]/F");
-    m_tree_electron->Branch("electron_relIsolation",             &m_ele_relIsolation, "electron_relIsolation[n_electrons]/F");
-    m_tree_electron->Branch("electron_rhoCorrectedRelIsolation", &m_ele_rhoCorrectedRelIsolation, "electron_rhoCorrectedRelIsolation[n_electrons]/F");
-    m_tree_electron->Branch("electron_deltaBetaCorrectedRelIsolation", &m_ele_deltaBetaCorrectedRelIsolation, "electron_deltaBetaCorrectedRelIsolation[n_electrons]/F");
+  m_tree_electron->Branch("electron_passVetoID",               &m_ele_passVetoID, "electron_passVetoID[n_electrons]/O");
+  m_tree_electron->Branch("electron_passLooseID",              &m_ele_passLooseID, "electron_passLooseID[n_electrons]/O");
+  m_tree_electron->Branch("electron_passMediumID",             &m_ele_passMediumID, "electron_passMediumID[n_electrons]/O");
+  m_tree_electron->Branch("electron_passTightID",              &m_ele_passTightID, "electron_passTightID[n_electrons]/O");
 
-    m_tree_electron->Branch("electron_passVetoID",               &m_ele_passVetoID, "electron_passVetoID[n_electrons]/O");
-    m_tree_electron->Branch("electron_passLooseID",              &m_ele_passLooseID, "electron_passLooseID[n_electrons]/O");
-    m_tree_electron->Branch("electron_passMediumID",             &m_ele_passMediumID, "electron_passMediumID[n_electrons]/O");
-    m_tree_electron->Branch("electron_passTightID",              &m_ele_passTightID, "electron_passTightID[n_electrons]/O");
-
-    for (auto& it: m_scaleFactors) {
-      m_tree_electron->Branch(it.first.c_str(), & it.second.getBackingArray());
-    }
+  for (auto& it: m_scaleFactors) {
+    m_tree_electron->Branch(it.first.c_str(), & it.second.getBackingArray());
   }
 }
 
-  ElectronExtractor::ElectronExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, TFile* a_file)
-:  BaseExtractor(name, sf), m_ele_lorentzvector(nullptr)
+  ElectronExtractor::ElectronExtractor(const std::string& name, const edm::ParameterSet& settings, TFile* a_file)
+:  BaseExtractor(name, settings, a_file), m_ele_lorentzvector(nullptr)
 {
   m_file = a_file;
 
@@ -342,7 +336,7 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
   if (m_isMC) {
     for (auto& it: m_scaleFactors) {
       std::pair<ScaleFactorService::WorkingPoint, ScaleFactorService::WorkingPoint> workingPoints = ScaleFactorService::getWorkingPointFromName(it.first);
-      it.second.push_back(m_scaleFactorService->getElectronScaleFactor(workingPoints.first, workingPoints.second, part.pt(), part.eta()));
+      it.second.push_back(ScaleFactorService::getInstance().getElectronScaleFactor(workingPoints.first, workingPoints.second, part.pt(), part.eta()));
     }
   }
 }
@@ -404,3 +398,6 @@ void ElectronExtractor::fillTree()
 {
   m_tree_electron->Fill(); 
 }
+
+DEFINE_EDM_PLUGIN(PatExtractorExtractorFactory, ElectronExtractor, "electron_extractor");
+DEFINE_EDM_PLUGIN(PatExtractorExtractorReadOnlyFactory, ElectronExtractor, "electron_extractor");

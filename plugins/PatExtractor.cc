@@ -7,28 +7,7 @@ using namespace edm;
 PatExtractor::PatExtractor(const edm::ParameterSet& config) :
   is_MC_         (config.getUntrackedParameter<bool>("isMC", true)),
   do_fill_       (config.getUntrackedParameter<bool>("fillTree", true)),
-  do_HLT_        (config.getUntrackedParameter<bool>("doHLT", false)),
-  do_MC_         (config.getUntrackedParameter<bool>("doMC", false)),
-  do_MCjpsi_     (config.getUntrackedParameter<bool>("doMCjpsi", false)),
-  do_Photon_     (config.getUntrackedParameter<bool>("doPhoton", false)),
-  do_Electron_   (config.getUntrackedParameter<bool>("doElectron", false)),
-
-  do_Jet_        (config.getUntrackedParameter<bool>("doJet", false)),
-  do_Muon_       (config.getUntrackedParameter<bool>("doMuon", false)),
-  do_MET_        (config.getUntrackedParameter<bool>("doMET", false)),
-  do_Vertex_     (config.getUntrackedParameter<bool>("doVertex", false)),
-  do_Trk_        (config.getUntrackedParameter<bool>("doTrack", false)),
-  do_PF_         (config.getUntrackedParameter<bool>("doPF", false)),
   nevts_         (config.getUntrackedParameter<int>("n_events", 10000)),
-
-  photon_tag_    (config.getParameter<edm::InputTag>("photon_tag")),
-  electron_tag_  (config.getParameter<edm::InputTag>("electron_tag")),
-  muon_tag_      (config.getParameter<edm::InputTag>("muon_tag")),
-  MC_tag_        (config.getParameter<edm::InputTag>("MC_tag")),
-  vtx_tag_       (config.getParameter<edm::InputTag>("vtx_tag")),
-  trk_tag_       (config.getParameter<edm::InputTag>("trk_tag")),
-  pf_tag_        (config.getParameter<edm::InputTag>("pf_tag")),
-
   outFilename_   (config.getParameter<std::string>("extractedRootFile")),
   inFilename_    (config.getParameter<std::string>("inputRootFile"))
 {
@@ -39,7 +18,7 @@ PatExtractor::PatExtractor(const edm::ParameterSet& config) :
   // If do_fill is set to True, you extract the whole data, otherwise you start 
   // from a file already extracted (inFilename_)
 
-  m_scaleFactors.reset(new ScaleFactorService(config));
+  ScaleFactorService::createInstance(config);
 
   (do_fill_) 
     ? PatExtractor::initialize(config)
@@ -75,7 +54,7 @@ void PatExtractor::beginRun(Run const& run, EventSetup const& setup)
 {
 
   if (is_MC_)
-    m_scaleFactors->prepareBTaggingScaleFactors(setup);
+    ScaleFactorService::getInstance().prepareBTaggingScaleFactors(setup);
 
   nevent = 0;
 
@@ -162,23 +141,7 @@ void PatExtractor::endJob() {
 
 void PatExtractor::fillInfo(const edm::Event *event, const edm::EventSetup& iSetup) 
 {
-  // m_event->writeInfo(event,do_MC_);
-
-  //if (do_HLT_)      m_HLT->writeInfo(event);
-  //if (do_MET_)      m_MET->writeInfo(event);
-  //if (do_Vertex_)   m_vertex->writeInfo(event);
-  //if (do_Trk_)      m_track->writeInfo(event);
-  //if (do_MC_)       m_MC->writeInfo(event);
-  //if (do_Electron_) m_electron->writeInfo(event, m_MC, do_MC_);
-  //if (do_Muon_)     m_muon->writeInfo(event, m_MC, do_MC_);
-  //if (do_Jet_)      m_jet->writeInfo(event, iSetup, m_MC, do_MC_);
-
-  //if (do_Photon_)   m_photon->writeInfo(event, m_MC, do_MC_);
-
-  MCExtractor* mcExtractor = nullptr;
-  if (do_MC_)
-    mcExtractor = static_cast<MCExtractor*>(getExtractor("MC").get());
-
+  MCExtractor* mcExtractor = static_cast<MCExtractor*>(getExtractor("MC").get());
   for (auto& extractor: m_extractors)
     extractor->writeInfo(*event, iSetup, mcExtractor);
 }
@@ -188,18 +151,6 @@ void PatExtractor::fillInfo(const edm::Event *event, const edm::EventSetup& iSet
 
 void PatExtractor::getInfo(int ievent) 
 {
-  //m_event->getInfo(ievent);
-
-  //if (do_HLT_)      m_HLT->getInfo(ievent);
-  //if (do_MC_)       m_MC->getInfo(ievent);
-  //if (do_Trk_)      m_track->getInfo(ievent);
-  //if (do_Vertex_)   m_vertex->getInfo(ievent);
-  //if (do_MET_)      m_MET->getInfo(ievent);
-  //if (do_Muon_)     m_muon->getInfo(ievent);
-  //if (do_Electron_) m_electron->getInfo(ievent);
-  //if (do_Jet_)      m_jet->getInfo(ievent);
-  //if (do_Photon_)   m_photon->getInfo(ievent);
-
   for (auto& extractor: m_extractors) {
     if (extractor->isOK())
       extractor->getInfo(ievent);
@@ -213,60 +164,35 @@ void PatExtractor::getInfo(int ievent)
 void PatExtractor::initialize(const edm::ParameterSet& config) 
 {
   m_outfile  = TFile::Open(outFilename_.c_str(),"RECREATE");
-  //m_event    = new EventExtractor();
+ 
+  // Load plugins
+  if (!config.existsAs<edm::ParameterSet>("extractors")) {
+    throw new std::logic_error("No extractors specified");
+  }
 
-  //m_HLT      = new HLTExtractor(do_HLT_);
-  //m_MC       = new MCExtractor(do_MC_);
-  //m_photon   = new PhotonExtractor(do_Photon_,photon_tag_);
-  //m_electron = new ElectronExtractor(do_Electron_,electron_tag_);
-  //m_jet      = new JetExtractor(do_Jet_, jet_tag_, correctJets_, jetCorrectorLabel_);
-  //m_MET      = new METExtractor(do_MET_,met_tag_);
-  //m_muon     = new MuonExtractor(do_Muon_,muon_tag_);
-  //m_vertex   = new VertexExtractor(do_Vertex_,vtx_tag_);
-  //m_track    = new TrackExtractor(do_Trk_,trk_tag_);
+  std::cout << std::endl << "Extractors: " << std::endl;
+  const edm::ParameterSet& extractors = config.getParameterSet("extractors");
+  std::vector<std::string> extractorNames = extractors.getParameterNames();
+  for (std::string& extractorName: extractorNames) {
+    edm::ParameterSet extractorData = extractors.getParameterSet(extractorName);
+    bool enable = extractorData.getParameter<bool>("enable");
+    if (! enable)
+      continue;
 
-  // Register extractors
-  addExtractor("event", new EventExtractor("event"));
+    const std::string type = extractorData.getParameter<std::string>("type");
+    edm::ParameterSet extractorParameters;
+    if (extractorData.existsAs<edm::ParameterSet>("parameters"))
+      extractorParameters = extractorData.getParameterSet("parameters");
 
-  if (do_MC_)
-    addExtractor("MC", new MCExtractor("MC", do_MC_, do_MCjpsi_));
-
-  if (do_HLT_)
-    addExtractor("HLT", new HLTExtractor("HLT", do_HLT_, config));
-
-  if (do_Trk_)
-    addExtractor("track", new TrackExtractor("track", trk_tag_, do_Trk_));
-
-  if (do_PF_)
-    addExtractor("PFpart", new PFpartExtractor("PFpart", pf_tag_, do_PF_));
-
-  if (do_Vertex_)
-    addExtractor("vertex", new VertexExtractor("Vertices", vtx_tag_, do_Vertex_));
-
-  if (do_Electron_)
-    addExtractor("electrons", new ElectronExtractor("electron_PF", m_scaleFactors, electron_tag_, do_Electron_));
-
-  if (do_Muon_)
-    addExtractor("muons", new MuonExtractor("muon_PF", m_scaleFactors, muon_tag_, vtx_tag_, do_Muon_));
-
-  if (do_Jet_ || do_MET_)
-    addExtractor("JetMET", new JetMETExtractor("jet_PF", "MET_PF", m_scaleFactors, config));
-
-  if (do_Photon_)
-    addExtractor("photons", new PhotonExtractor("photon", photon_tag_, do_Photon_));
-
-  // Add non isolated leptons for vetoes
-  if (do_Electron_)
-    addExtractor("electrons_loose", new ElectronExtractor("electron_loose_PF", m_scaleFactors, edm::InputTag("selectedPatElectronsLoosePFlow"), true));
-
-  if (do_Muon_)
-    addExtractor("muons_loose", new MuonExtractor("muon_loose_PF", m_scaleFactors, edm::InputTag("selectedPatMuonsLoosePFlow"), vtx_tag_, true));
-
-  for (auto& extractor: m_extractors) {
+    std::cout << " -> Adding extractor '" << extractorName << "' of type '" << type << "'" << std::endl;
+    auto extractor = std::shared_ptr<SuperBaseExtractor>(PatExtractorExtractorFactory::get()->create(type, extractorName, extractorParameters));
     extractor->setIsMC(is_MC_);
     extractor->doConsumes(consumesCollector());
     extractor->check();
+
+    addExtractor(extractorName, extractor);
   }
+  std::cout << std::endl;
 }
 
 // Here are the initializations when starting from already extracted stuff
@@ -274,39 +200,32 @@ void PatExtractor::initialize(const edm::ParameterSet& config)
 void PatExtractor::retrieve(const edm::ParameterSet& config) 
 {
   m_infile     = TFile::Open(inFilename_.c_str(), "READ");
-  m_outfile    = TFile::Open(outFilename_.c_str(), "RECREATE");
+  m_outfile = TFile::Open(outFilename_.c_str(), "RECREATE");
+  
+  // Load plugins
+  if (!config.existsAs<edm::ParameterSet>("extractors")) {
+    throw new std::logic_error("No extractors specified");
+  }
 
-  // Register extractors
-  addExtractor("event", new EventExtractor("event", m_infile));
-  addExtractor("MC", new MCExtractor("MC", m_infile));
-  addExtractor("HLT", new HLTExtractor("HLT", m_infile));
-  addExtractor("track", new TrackExtractor("track", m_infile));
-  addExtractor("PFpart", new PFpartExtractor("PFpart", m_infile));
+  std::cout << std::endl << "Extractors: " << std::endl;
+  const edm::ParameterSet& extractors = config.getParameterSet("extractors");
+  std::vector<std::string> extractorNames = extractors.getParameterNames();
+  for (std::string& extractorName: extractorNames) {
+    edm::ParameterSet extractorData = extractors.getParameterSet(extractorName);
+    bool enable = extractorData.getParameter<bool>("enable");
+    if (! enable)
+      continue;
 
-  addExtractor("vertex", new VertexExtractor("Vertices", m_infile));
+    const std::string type = extractorData.getParameter<std::string>("type");
+    edm::ParameterSet extractorParameters;
+    if (extractorData.existsAs<edm::ParameterSet>("parameters"))
+      extractorParameters = extractorData.getParameterSet("parameters");
 
-  addExtractor("electrons", new ElectronExtractor("electron_PF", m_scaleFactors, m_infile));
-  addExtractor("electrons_loose", new ElectronExtractor("electron_loose_PF", m_scaleFactors, m_infile));
-
-  addExtractor("muons", new MuonExtractor("muon_PF", m_scaleFactors, m_infile));
-  addExtractor("muons_loose", new MuonExtractor("muon_loose_PF", m_scaleFactors, m_infile));
-
-  addExtractor("JetMET", new JetMETExtractor("jet_PF", "MET_PF", m_scaleFactors, m_infile));
-  addExtractor("photons", new PhotonExtractor("photon", m_infile));
-
-  // We set some variables wrt the info retrieved (if the tree is not there, don't go further...)  
-  do_HLT_      = getExtractor("HLT")->isOK();
-  do_MC_       = getExtractor("MC")->isOK();
-  do_Photon_   = getExtractor("photons")->isOK();
-  do_Electron_ = getExtractor("electrons")->isOK();
-  do_Jet_      = getExtractor("JetMET")->isOK();
-  do_Muon_     = getExtractor("muons")->isOK();
-  do_Vertex_   = getExtractor("vertex")->isOK();
-  do_Trk_      = getExtractor("track")->isOK();
-  do_PF_       = getExtractor("PFpart")->isOK();
-
-  for (auto& extractor: m_extractors) {
+    std::cout << " -> Adding extractor '" << extractorName << "' of type '" << type << "'" << std::endl;
+    auto extractor = std::shared_ptr<SuperBaseExtractor>(PatExtractorExtractorReadOnlyFactory::get()->create(type, extractorName, extractorParameters, m_infile));
     extractor->setIsMC(is_MC_);
+
+    addExtractor(extractorName, extractor);
   }
 }
 
