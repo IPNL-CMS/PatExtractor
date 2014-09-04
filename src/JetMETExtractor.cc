@@ -136,8 +136,8 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   m_tree_met->Branch("genmet_4vector","TClonesArray",&m_genmet_lorentzvector, 1000, 0);
 }
 
-void JetMETExtractor::beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode) {
-  BaseExtractor::beginJob(std::forward<edm::ConsumesCollector>(collector), isInAnalysisMode);
+void JetMETExtractor::doConsumes(edm::ConsumesCollector&& collector) {
+  BaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
 
   m_metToken = collector.consumes<pat::METCollection>(m_metTag);
 
@@ -151,6 +151,9 @@ void JetMETExtractor::beginJob(edm::ConsumesCollector&& collector, bool isInAnal
 
   m_primaryVerticesToken = collector.consumes<reco::VertexCollection>(edm::InputTag("goodOfflinePrimaryVertices"));
   m_rhoToken = collector.consumes<double>(edm::InputTag("kt6PFJets", "rho", "RECO"));
+}
+
+void JetMETExtractor::beginJob(bool isInAnalysisMode) {
 
   if (isInAnalysisMode)
     return;

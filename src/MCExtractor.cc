@@ -110,8 +110,8 @@ MCExtractor::MCExtractor(const std::string& name, TFile *a_file, bool doJpsi)
 MCExtractor::~MCExtractor()
 {}
 
-void MCExtractor::beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode) {
-  SuperBaseExtractor::beginJob(std::forward<edm::ConsumesCollector>(collector), isInAnalysisMode);
+void MCExtractor::doConsumes(edm::ConsumesCollector&& collector) {
+  SuperBaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
 
   m_genParticleToken = collector.consumes<reco::GenParticleCollection>(edm::InputTag("genParticles"));
 }
