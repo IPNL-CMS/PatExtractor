@@ -4,20 +4,6 @@ import FWCore.ParameterSet.Config as cms
 
 from JetMETCorrections.Configuration.JetCorrectionProducers_cff import *
 
-# Do some CHS stuff
-ak5PFchsL1Fastjet  = ak5PFL1Fastjet.clone(algorithm = 'AK5PFchs')
-ak5PFchsL2Relative = ak5PFL2Relative.clone(algorithm = 'AK5PFchs')
-ak5PFchsL3Absolute = ak5PFL3Absolute.clone(algorithm = 'AK5PFchs')
-ak5PFchsResidual   = ak5PFResidual.clone(algorithm = 'AK5PFchs')
-ak5PFchsL1FastL2L3 = cms.ESProducer(
-  'JetCorrectionESChain',
-  correctors = cms.vstring('ak5PFchsL1Fastjet', 'ak5PFchsL2Relative','ak5PFchsL3Absolute')
-)
-ak5PFchsL1FastL2L3Residual = cms.ESProducer(
-  'JetCorrectionESChain',
-  correctors = cms.vstring('ak5PFchsL1Fastjet', 'ak5PFchsL2Relative','ak5PFchsL3Absolute', 'ak5PFchsResidual')
-)
-
 from Extractor_ScaleFactors import loadMuonScaleFactor, loadElectronScaleFactor, loadLightJetsScaleFactor
 from RecoBTag.PerformanceDB.BTagPerformanceDBWinter13 import *
 
@@ -86,7 +72,7 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
 
        # Jets correction : needs a valid global tags, or an external DB where JEC are stored
        redoJetCorrection      = cms.untracked.bool(False),
-       jetCorrectorLabel      = cms.string("ak5PFchsL1FastL2L3"), # Use "ak5PFchsL1FastL2L3" for MC and "ak5PFchsL1FastL2L3Residual" for Data
+       jetCorrectorLabel      = cms.string("ak4PFchsL1FastL2L3"), # Use "ak5PFchsL1FastL2L3" for MC and "ak5PFchsL1FastL2L3Residual" for Data
        doJER                  = cms.untracked.bool(True),
        jerSign                = cms.untracked.int32(0), # Use 0 for no JER systematics, 1 for 1-sigma up and -1 for 1-sigma down
        jesSign                = cms.untracked.int32(0), # Use 0 for no JES systematics, 1 for 1-sigma up and -1 for 1-sigma down
