@@ -35,15 +35,14 @@ process.maxEvents = cms.untracked.PSet(
   )
 
 #Global tag and data type choice
-process.GlobalTag.globaltag = 'START53_V21::All'
+process.GlobalTag.globaltag = 'PLS170_V7AN1::All'
 process.PATextraction.isMC  = isMC
 process.PATextraction.doMC  = isMC
 
 #Input PAT file to extract
 process.source = cms.Source("PoolSource",
   fileNames = cms.untracked.vstring(
-      '/store/user/chassera/W3JetsToLNu_TuneZ2Star_8TeV-madgraph/W3JetsToLNu_START53_V7A_03May13-v1/01f389e36b58797d8560cb86e692fc11/patTuple_380_8_oSQ.root'
-      #'/store/user/sbrochet/S0_S_i_M500_cpl1_scalar_hadronized_fastsim_16Nov13-v1/S0_S_i_M500_cpl1_scalar18Nov13-v1/000dcc01450dd869c68c0ab31d140828/patTuple_20_1_mDr.root'
+      'file:Zprime750_13TeV_miniaod.root'
       ),
   skipEvents=cms.untracked.uint32(15278),
   duplicateCheckMode = cms.untracked.string( 'noDuplicateCheck' ),
