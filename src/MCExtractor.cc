@@ -1,50 +1,48 @@
 #include "../interface/MCExtractor.h"
 
 
-MCExtractor::MCExtractor(const std::string& name, bool doTree, bool doJpsi)
+MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& settings):
+  SuperBaseExtractor(name, settings)
 {
-  _doJpsi = doJpsi; 
+  _doJpsi = settings.getParameter<bool>("do_jpsi");
   // Set everything to 0
 
-  m_OK = false;
   m_MC_lorentzvector = new TClonesArray("TLorentzVector");
   reset();
 
   // Tree definition
 
-  if (doTree)
-  {
-    m_OK = true;
+  m_OK = true;
 
-    m_tree_MC = new TTree(name.c_str(), "PAT MC info");  
-    m_tree_MC->Branch("MC_4vector","TClonesArray",&m_MC_lorentzvector, 1000, 0);
-    m_tree_MC->Branch("n_MCs",  &m_n_MCs,"n_MCs/I");  
-    m_tree_MC->Branch("MC_index",   &m_MC_index,    "MC_index[n_MCs]/I");  
-    m_tree_MC->Branch("MC_type",    &m_MC_type,     "MC_type[n_MCs]/I");  
-    m_tree_MC->Branch("MC_mot1",    &m_MC_imot1,    "MC_mot1[n_MCs]/I");  
-    m_tree_MC->Branch("MC_mot2",    &m_MC_imot2,    "MC_mot2[n_MCs]/I");  
-    m_tree_MC->Branch("MC_generation",   &m_MC_generation,    "MC_generation[n_MCs]/I");  
-    m_tree_MC->Branch("MC_e",   &m_MC_E,    "MC_e[n_MCs]/F");  
-    m_tree_MC->Branch("MC_px",  &m_MC_px,   "MC_px[n_MCs]/F");  
-    m_tree_MC->Branch("MC_py",  &m_MC_py,   "MC_py[n_MCs]/F");  
-    m_tree_MC->Branch("MC_pz",  &m_MC_pz,   "MC_pz[n_MCs]/F");  
-    m_tree_MC->Branch("MC_vx",  &m_MC_vx,   "MC_vx[n_MCs]/F");  
-    m_tree_MC->Branch("MC_vy",  &m_MC_vy,   "MC_vy[n_MCs]/F");  
-    m_tree_MC->Branch("MC_vz",  &m_MC_vz,   "MC_vz[n_MCs]/F");
-    m_tree_MC->Branch("MC_eta", &m_MC_eta,  "MC_eta[n_MCs]/F");  
-    m_tree_MC->Branch("MC_phi", &m_MC_phi,  "MC_phi[n_MCs]/F"); 
-    if (_doJpsi) {
-      m_tree_MC->Branch("MC_JPsiFromTop",  &m_MC_JPsiFromTop,  "m_MC_JPsiFromTop[n_MCs]/B");  
-      m_tree_MC->Branch("MC_JPsiFromAntiTop",  &m_MC_JPsiFromAntiTop,  "m_MC_JPsiFromAntiTop[n_MCs]/B");  
-      m_tree_MC->Branch("MC_LeptonFromTop",  &m_MC_LeptonFromTop,  "m_MC_LeptonFromTop[n_MCs]/B");  
-      m_tree_MC->Branch("MC_LeptonFromAntiTop",  &m_MC_LeptonFromAntiTop,  "m_MC_LeptonFromAntiTop[n_MCs]/B");
-    }
+  m_tree_MC = new TTree(name.c_str(), "PAT MC info");  
+  m_tree_MC->Branch("MC_4vector","TClonesArray",&m_MC_lorentzvector, 1000, 0);
+  m_tree_MC->Branch("n_MCs",  &m_n_MCs,"n_MCs/I");  
+  m_tree_MC->Branch("MC_index",   &m_MC_index,    "MC_index[n_MCs]/I");  
+  m_tree_MC->Branch("MC_type",    &m_MC_type,     "MC_type[n_MCs]/I");  
+  m_tree_MC->Branch("MC_mot1",    &m_MC_imot1,    "MC_mot1[n_MCs]/I");  
+  m_tree_MC->Branch("MC_mot2",    &m_MC_imot2,    "MC_mot2[n_MCs]/I");  
+  m_tree_MC->Branch("MC_generation",   &m_MC_generation,    "MC_generation[n_MCs]/I");  
+  m_tree_MC->Branch("MC_e",   &m_MC_E,    "MC_e[n_MCs]/F");  
+  m_tree_MC->Branch("MC_px",  &m_MC_px,   "MC_px[n_MCs]/F");  
+  m_tree_MC->Branch("MC_py",  &m_MC_py,   "MC_py[n_MCs]/F");  
+  m_tree_MC->Branch("MC_pz",  &m_MC_pz,   "MC_pz[n_MCs]/F");  
+  m_tree_MC->Branch("MC_vx",  &m_MC_vx,   "MC_vx[n_MCs]/F");  
+  m_tree_MC->Branch("MC_vy",  &m_MC_vy,   "MC_vy[n_MCs]/F");  
+  m_tree_MC->Branch("MC_vz",  &m_MC_vz,   "MC_vz[n_MCs]/F");
+  m_tree_MC->Branch("MC_eta", &m_MC_eta,  "MC_eta[n_MCs]/F");  
+  m_tree_MC->Branch("MC_phi", &m_MC_phi,  "MC_phi[n_MCs]/F"); 
+  if (_doJpsi) {
+    m_tree_MC->Branch("MC_JPsiFromTop",  &m_MC_JPsiFromTop,  "m_MC_JPsiFromTop[n_MCs]/B");  
+    m_tree_MC->Branch("MC_JPsiFromAntiTop",  &m_MC_JPsiFromAntiTop,  "m_MC_JPsiFromAntiTop[n_MCs]/B");  
+    m_tree_MC->Branch("MC_LeptonFromTop",  &m_MC_LeptonFromTop,  "m_MC_LeptonFromTop[n_MCs]/B");  
+    m_tree_MC->Branch("MC_LeptonFromAntiTop",  &m_MC_LeptonFromAntiTop,  "m_MC_LeptonFromAntiTop[n_MCs]/B");
   }
 }
 
-MCExtractor::MCExtractor(const std::string& name, TFile *a_file, bool doJpsi)
+MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& settings, TFile *a_file):
+  SuperBaseExtractor(name, settings, a_file)
 {
-  _doJpsi = doJpsi; 
+  _doJpsi = settings.getParameter<bool>("do_jpsi"); 
   std::cout << "MCExtractor object is retrieved" << std::endl;
 
   // Tree definition
@@ -349,3 +347,6 @@ void MCExtractor::constructGeneration(int gene, int npart)
 int MCExtractor::getSize() const {
   return m_n_MCs;
 }
+
+DEFINE_EDM_PLUGIN(PatExtractorExtractorFactory, MCExtractor, "mc_extractor");
+DEFINE_EDM_PLUGIN(PatExtractorExtractorReadOnlyFactory, MCExtractor, "mc_extractor");

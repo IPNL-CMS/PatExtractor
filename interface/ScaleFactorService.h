@@ -191,6 +191,12 @@ class ScaleFactorService {
     };
 
   private:
+    friend class PatExtractor;
+    static std::shared_ptr<ScaleFactorService> m_instance;
+    static void createInstance(const edm::ParameterSet& settings) {
+      m_instance.reset( new ScaleFactorService(settings) );
+    }
+
     typedef std::map<
       std::string,
       std::map<
@@ -209,11 +215,19 @@ class ScaleFactorService {
       std::shared_ptr<BTagScaleFactorService>
     > BTagScaleFactorMap;
 
-  public:
     ScaleFactorService(const edm::ParameterSet& settings) {
       parseMuonScaleFactors(settings);
       parseElectronScaleFactors(settings);
       parseBTagScaleFactors(settings);
+    }
+
+    ScaleFactorService(ScaleFactorService const&); // Don't Implement
+    void operator=(ScaleFactorService const&); // Don't implement
+
+  public:
+
+    static ScaleFactorService& getInstance() {
+      return *m_instance;
     }
 
     void prepareBTaggingScaleFactors(const edm::EventSetup& iSetup) {

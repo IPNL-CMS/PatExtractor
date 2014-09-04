@@ -24,7 +24,6 @@
 
 #include "TMath.h"
 #include "TTree.h"
-#include "TFile.h"
 #include "TLorentzVector.h"
 #include "TClonesArray.h"
 
@@ -33,8 +32,14 @@ class BaseExtractor: public SuperBaseExtractor
 {
 
   public:
-    BaseExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf = std::shared_ptr<ScaleFactorService>()):
-        SuperBaseExtractor(sf), m_name(name) {}
+    BaseExtractor(const std::string& name, const edm::ParameterSet& parameters):
+      SuperBaseExtractor(name, parameters) {
+        if (parameters.existsAs<edm::InputTag>("input")) {
+          m_tag = parameters.getParameter<edm::InputTag>("input");
+        }
+      }
+    BaseExtractor(const std::string& name, const edm::ParameterSet& settings, TFile* f):
+      SuperBaseExtractor(name, settings, f) {}
     virtual ~BaseExtractor() {}
 
     virtual void doConsumes(edm::ConsumesCollector&& collector) {
@@ -195,8 +200,6 @@ class BaseExtractor: public SuperBaseExtractor
         std::cout << "\tP: " << mcExtractor->getPx(mcIndex) << " " << mcExtractor->getPy(mcIndex) << " " << mcExtractor->getPz(mcIndex) << std::endl;
       }
     }
-
-    std::string m_name;
 
     edm::EDGetTokenT<edm::View<ObjectType>> m_token;
     edm::InputTag m_tag;

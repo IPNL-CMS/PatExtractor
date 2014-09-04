@@ -41,8 +41,8 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
 
   public:
 
-    JetMETExtractor(const std::string& name, const std::string& met_name, std::shared_ptr<ScaleFactorService> sf, const edm::ParameterSet& config);
-    JetMETExtractor(const std::string& name, const std::string& met_name, std::shared_ptr<ScaleFactorService> sf, TFile *a_file);
+    JetMETExtractor(const std::string& name, const edm::ParameterSet& config);
+    JetMETExtractor(const std::string& name, const edm::ParameterSet& config, TFile *a_file);
     virtual ~JetMETExtractor();
     virtual void doConsumes(edm::ConsumesCollector&& collector);
     virtual void beginJob(bool isInAnalysisMode);

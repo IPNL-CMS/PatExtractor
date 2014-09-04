@@ -1,35 +1,29 @@
 #include "../interface/VertexExtractor.h"
 
 
-VertexExtractor::VertexExtractor(const std::string& name, const edm::InputTag& tag, bool doTree)
-  : BaseExtractor(name)
+VertexExtractor::VertexExtractor(const std::string& name, const edm::ParameterSet& settings)
+  : BaseExtractor(name, settings)
 {
-  m_tag = tag;
-
   // Set everything to 0
   reset();
-  m_OK = false;
 
   // Tree definition
 
-  if (doTree)
-  {
-    m_OK = true;
-    m_tree_vtx      = new TTree(m_name.c_str(), "RECO PV info") ;
-    m_tree_vtx->Branch("n_vertices",      &m_size,   "n_vertices/i");  
-    m_tree_vtx->Branch("vertex_vx",       &m_vtx_vx,       "vertex_vx[n_vertices]/F");  
-    m_tree_vtx->Branch("vertex_vy",       &m_vtx_vy,       "vertex_vy[n_vertices]/F");  
-    m_tree_vtx->Branch("vertex_vz",       &m_vtx_vz,       "vertex_vz[n_vertices]/F"); 
-    m_tree_vtx->Branch("vertex_isFake",   &m_vtx_isFake,   "vertex_isFake[n_vertices]/B"); 
-    m_tree_vtx->Branch("vertex_ndof",     &m_vtx_ndof,     "vertex_ndof[n_vertices]/F"); 
-    m_tree_vtx->Branch("vertex_normChi2", &m_vtx_normChi2, "vertex_normChi2[n_vertices]/F");
-    m_tree_vtx->Branch("vertex_ntracks",  &m_vtx_ntracks,  "vertex_ntracks[n_vertices]/I");
-  }
+  m_OK = true;
+  m_tree_vtx      = new TTree(m_name.c_str(), "RECO PV info") ;
+  m_tree_vtx->Branch("n_vertices",      &m_size,   "n_vertices/i");  
+  m_tree_vtx->Branch("vertex_vx",       &m_vtx_vx,       "vertex_vx[n_vertices]/F");  
+  m_tree_vtx->Branch("vertex_vy",       &m_vtx_vy,       "vertex_vy[n_vertices]/F");  
+  m_tree_vtx->Branch("vertex_vz",       &m_vtx_vz,       "vertex_vz[n_vertices]/F"); 
+  m_tree_vtx->Branch("vertex_isFake",   &m_vtx_isFake,   "vertex_isFake[n_vertices]/B"); 
+  m_tree_vtx->Branch("vertex_ndof",     &m_vtx_ndof,     "vertex_ndof[n_vertices]/F"); 
+  m_tree_vtx->Branch("vertex_normChi2", &m_vtx_normChi2, "vertex_normChi2[n_vertices]/F");
+  m_tree_vtx->Branch("vertex_ntracks",  &m_vtx_ntracks,  "vertex_ntracks[n_vertices]/I");
 }
 
 
-VertexExtractor::VertexExtractor(const std::string& name, TFile *a_file)
-  : BaseExtractor(name)
+VertexExtractor::VertexExtractor(const std::string& name, const edm::ParameterSet& settings, TFile *a_file)
+  : BaseExtractor(name, settings, a_file)
 {
   std::cout << "VertexExtractor objet is retrieved" << std::endl;
   m_file = a_file;
@@ -122,3 +116,6 @@ float VertexExtractor::dist_to_vtx(int vtxidx, float x, float y, float z)
   return sqrt(dx*dx+dy*dy+dz*dz);
 
 }
+
+DEFINE_EDM_PLUGIN(PatExtractorExtractorFactory, VertexExtractor, "vertex_extractor");
+DEFINE_EDM_PLUGIN(PatExtractorExtractorReadOnlyFactory, VertexExtractor, "vertex_extractor");

@@ -4,31 +4,27 @@
 
 using namespace tinyxml2;
 
-HLTExtractor::HLTExtractor(const std::string& name, bool doTree, const edm::ParameterSet& config):
-  m_triggersXML(config.getUntrackedParameter<std::string>("triggersXML", ""))
+HLTExtractor::HLTExtractor(const std::string& name, const edm::ParameterSet& config):
+  SuperBaseExtractor(name, config), m_triggersXML(config.getUntrackedParameter<std::string>("triggers", ""))
 {
   m_filterHLT = m_triggersXML.length() > 0;
 
   // Set everything to 0
 
-  m_OK         = false;
   m_HLT_vector = new std::vector< std::string >;
   m_mustPass = new std::string();
   reset();
 
   // Tree definition
 
-  if (doTree)
-  {
-    m_OK = true;
-    m_tree_HLT       = new TTree(name.c_str(), "HLT info");  
-    m_tree_HLT->Branch("n_paths",  &m_n_HLTs,"n_paths/I");       
-    m_tree_HLT->Branch("HLT_vector","vector<string>",&m_HLT_vector);
+  m_OK = true;
+  m_tree_HLT       = new TTree(name.c_str(), "HLT info");  
+  m_tree_HLT->Branch("n_paths",  &m_n_HLTs,"n_paths/I");       
+  m_tree_HLT->Branch("HLT_vector","vector<string>",&m_HLT_vector);
 
-    m_tree_HLT->Branch("HLT_filtered", &m_filterHLT, "HLT_filtered/O");
-    m_tree_HLT->Branch("HLT_mustPass", &m_mustPass);
-    m_tree_HLT->Branch("HLT_passed", &m_passed, "HLT_passed/O");
-  }
+  m_tree_HLT->Branch("HLT_filtered", &m_filterHLT, "HLT_filtered/O");
+  m_tree_HLT->Branch("HLT_mustPass", &m_mustPass);
+  m_tree_HLT->Branch("HLT_passed", &m_passed, "HLT_passed/O");
 
   std::cout << std::endl;
   std::cout << "Triggers for this analysis:" << std::endl;
@@ -42,7 +38,8 @@ HLTExtractor::HLTExtractor(const std::string& name, bool doTree, const edm::Para
   }
 }
 
-HLTExtractor::HLTExtractor(const std::string& name, TFile *a_file)
+HLTExtractor::HLTExtractor(const std::string& name, const edm::ParameterSet& config, TFile *a_file):
+  SuperBaseExtractor(name, config, a_file)
 {
   std::cout << "HLTExtractor objet is retrieved" << std::endl;
 
@@ -231,3 +228,6 @@ void Triggers::print() {
     }
   }
 }
+
+DEFINE_EDM_PLUGIN(PatExtractorExtractorFactory, HLTExtractor, "hlt_extractor");
+DEFINE_EDM_PLUGIN(PatExtractorExtractorReadOnlyFactory, HLTExtractor, "hlt_extractor");

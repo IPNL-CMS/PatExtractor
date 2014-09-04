@@ -15,27 +15,19 @@
 
 #define DEBUG false
 
-JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met_name, std::shared_ptr<ScaleFactorService> sf, const edm::ParameterSet& config)
-: BaseExtractor(name, sf)
+JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSet& config)
+: BaseExtractor(name, config)
 {
-  if (! config.exists(name))
-    throw edm::Exception(edm::errors::ConfigFileReadError) << "No edm::ParameterSet named " << name << " found";
 
-  if (! config.exists(met_name))
-    throw edm::Exception(edm::errors::ConfigFileReadError) << "No edm::ParameterSet named " << met_name << " found";
+  m_tag = config.getParameter<edm::InputTag>("input_jets");
+  m_metTag = config.getParameter<edm::InputTag>("input_met"); 
 
-  const edm::ParameterSet& jetConfig = config.getParameter<edm::ParameterSet>(name);
-  const edm::ParameterSet& metConfig = config.getParameter<edm::ParameterSet>(met_name);
-
-  m_tag = jetConfig.getParameter<edm::InputTag>("input");
-  m_metTag = metConfig.getParameter<edm::InputTag>("input"); 
-
-  mCorrectJets = jetConfig.getUntrackedParameter<bool>("redoJetCorrection", false);
-  mUseGlobalTagForJEC = jetConfig.getUntrackedParameter<bool>("useGlobalTagForJEC", true);
+  mCorrectJets = config.getUntrackedParameter<bool>("redoJetCorrection", false);
+  mUseGlobalTagForJEC = config.getUntrackedParameter<bool>("useGlobalTagForJEC", true);
 
   if (!mUseGlobalTagForJEC) {
-    mJecPayload =  jetConfig.getUntrackedParameter<std::string>("jecPayload");
-    mJecJetAlgo =  jetConfig.getUntrackedParameter<std::string>("jecJetAlgo");
+    mJecPayload =  config.getUntrackedParameter<std::string>("jecPayload");
+    mJecJetAlgo =  config.getUntrackedParameter<std::string>("jecJetAlgo");
     if (mJecPayload.length() > 0) {
       mJecPayload = edm::FileInPath(mJecPayload).fullPath();
     } else {
@@ -47,15 +39,15 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   mTxtCorrector = nullptr;
 
   if (mCorrectJets)
-    mJetCorrectorLabel = jetConfig.getParameter<std::string>("jetCorrectorLabel");
-  mDoJER = jetConfig.getUntrackedParameter<bool>("doJER", true);
+    mJetCorrectorLabel = config.getParameter<std::string>("jetCorrectorLabel");
+  mDoJER = config.getUntrackedParameter<bool>("doJER", true);
   mJERSign = 0;
   if (mDoJER) {
-    mJERSign = jetConfig.getUntrackedParameter<int>("jerSign", 0);
+    mJERSign = config.getUntrackedParameter<int>("jerSign", 0);
   }
-  mDoLooseJetID = jetConfig.getUntrackedParameter<bool>("doLooseJetID", true);
+  mDoLooseJetID = config.getUntrackedParameter<bool>("doLooseJetID", true);
 
-  mJESSign = jetConfig.getUntrackedParameter<int>("jesSign", 0);
+  mJESSign = config.getUntrackedParameter<int>("jesSign", 0);
 
   if (mJERSign != 0 && mJERSign != -1 && mJERSign != 1)
     throw edm::Exception(edm::errors::LogicError) << "jerSign must be 0 for nominal correction, -1 for 1-sigma down correction, or 1 for 1-sigma up correction";
@@ -63,11 +55,11 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   if (mJESSign != 0 && mJESSign != -1 && mJESSign != 1)
     throw edm::Exception(edm::errors::LogicError) << "jesSign must be 0 for nominal correction, -1 for 1-sigma down correction, or 1 for 1-sigma up correction";
 
-  mCorrectSysShiftMet = metConfig.getUntrackedParameter<bool>("redoMetPhiCorrection", false);
-  mRedoTypeI  = metConfig.getUntrackedParameter<bool>("redoMetTypeICorrection", false);
-  mSaveUnclusteredParticles = metConfig.getUntrackedParameter<bool>("saveUnclusteredParticles", false);
+  mCorrectSysShiftMet = config.getUntrackedParameter<bool>("redoMetPhiCorrection", false);
+  mRedoTypeI  = config.getUntrackedParameter<bool>("redoMetTypeICorrection", false);
+  mSaveUnclusteredParticles = config.getUntrackedParameter<bool>("saveUnclusteredParticles", false);
 
-  mJecFilename = jetConfig.getUntrackedParameter<std::string>("jes_uncertainties_file", "");
+  mJecFilename = config.getUntrackedParameter<std::string>("jes_uncertainties_file", "");
   if (mJESSign != 0 && mJecFilename.length() > 0) {
     mJecFilename = edm::FileInPath(mJecFilename).fullPath();
   }
@@ -91,10 +83,13 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
 
   reset();
 
+  std::string jetsTreeName = config.getParameter<std::string>("tree_name_jets");
+  std::string metTreeName = config.getParameter<std::string>("tree_name_met");
+
   // Tree definition
 
   m_tree_jet = NULL;
-  m_tree_jet     = new TTree(name.c_str(), "PAT PF jet info");  
+  m_tree_jet     = new TTree(jetsTreeName.c_str(), "PAT PF jet info");  
   m_tree_jet->Branch("n_jets",  &m_size,   "n_jets/i");  
   m_tree_jet->Branch("jet_4vector","TClonesArray",&m_jet_lorentzvector, 5000, 0);
   m_tree_jet->Branch("genjet_4vector","TClonesArray",&m_genjet_lorentzvector, 5000, 0);
@@ -129,7 +124,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   m_tree_jet->Branch("jet_scaleFactor", &m_scaleFactors.getBackingArray());
 
   m_tree_met = NULL;
-  m_tree_met = new TTree(met_name.c_str(), "PAT PF MET info");  
+  m_tree_met = new TTree(metTreeName.c_str(), "PAT PF MET info");  
   m_tree_met->Branch("met_4vector","TClonesArray",&m_met_lorentzvector, 1000, 0);
   m_tree_met->Branch("sumEt", &m_met_sumEt, "sumEt/F");  
   m_tree_met->Branch("unclustered_particle_4vector","TClonesArray",&m_unclustered_particle_lorentzvector, 1000, 0);
@@ -167,8 +162,8 @@ void JetMETExtractor::beginJob(bool isInAnalysisMode) {
 }
 
 
-JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met_name, std::shared_ptr<ScaleFactorService> sf, TFile *a_file)
-: BaseExtractor(name, sf)
+JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSet& config, TFile *a_file)
+: BaseExtractor(name, config, a_file)
 {
   std::cout << "JetMETExtractor objet is retrieved" << std::endl;
   m_file = a_file;
@@ -176,7 +171,10 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   // Tree definition
   m_OK = false;
 
-  m_tree_jet = dynamic_cast<TTree*>(a_file->Get(name.c_str()));
+  std::string jetsTreeName = config.getParameter<std::string>("tree_name_jets");
+  std::string metTreeName = config.getParameter<std::string>("tree_name_met");
+
+  m_tree_jet = dynamic_cast<TTree*>(a_file->Get(jetsTreeName.c_str()));
 
 
   if (m_tree_jet) {
@@ -245,7 +243,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
       m_tree_jet->SetBranchAddress("jet_scaleFactor", &m_scaleFactors.getBackingArray());
   }
 
-  m_tree_met = dynamic_cast<TTree*>(a_file->Get(met_name.c_str()));
+  m_tree_met = dynamic_cast<TTree*>(a_file->Get(metTreeName.c_str()));
 
   if (!m_tree_met)
   {
@@ -495,7 +493,7 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
       flavor = ScaleFactorService::LIGHT;
     }
 
-    m_scaleFactors.push_back(m_scaleFactorService->getBTaggingScaleFactor(flavor, part.et(), part.eta()));
+    m_scaleFactors.push_back(ScaleFactorService::getInstance().getBTaggingScaleFactor(flavor, part.et(), part.eta()));
   }
 }
 
@@ -957,3 +955,6 @@ void JetMETExtractor::setMETLorentzVector(int idx, float E, float Px, float Py, 
 {
   new((*m_met_lorentzvector)[idx]) TLorentzVector(Px,Py,Pz,E);
 }
+
+DEFINE_EDM_PLUGIN(PatExtractorExtractorFactory, JetMETExtractor, "jet_met_extractor");
+DEFINE_EDM_PLUGIN(PatExtractorExtractorReadOnlyFactory, JetMETExtractor, "jet_met_extractor");

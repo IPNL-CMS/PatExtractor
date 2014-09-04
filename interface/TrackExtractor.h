@@ -31,8 +31,8 @@ class TrackExtractor: public BaseExtractor<reco::Track>
 
   public:
 
-    TrackExtractor(const std::string& name, const edm::InputTag& tag, bool doTree);
-    TrackExtractor(const std::string& name, TFile* a_file);
+    TrackExtractor(const std::string& name, const edm::ParameterSet&);
+    TrackExtractor(const std::string& name, const edm::ParameterSet&, TFile* a_file);
     virtual ~TrackExtractor();
 
     void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const reco::Track& part, int index);

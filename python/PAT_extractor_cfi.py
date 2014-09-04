@@ -12,98 +12,156 @@ rootPath = os.path.join(os.environ["CMSSW_BASE"], "src/Extractors/PatExtractor/p
 PATextraction = cms.EDAnalyzer("PatExtractor",
 
 
+        ##
+        ## First you define the name of the  output ROOTfile
+        ##
+
+        extractedRootFile = cms.string('extracted.root'),
 
 
-##
-## First you define the name of the  output ROOTfile
-##
-                               
-  extractedRootFile = cms.string('extracted.root'),
+        ##
+        ## Then the name of the input ROOTfile, if you start from already extracted file
+        ##
+
+        inputRootFile     = cms.string('default.root'),
 
 
-##
-## Then the name of the input ROOTfile, if you start from already extracted file
-##
-                               
-  inputRootFile     = cms.string('default.root'),
+        ##
+        ## Here you tell is you start from a PATuple (True) or an extracted ROOTuple (False)
+        ##
+
+        fillTree = cms.untracked.bool(True),
+
+        n_events = cms.untracked.int32(10000),  # How many events you want to analyze (only if fillTree=False)
 
 
-##
-## Here you tell is you start from a PATuple (True) or an extracted ROOTuple (False)
-##
-
-  fillTree = cms.untracked.bool(True),
-
-
-##
-## Are you running on data or MC?
-##
-   isMC          = cms.untracked.bool(True),
+        ##
+        ## Are you running on data or MC?
+        ##
+        isMC          = cms.untracked.bool(True),
 
 
-##
-## Then you define the content of the output file (all set to false, turn on on request in you config files)
-##
-                               
-   # Add HLT information
-   doHLT         = cms.untracked.bool(False),
-                               
-   # Add MC information
-   doMC          = cms.untracked.bool(False),
-   MC_tag        = cms.InputTag( "" ),
-   doMCjpsi      = cms.untracked.bool(False),
-                             
-   # Add Photon information
-   doPhoton      = cms.untracked.bool(False),
-   photon_tag    = cms.InputTag( "selectedPatPhotons" ),
+        ##
+        ## Then you define the content of the output file (all set to false, turn on on request in you config files)
+        ##
 
-   # Add Electron information
-   doElectron    = cms.untracked.bool(False),
-   electron_tag  = cms.InputTag( "selectedPatElectronsPFlow" ),
+        extractors    = cms.PSet(
 
-   # Add Muon information
-   doMuon        = cms.untracked.bool(False),
-   muon_tag      = cms.InputTag( "selectedPatMuonsPFlow" ),
+            event = cms.PSet(
+                type = cms.string("event_extractor"),
+                enable = cms.bool(False)
+                ),
 
-   # Add Jet information
-   doJet         = cms.untracked.bool(False),
-   jet_PF        = cms.PSet(
-       input              = cms.InputTag("selectedPatJetsPFlow"),
+            MC = cms.PSet(
+                type = cms.string("mc_extractor"),
+                enable = cms.bool(False),
+                parameters = cms.PSet(
+                    do_jpsi = cms.bool(False)
+                    )
+                ),
 
-       # Jets correction : needs a valid global tags, or an external DB where JEC are stored
-       redoJetCorrection      = cms.untracked.bool(False),
-       jetCorrectorLabel      = cms.string("ak4PFchsL1FastL2L3"), # Use "ak5PFchsL1FastL2L3" for MC and "ak5PFchsL1FastL2L3Residual" for Data
-       doJER                  = cms.untracked.bool(True),
-       jerSign                = cms.untracked.int32(0), # Use 0 for no JER systematics, 1 for 1-sigma up and -1 for 1-sigma down
-       jesSign                = cms.untracked.int32(0), # Use 0 for no JES systematics, 1 for 1-sigma up and -1 for 1-sigma down
-       jes_uncertainties_file = cms.untracked.string(""),
-       doLooseJetID           = cms.untracked.bool(True),
-       useGlobalTagForJEC     = cms.untracked.bool(True),
-       jecPayload             = cms.untracked.string("Extractors/PatExtractor/data/jec_payloads.xml"), 
-       jecJetAlgo             = cms.untracked.string("AK5PFchs") 
-   ),
+            HLT = cms.PSet(
+                type = cms.string("hlt_extractor"),
+                enable = cms.bool(False),
+                parameters = cms.PSet(
+                    triggers = cms.untracked.string("")
+                    )
+                ),
 
-   # Add MET information
-   doMET         = cms.untracked.bool(False),
-   MET_PF        = cms.PSet(
-       input                  = cms.InputTag("patMETsPFlow"),
+            track = cms.PSet(
+                type = cms.string("track_extractor"),
+                enable = cms.bool(False),
+                parameters = cms.PSet(
+                    input = cms.InputTag("generalTracks")
+                    )
+                ),
 
-       redoMetPhiCorrection   = cms.untracked.bool(False),
-       redoMetTypeICorrection = cms.untracked.bool(False),
-       saveUnclusteredParticles = cms.untracked.bool(False)
-   ),
+            PFpart = cms.PSet(
+                type = cms.string("pfparticle_extractor"),
+                enable = cms.bool(False),
+                parameters = cms.PSet(
+                    input = cms.InputTag("particleFlow")
+                    )
+                ),
 
-   # Add PV information
-   doVertex      = cms.untracked.bool(False),
-   vtx_tag       = cms.InputTag( "offlinePrimaryVertices" ),
+            Vertices = cms.PSet(
+                type = cms.string("vertex_extractor"),
+                enable = cms.bool(False),
+                parameters = cms.PSet(
+                    input = cms.InputTag("offlinePrimaryVertices")
+                    )
+                ),
 
-   # Add Track information
-   doTrack       = cms.untracked.bool(False),
-   trk_tag       = cms.InputTag( "generalTracks" ),
+            electron_PF = cms.PSet(
+                type = cms.string("electron_extractor"),
+                enable = cms.bool(False),
+                parameters = cms.PSet(
+                    input = cms.InputTag("selectedPatElectronsPFlow")
+                    )
+                ),
 
-   # Add Track information
-   doPF          = cms.untracked.bool(False),
-   pf_tag        = cms.InputTag( "particleFlow" ),
+            electrons_loose = cms.PSet(
+                    type = cms.string("electron_extractor"),
+                    enable = cms.bool(False),
+                    parameters = cms.PSet(
+                        input = cms.InputTag("selectedPatElectronsLoosePFlow")
+                        )
+                    ),
+
+            muon_PF = cms.PSet(
+                    type = cms.string("muon_extractor"),
+                    enable = cms.bool(False),
+                    parameters = cms.PSet(
+                        input = cms.InputTag("selectedPatMuonsPFlow"),
+                        vertices = cms.InputTag("offlinePrimaryVertices")
+                        )
+                    ),
+
+            muons_loose = cms.PSet(
+                    type = cms.string("muon_extractor"),
+                    enable = cms.bool(False),
+                    parameters = cms.PSet(
+                        input = cms.InputTag("selectedPatMuonsLoosePFlow"),
+                        vertices = cms.InputTag("offlinePrimaryVertices")
+                        )
+                    ),
+
+            jetmet = cms.PSet(
+                    type = cms.string("jet_met_extractor"),
+                    enable = cms.bool(False),
+                    parameters = cms.PSet(
+                        input_jets = cms.InputTag("selectedPatJetsPFlow"),
+                        input_met = cms.InputTag("patMETsPFlow"),
+
+                        tree_name_jets = cms.string("jet_PF"),
+                        tree_name_met = cms.string("MET_PF"),
+
+                        # Jets correction : needs a valid global tags, or an external DB where JEC are stored
+                        redoJetCorrection      = cms.untracked.bool(False),
+                        jetCorrectorLabel      = cms.string("ak4PFchsL1FastL2L3"), # Use "ak5PFchsL1FastL2L3" for MC and "ak5PFchsL1FastL2L3Residual" for Data
+                        doJER                  = cms.untracked.bool(True),
+                        jerSign                = cms.untracked.int32(0), # Use 0 for no JER systematics, 1 for 1-sigma up and -1 for 1-sigma down
+                        jesSign                = cms.untracked.int32(0), # Use 0 for no JES systematics, 1 for 1-sigma up and -1 for 1-sigma down
+                        jes_uncertainties_file = cms.untracked.string(""),
+                        doLooseJetID           = cms.untracked.bool(True),
+                        useGlobalTagForJEC     = cms.untracked.bool(True),
+                        jecPayload             = cms.untracked.string("Extractors/PatExtractor/data/jec_payloads.xml"), 
+                        jecJetAlgo             = cms.untracked.string("AK4PFchs"), 
+
+                        redoMetPhiCorrection   = cms.untracked.bool(False),
+                        redoMetTypeICorrection = cms.untracked.bool(False),
+                        saveUnclusteredParticles = cms.untracked.bool(False)
+                        )
+                    ),
+
+            photon = cms.PSet(
+                    type = cms.string("photon_extractor"),
+                    enable = cms.bool(False),
+                    parameters = cms.PSet(
+                        input = cms.InputTag("selectedPatPhotons")
+                        )
+                    )
+            ),
 
    # Scale factors
    muon_scale_factors_tighteff_tightiso = loadMuonScaleFactor(os.path.join(rootPath, "MuonEfficiencies_ISO_Run_2012ReReco_53X.pkl"), os.path.join(rootPath, "MuonEfficiencies_Run2012ReReco_53X.pkl"), "Tight", "combRelIsoPF04dBeta<012_Tight"),
@@ -116,36 +174,19 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
    electron_scale_factors = cms.vstring("electron_scale_factors_tighteff_tightiso", "electron_scale_factors_looseeff_tightiso"),
 
    b_tagging_scale_factors_b_jets = cms.PSet(
-      jet_type = cms.string("b"),
-      from_globaltag = cms.bool(True),
-      payload = cms.string("MUJETSWPBTAGNOTTBARCSVM")
-      ),
+           jet_type = cms.string("b"),
+           from_globaltag = cms.bool(True),
+           payload = cms.string("MUJETSWPBTAGNOTTBARCSVM")
+           ),
    b_tagging_scale_factors_c_jets = cms.PSet(
-      jet_type = cms.string("c"),
-      from_globaltag = cms.bool(True),
-      payload = cms.string("MUJETSWPBTAGNOTTBARCSVM")
-      ),
+           jet_type = cms.string("c"),
+           from_globaltag = cms.bool(True),
+           payload = cms.string("MUJETSWPBTAGNOTTBARCSVM")
+           ),
    b_tagging_scale_factors_light_jets = cms.PSet(
-      jet_type = cms.string("light"),
-      from_globaltag = cms.bool(False),
-      scale_factors = loadLightJetsScaleFactor()
-      ),
+           jet_type = cms.string("light"),
+           from_globaltag = cms.bool(False),
+           scale_factors = loadLightJetsScaleFactor()
+           ),
    b_tagging_scale_factors = cms.vstring("b_tagging_scale_factors_b_jets", "b_tagging_scale_factors_c_jets", "b_tagging_scale_factors_light_jets"),
-
-
-##
-## Finally you put some details on the analysis
-##
-
-   doDimuon      = cms.untracked.bool(False),
-   do4TopHLT     = cms.untracked.bool(False),
-   n_events = cms.untracked.int32(10000),  # How many events you want to analyze (only if fillTree=False)
-
-   # The analysis settings could be whatever you want
-   # 
-   # Format is "STRING VALUE" where STRING is the name of the cut, and VALUE the value of the cut
-
-   # Here we define for example the cuts for the dimuon analysis
-                               
-   analysisSettings = cms.untracked.vstring()
 )
