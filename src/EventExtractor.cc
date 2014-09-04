@@ -1,6 +1,7 @@
 #include "../interface/EventExtractor.h"
 
-EventExtractor::EventExtractor(const std::string& name)
+EventExtractor::EventExtractor(const std::string& name, const edm::ParameterSet& parameters):
+  SuperBaseExtractor(name, parameters)
 {
   // Tree definition
 
@@ -23,11 +24,12 @@ EventExtractor::EventExtractor(const std::string& name)
   EventExtractor::reset();
 }
 
-EventExtractor::EventExtractor(const std::string& name, TFile *a_file)
+EventExtractor::EventExtractor(const std::string& name, const edm::ParameterSet& settings, TFile *file):
+  SuperBaseExtractor(name, settings, file)
 {
   // Tree definition
 
-  m_tree_event = dynamic_cast<TTree*>(a_file->Get(name.c_str()));
+  m_tree_event = dynamic_cast<TTree*>(file->Get(name.c_str()));
 
 
   if (!m_tree_event)
@@ -138,3 +140,6 @@ void EventExtractor::print()
   std::cout << "From run           : " << EventExtractor::run() << std::endl;
   std::cout << "------------------------------------" << std::endl;
 }
+
+DEFINE_EDM_PLUGIN(PatExtractorExtractorFactory, EventExtractor, "event_extractor");
+DEFINE_EDM_PLUGIN(PatExtractorExtractorReadOnlyFactory, EventExtractor, "event_extractor");

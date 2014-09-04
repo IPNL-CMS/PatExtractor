@@ -91,14 +91,10 @@ void printout(const RefCountedKinematicTree& myTree)
 
 //-------------------------------------------------------------------------
 
-  PFpartExtractor::PFpartExtractor(const std::string& name, const edm::InputTag& tag, bool doTree)
-: BaseExtractor(name)
+  PFpartExtractor::PFpartExtractor(const std::string& name, const edm::ParameterSet& settings):
+    BaseExtractor(name, settings)
 {
-  m_tag = tag;
-
   // Set everything to 0
-  m_OK = false;
-
   m_pf_lorentzvector = new TClonesArray("TLorentzVector");
 
   m_jpsimu_lorentzvector     = new TClonesArray("TLorentzVector");
@@ -111,54 +107,50 @@ void printout(const RefCountedKinematicTree& myTree)
 
   // Tree definition
 
-  if (doTree)
-  {
-    m_OK = true;
-    m_tree_pfpart         = new TTree(name.c_str(), "PF particles info");     
-    m_tree_pfpart->Branch("n_pf",      &m_pf_size,   "n_pf/I");  
-    m_tree_pfpart->Branch("pf_4vector","TClonesArray",&m_pf_lorentzvector, 1000, 0);
-    m_tree_pfpart->Branch("pf_vx",     &m_pf_vx,     "pf_vx[n_pf]/F");  
-    m_tree_pfpart->Branch("pf_vy",     &m_pf_vy,     "pf_vy[n_pf]/F");  
-    m_tree_pfpart->Branch("pf_vz",     &m_pf_vz,     "pf_vz[n_pf]/F");  
-    m_tree_pfpart->Branch("pf_charge", &m_pf_charge, "pf_charge[n_pf]/I");
-    m_tree_pfpart->Branch("pf_pdgid",  &m_pf_pdgid,  "pf_charge[n_pf]/I");
-    m_tree_pfpart->Branch("pf_trkLayer", &m_pf_trkLayer,  "pf_trkLayer[n_pf]/I");
-    m_tree_pfpart->Branch("pf_pixLayer", &m_pf_pixLayer,  "pf_pixLayer[n_pf]/I");
-    m_tree_pfpart->Branch("pf_trknormChi2", &m_pf_trknormChi2,  "pf_trknormChi2[n_pf]/F");
-    m_tree_pfpart->Branch("pf_numberOfChambers", &m_pf_numberOfChambers,  "pf_numberOfChambers[n_pf]/I");
-    m_tree_pfpart->Branch("pf_numberOfMatchedStations", &m_pf_numberOfMatchedStations,  "pf_numberOfMatchedStations[n_pf]/I");
-    m_tree_pfpart->Branch("pf_isGlobalMuon", &m_pf_isGlobalMuon,  "pf_isGlobalMuon[n_pf]/O");
-    m_tree_pfpart->Branch("pf_isTrackerMuon", &m_pf_isTrackerMuon,  "pf_isTrackerMuon[n_pf]/O");
-    m_tree_pfpart->Branch("pf_isStandAloneMuon", &m_pf_isStandAloneMuon,  "pf_isStandAloneMuon[n_pf]/O");
-    m_tree_pfpart->Branch("pf_isCaloMuon", &m_pf_isCaloMuon,  "pf_isCaloMuon[n_pf]/O");
-    m_tree_pfpart->Branch("pf_isPFMuon", &m_pf_isPFMuon,  "pf_isPFMuon[n_pf]/O");
-    m_tree_pfpart->Branch("pf_isRPCMuon", &m_pf_isRPCMuon,  "pf_isRPCMuon[n_pf]/O");
+  m_OK = true;
+  m_tree_pfpart         = new TTree(name.c_str(), "PF particles info");     
+  m_tree_pfpart->Branch("n_pf",      &m_pf_size,   "n_pf/I");  
+  m_tree_pfpart->Branch("pf_4vector","TClonesArray",&m_pf_lorentzvector, 1000, 0);
+  m_tree_pfpart->Branch("pf_vx",     &m_pf_vx,     "pf_vx[n_pf]/F");  
+  m_tree_pfpart->Branch("pf_vy",     &m_pf_vy,     "pf_vy[n_pf]/F");  
+  m_tree_pfpart->Branch("pf_vz",     &m_pf_vz,     "pf_vz[n_pf]/F");  
+  m_tree_pfpart->Branch("pf_charge", &m_pf_charge, "pf_charge[n_pf]/I");
+  m_tree_pfpart->Branch("pf_pdgid",  &m_pf_pdgid,  "pf_charge[n_pf]/I");
+  m_tree_pfpart->Branch("pf_trkLayer", &m_pf_trkLayer,  "pf_trkLayer[n_pf]/I");
+  m_tree_pfpart->Branch("pf_pixLayer", &m_pf_pixLayer,  "pf_pixLayer[n_pf]/I");
+  m_tree_pfpart->Branch("pf_trknormChi2", &m_pf_trknormChi2,  "pf_trknormChi2[n_pf]/F");
+  m_tree_pfpart->Branch("pf_numberOfChambers", &m_pf_numberOfChambers,  "pf_numberOfChambers[n_pf]/I");
+  m_tree_pfpart->Branch("pf_numberOfMatchedStations", &m_pf_numberOfMatchedStations,  "pf_numberOfMatchedStations[n_pf]/I");
+  m_tree_pfpart->Branch("pf_isGlobalMuon", &m_pf_isGlobalMuon,  "pf_isGlobalMuon[n_pf]/O");
+  m_tree_pfpart->Branch("pf_isTrackerMuon", &m_pf_isTrackerMuon,  "pf_isTrackerMuon[n_pf]/O");
+  m_tree_pfpart->Branch("pf_isStandAloneMuon", &m_pf_isStandAloneMuon,  "pf_isStandAloneMuon[n_pf]/O");
+  m_tree_pfpart->Branch("pf_isCaloMuon", &m_pf_isCaloMuon,  "pf_isCaloMuon[n_pf]/O");
+  m_tree_pfpart->Branch("pf_isPFMuon", &m_pf_isPFMuon,  "pf_isPFMuon[n_pf]/O");
+  m_tree_pfpart->Branch("pf_isRPCMuon", &m_pf_isRPCMuon,  "pf_isRPCMuon[n_pf]/O");
 
-    m_tree_pfpart->Branch("n_jpsi",          &m_jpsi_size,   "n_jpsi/I");
+  m_tree_pfpart->Branch("n_jpsi",          &m_jpsi_size,   "n_jpsi/I");
 
-    m_tree_pfpart->Branch("jpsi_indpf1",      &m_jpsi_indpf1,"jpsi_indpf1[n_jpsi]/I");
-    m_tree_pfpart->Branch("jpsi_indpf2",      &m_jpsi_indpf2,"jpsi_indpf2[n_jpsi]/I");
+  m_tree_pfpart->Branch("jpsi_indpf1",      &m_jpsi_indpf1,"jpsi_indpf1[n_jpsi]/I");
+  m_tree_pfpart->Branch("jpsi_indpf2",      &m_jpsi_indpf2,"jpsi_indpf2[n_jpsi]/I");
 
-    m_tree_pfpart->Branch("jpsimu_4vector",     "TClonesArray",&m_jpsimu_lorentzvector, 1000, 0);
+  m_tree_pfpart->Branch("jpsimu_4vector",     "TClonesArray",&m_jpsimu_lorentzvector, 1000, 0);
 
-    m_tree_pfpart->Branch("jpsi_4vector",    "TClonesArray",&m_jpsiraw_lorentzvector, 1000, 0);
-    m_tree_pfpart->Branch("jpsi_mu1_4vector","TClonesArray",&m_jpsiraw_mu1_lorentzvector, 1000, 0);
-    m_tree_pfpart->Branch("jpsi_mu2_4vector","TClonesArray",&m_jpsiraw_mu2_lorentzvector, 1000, 0);
-    m_tree_pfpart->Branch("jpsi_vx",	   &m_jpsiraw_vx,	"jpsiraw_vx[n_jpsi]/F");  
-    m_tree_pfpart->Branch("jpsi_vy",	   &m_jpsiraw_vy,	"jpsiraw_vy[n_jpsi]/F");  
-    m_tree_pfpart->Branch("jpsi_vz",	   &m_jpsiraw_vz,	"jpsiraw_vz[n_jpsi]/F");
-    m_tree_pfpart->Branch("jpsi_vtxvalid", &m_jpsiraw_vtxvalid, "jpsiraw_vtxvalid[n_jpsi]/O");
-    m_tree_pfpart->Branch("jpsi_vtxchi2",  &m_jpsiraw_vtxchi2,  "jpsiraw_vtxchi2[n_jpsi]/F");
-    m_tree_pfpart->Branch("jpsi_ndf",	   &m_jpsiraw_ndf,	"jpsiraw_ndf[n_jpsi]/F");  
-    m_tree_pfpart->Branch("jpsi_L3D",	   &m_jpsiraw_L3D,	"jpsiraw_L3D[n_jpsi]/F");  
-    m_tree_pfpart->Branch("jpsi_sigmaL3D", &m_jpsiraw_sigmaL3D, "jpsiraw_sigmaL3D[n_jpsi]/F");  
-    m_tree_pfpart->Branch("jpsi_L3DoverSigmaL3D", &m_jpsiraw_L3DoverSigmaL3D, "jpsiraw_L3DoverSigmaL3D[n_jpsi]/F");  
-
-  }
+  m_tree_pfpart->Branch("jpsi_4vector",    "TClonesArray",&m_jpsiraw_lorentzvector, 1000, 0);
+  m_tree_pfpart->Branch("jpsi_mu1_4vector","TClonesArray",&m_jpsiraw_mu1_lorentzvector, 1000, 0);
+  m_tree_pfpart->Branch("jpsi_mu2_4vector","TClonesArray",&m_jpsiraw_mu2_lorentzvector, 1000, 0);
+  m_tree_pfpart->Branch("jpsi_vx",	   &m_jpsiraw_vx,	"jpsiraw_vx[n_jpsi]/F");  
+  m_tree_pfpart->Branch("jpsi_vy",	   &m_jpsiraw_vy,	"jpsiraw_vy[n_jpsi]/F");  
+  m_tree_pfpart->Branch("jpsi_vz",	   &m_jpsiraw_vz,	"jpsiraw_vz[n_jpsi]/F");
+  m_tree_pfpart->Branch("jpsi_vtxvalid", &m_jpsiraw_vtxvalid, "jpsiraw_vtxvalid[n_jpsi]/O");
+  m_tree_pfpart->Branch("jpsi_vtxchi2",  &m_jpsiraw_vtxchi2,  "jpsiraw_vtxchi2[n_jpsi]/F");
+  m_tree_pfpart->Branch("jpsi_ndf",	   &m_jpsiraw_ndf,	"jpsiraw_ndf[n_jpsi]/F");  
+  m_tree_pfpart->Branch("jpsi_L3D",	   &m_jpsiraw_L3D,	"jpsiraw_L3D[n_jpsi]/F");  
+  m_tree_pfpart->Branch("jpsi_sigmaL3D", &m_jpsiraw_sigmaL3D, "jpsiraw_sigmaL3D[n_jpsi]/F");  
+  m_tree_pfpart->Branch("jpsi_L3DoverSigmaL3D", &m_jpsiraw_L3DoverSigmaL3D, "jpsiraw_L3DoverSigmaL3D[n_jpsi]/F");  
 }
 
-  PFpartExtractor::PFpartExtractor(const std::string& name, TFile *a_file)
-:BaseExtractor(name)
+  PFpartExtractor::PFpartExtractor(const std::string& name, const edm::ParameterSet& settings, TFile *a_file):
+    BaseExtractor(name, settings, a_file)
 {
   std::cout << "PFpartExtractor objet is retrieved" << std::endl;
 
@@ -552,3 +544,5 @@ void PFpartExtractor::getInfo(int ievt)
   m_tree_pfpart->GetEntry(ievt); 
 }
 
+DEFINE_EDM_PLUGIN(PatExtractorExtractorFactory, PFpartExtractor, "pfparticle_extractor");
+DEFINE_EDM_PLUGIN(PatExtractorExtractorReadOnlyFactory, PFpartExtractor, "pfparticle_extractor");

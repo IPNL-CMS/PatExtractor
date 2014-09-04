@@ -36,8 +36,8 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
 
   public:
 
-    MuonExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, const edm::InputTag& tag, const edm::InputTag& vertexTag, bool doTree);
-    MuonExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, TFile *a_file);
+    MuonExtractor(const std::string& name, const edm::ParameterSet&);
+    MuonExtractor(const std::string& name, const edm::ParameterSet&, TFile *a_file);
     virtual ~MuonExtractor();
     virtual void doConsumes(edm::ConsumesCollector&& collector);
 

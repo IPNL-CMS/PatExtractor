@@ -3,9 +3,12 @@
 #include <memory>
 #include <utility>
 
+#include <TFile.h>
+
 #include <Extractors/PatExtractor/interface/ScaleFactorService.h>
 
 #include <FWCore/Framework/interface/ConsumesCollector.h>
+#include <FWCore/PluginManager/interface/PluginFactory.h>
 
 namespace edm {
   class EventSetup;
@@ -17,7 +20,8 @@ class MCExtractor;
 class SuperBaseExtractor
 {
   public:
-    SuperBaseExtractor(std::shared_ptr<ScaleFactorService> sf = std::shared_ptr<ScaleFactorService>()): m_isMC(false), m_OK(false), m_scaleFactorService(sf) {} 
+    SuperBaseExtractor(const std::string& name, const edm::ParameterSet&): m_name(name), m_isMC(false), m_OK(false) {} 
+    SuperBaseExtractor(const std::string& name, const edm::ParameterSet&, TFile *file): m_name(name), m_isMC(false), m_OK(false) {}
     virtual ~SuperBaseExtractor() {}
 
     virtual void doConsumes(edm::ConsumesCollector&& collector) {
@@ -46,13 +50,14 @@ class SuperBaseExtractor
     }
 
   protected:
+    std::string m_name;
     bool m_isMC;
     bool m_OK;
-
-    std::shared_ptr<ScaleFactorService> m_scaleFactorService;
 
   private:
     bool m_superCalled = false;
     
 };
 
+typedef edmplugin::PluginFactory<SuperBaseExtractor* (const std::string&, const edm::ParameterSet&)> PatExtractorExtractorFactory;
+typedef edmplugin::PluginFactory<SuperBaseExtractor* (const std::string&, const edm::ParameterSet&, TFile*)> PatExtractorExtractorReadOnlyFactory;

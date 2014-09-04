@@ -32,8 +32,8 @@ class PhotonExtractor: public BaseExtractor<pat::Photon>
 
   public:
 
-    PhotonExtractor(const std::string& name, const edm::InputTag& tag, bool doTree);
-    PhotonExtractor(const std::string& name, TFile *a_file);
+    PhotonExtractor(const std::string& name, const edm::ParameterSet&);
+    PhotonExtractor(const std::string& name, const edm::ParameterSet&, TFile *a_file);
     virtual ~PhotonExtractor();
     virtual void doConsumes(edm::ConsumesCollector&& collector);
     

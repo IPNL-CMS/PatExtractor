@@ -107,8 +107,8 @@ class HLTExtractor: public SuperBaseExtractor
 
  public:
 
-  HLTExtractor(const std::string& name, bool doTree, const edm::ParameterSet& config);
-  HLTExtractor(const std::string& name, TFile *a_file);
+  HLTExtractor(const std::string& name, const edm::ParameterSet& config);
+  HLTExtractor(const std::string& name, const edm::ParameterSet& config, TFile *a_file);
   ~HLTExtractor();
   virtual void doConsumes(edm::ConsumesCollector&& collector);
 

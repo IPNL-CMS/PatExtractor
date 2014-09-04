@@ -18,17 +18,7 @@
 #include "FWCore/Utilities/interface/InputTag.h"
 
 #include "../interface/BaseExtractor.h"
-#include "../interface/ElectronExtractor.h"
-#include "../interface/MCExtractor.h"
-#include "../interface/PhotonExtractor.h"
-#include "../interface/JetMETExtractor.h"
-#include "../interface/METExtractor.h"
-#include "../interface/MuonExtractor.h"
-#include "../interface/VertexExtractor.h"
 #include "../interface/EventExtractor.h"
-#include "../interface/HLTExtractor.h"
-#include "../interface/TrackExtractor.h"
-#include "../interface/PFpartExtractor.h"
 #include "../interface/ScaleFactorService.h"
 
 #include <Extractors/PatExtractor/interface/ExtractorPlugin.h>
@@ -59,48 +49,27 @@ class PatExtractor : public edm::EDAnalyzer {
   void retrieve(const edm::ParameterSet&);
 
   std::shared_ptr<SuperBaseExtractor> getExtractor(const std::string& name) {
-    return m_extractors[m_extractorsIndexes[name]];
+    if (m_extractorsIndexes.count(name))
+      return m_extractors[m_extractorsIndexes[name]];
+    else
+      return std::shared_ptr<SuperBaseExtractor>();
   }
 
  private:
 
-  void addExtractor(const std::string& name, SuperBaseExtractor* extractor) {
-    m_extractors.push_back(std::shared_ptr<SuperBaseExtractor>(extractor));
+  void addExtractor(const std::string& name, const std::shared_ptr<SuperBaseExtractor>& extractor) {
+    m_extractors.push_back(extractor);
     m_extractorsIndexes[name] = m_extractors.size() - 1;
   }
 
   bool is_MC_;
-
   bool do_fill_;
-  bool do_HLT_;
-  bool do_MC_;
-  bool do_MCjpsi_;
-  bool do_Photon_;
-  bool do_Electron_;
-
-  bool do_Jet_;
-  bool do_Muon_;
-  bool do_MET_;
-  bool do_Vertex_;
-  bool do_Trk_;
-  bool do_PF_;
-
   int  nevts_;
-
-  edm::InputTag photon_tag_;   // 
-  edm::InputTag electron_tag_; // 
-  edm::InputTag muon_tag_;     // 
-  edm::InputTag MC_tag_;       // 
-  edm::InputTag vtx_tag_;      // 
-  edm::InputTag trk_tag_;      // 
-  edm::InputTag pf_tag_;      //
 
   // Definition of root-tuple :
 
   std::string outFilename_;
   std::string inFilename_;
-
-  std::vector<std::string> m_settings_;
 
   TFile* m_infile;
   TFile* m_outfile;
@@ -111,8 +80,6 @@ class PatExtractor : public edm::EDAnalyzer {
   std::vector<std::shared_ptr<patextractor::Plugin>> m_plugins;
 
   int iseventselected;
-
-  std::shared_ptr<ScaleFactorService> m_scaleFactors;
 };
 
 

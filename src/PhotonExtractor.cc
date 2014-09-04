@@ -1,10 +1,9 @@
 #include "../interface/PhotonExtractor.h"
 
 
-PhotonExtractor::PhotonExtractor(const std::string& name, const edm::InputTag& tag, bool doTree)
-  : BaseExtractor(name)
+PhotonExtractor::PhotonExtractor(const std::string& name, const edm::ParameterSet& settings)
+  : BaseExtractor(name, settings)
 {
-  m_tag = tag;
   m_deltaR_cut = 0.2; // Maximum acceptable distance for MC matching
   
   // Set everything to 0
@@ -15,28 +14,26 @@ PhotonExtractor::PhotonExtractor(const std::string& name, const edm::InputTag& t
 
   // Tree definition
 
-  if (doTree)
-  {
-    m_tree_photon   = new TTree(name.c_str(), "PAT photon info");  
-    m_tree_photon->Branch("n_photons",  &m_size, "n_photons/i");  
-    m_tree_photon->Branch("photon_4vector","TClonesArray",&m_pho_lorentzvector, 1000, 0);    
-    m_tree_photon->Branch("photon_vx",  &m_pho_vx,   "photon_vx[n_photons]/F");  
-    m_tree_photon->Branch("photon_vy",  &m_pho_vy,   "photon_vy[n_photons]/F");  
-    m_tree_photon->Branch("photon_vz",  &m_pho_vz,   "photon_vz[n_photons]/F");
-    m_tree_photon->Branch("photon_hasPixelSeed",  &m_pho_hasPixelSeed, "photon_hasPixelSeed[n_photons]/O");
-    m_tree_photon->Branch("photon_hadTowOverEm",  &m_pho_hadTowOverEm,   "photon_hadTowOverEm[n_photons]/F");
-    m_tree_photon->Branch("photon_sigmaIetaIeta",  &m_pho_sigmaIetaIeta,   "photon_sigmaIetaIeta[n_photons]/F");
-    m_tree_photon->Branch("photon_hasMatchedPromptElectron",  &m_pho_hasMatchedPromptElectron,   "photon_hasMatchedPromptElectron[n_photons]/O");
-    m_tree_photon->Branch("photon_chargedHadronsIsolation", &m_pho_chargedHadronsIsolation, "photon_chargedHadronsIsolation[n_photons]/F");
-    m_tree_photon->Branch("photon_neutralHadronsIsolation",  &m_pho_neutralHadronsIsolation,   "photon_neutralHadronsIsolation[n_photons]/F");
-    m_tree_photon->Branch("photon_photonIsolation",  &m_pho_photonIsolation,   "photon_photonIsolation[n_photons]/F");
-    m_tree_photon->Branch("photon_mcParticleIndex",&m_pho_MCIndex,"photon_mcParticleIndex[n_photons]/I");  
-  }
+  m_OK = true;
+  m_tree_photon   = new TTree(name.c_str(), "PAT photon info");  
+  m_tree_photon->Branch("n_photons",  &m_size, "n_photons/i");  
+  m_tree_photon->Branch("photon_4vector","TClonesArray",&m_pho_lorentzvector, 1000, 0);    
+  m_tree_photon->Branch("photon_vx",  &m_pho_vx,   "photon_vx[n_photons]/F");  
+  m_tree_photon->Branch("photon_vy",  &m_pho_vy,   "photon_vy[n_photons]/F");  
+  m_tree_photon->Branch("photon_vz",  &m_pho_vz,   "photon_vz[n_photons]/F");
+  m_tree_photon->Branch("photon_hasPixelSeed",  &m_pho_hasPixelSeed, "photon_hasPixelSeed[n_photons]/O");
+  m_tree_photon->Branch("photon_hadTowOverEm",  &m_pho_hadTowOverEm,   "photon_hadTowOverEm[n_photons]/F");
+  m_tree_photon->Branch("photon_sigmaIetaIeta",  &m_pho_sigmaIetaIeta,   "photon_sigmaIetaIeta[n_photons]/F");
+  m_tree_photon->Branch("photon_hasMatchedPromptElectron",  &m_pho_hasMatchedPromptElectron,   "photon_hasMatchedPromptElectron[n_photons]/O");
+  m_tree_photon->Branch("photon_chargedHadronsIsolation", &m_pho_chargedHadronsIsolation, "photon_chargedHadronsIsolation[n_photons]/F");
+  m_tree_photon->Branch("photon_neutralHadronsIsolation",  &m_pho_neutralHadronsIsolation,   "photon_neutralHadronsIsolation[n_photons]/F");
+  m_tree_photon->Branch("photon_photonIsolation",  &m_pho_photonIsolation,   "photon_photonIsolation[n_photons]/F");
+  m_tree_photon->Branch("photon_mcParticleIndex",&m_pho_MCIndex,"photon_mcParticleIndex[n_photons]/I");  
 }
 
 
-PhotonExtractor::PhotonExtractor(const std::string& name, TFile *a_file)
-  : BaseExtractor(name)
+PhotonExtractor::PhotonExtractor(const std::string& name, const edm::ParameterSet& settings, TFile *a_file)
+  : BaseExtractor(name, settings)
 {
   std::cout << "PhotonExtractor objet is retrieved" << std::endl;
 
@@ -268,3 +265,6 @@ void PhotonExtractor::fillTree()
 {
   m_tree_photon->Fill(); 
 }
+
+DEFINE_EDM_PLUGIN(PatExtractorExtractorFactory, PhotonExtractor, "photon_extractor");
+DEFINE_EDM_PLUGIN(PatExtractorExtractorReadOnlyFactory, PhotonExtractor, "photon_extractor");

@@ -35,8 +35,8 @@ class PFpartExtractor: public BaseExtractor<reco::PFCandidate>
 
   public:
 
-    PFpartExtractor(const std::string& name, const edm::InputTag& tag, bool doTree);
-    PFpartExtractor(const std::string& name, TFile* a_file);
+    PFpartExtractor(const std::string& name, const edm::ParameterSet&);
+    PFpartExtractor(const std::string& name, const edm::ParameterSet&, TFile* a_file);
     virtual ~PFpartExtractor();
     virtual void doConsumes(edm::ConsumesCollector&& collector);
     

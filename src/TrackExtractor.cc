@@ -1,10 +1,9 @@
 #include "../interface/TrackExtractor.h"
 
 
-TrackExtractor::TrackExtractor(const std::string& name, const edm::InputTag& tag, bool doTree)
-  : BaseExtractor(name)
+TrackExtractor::TrackExtractor(const std::string& name, const edm::ParameterSet& settings)
+  : BaseExtractor(name, settings)
 {
-  m_tag = tag;
 
   // Set everything to 0
   m_OK = false;
@@ -12,28 +11,25 @@ TrackExtractor::TrackExtractor(const std::string& name, const edm::InputTag& tag
 
   // Tree definition
 
-  if (doTree)
-  {
-    m_OK = true;
-    m_tree_track         = new TTree(name.c_str(), "General tracks info");     
-    m_tree_track->Branch("n_tracks",  &m_size,  "n_tracks/i");  
-    m_tree_track->Branch("track_px",  &m_trk_px,   "track_px[n_tracks]/F");  
-    m_tree_track->Branch("track_py",  &m_trk_py,   "track_py[n_tracks]/F");  
-    m_tree_track->Branch("track_pz",  &m_trk_pz,   "track_pz[n_tracks]/F"); 
-    m_tree_track->Branch("track_vx",  &m_trk_vx,   "track_vx[n_tracks]/F");  
-    m_tree_track->Branch("track_vy",  &m_trk_vy,   "track_vy[n_tracks]/F");  
-    m_tree_track->Branch("track_vz",  &m_trk_vz,   "track_vz[n_tracks]/F");  
-    m_tree_track->Branch("track_eta", &m_trk_eta,  "track_eta[n_tracks]/F");  
-    m_tree_track->Branch("track_phi", &m_trk_phi,  "track_phi[n_tracks]/F");
-    m_tree_track->Branch("track_charge", &m_trk_charge,  "track_charge[n_tracks]/I");
-    m_tree_track->Branch("track_d0",        &m_trk_d0,        "track_d0[n_tracks]/F");
-    m_tree_track->Branch("track_normChi2",  &m_trk_normChi2,  "track_normChi2[n_tracks]/F");
-    m_tree_track->Branch("track_nValidHits",&m_trk_nValidHits,"track_nValidHits[n_tracks]/I");
-  }
+  m_OK = true;
+  m_tree_track         = new TTree(name.c_str(), "General tracks info");     
+  m_tree_track->Branch("n_tracks",  &m_size,  "n_tracks/i");  
+  m_tree_track->Branch("track_px",  &m_trk_px,   "track_px[n_tracks]/F");  
+  m_tree_track->Branch("track_py",  &m_trk_py,   "track_py[n_tracks]/F");  
+  m_tree_track->Branch("track_pz",  &m_trk_pz,   "track_pz[n_tracks]/F"); 
+  m_tree_track->Branch("track_vx",  &m_trk_vx,   "track_vx[n_tracks]/F");  
+  m_tree_track->Branch("track_vy",  &m_trk_vy,   "track_vy[n_tracks]/F");  
+  m_tree_track->Branch("track_vz",  &m_trk_vz,   "track_vz[n_tracks]/F");  
+  m_tree_track->Branch("track_eta", &m_trk_eta,  "track_eta[n_tracks]/F");  
+  m_tree_track->Branch("track_phi", &m_trk_phi,  "track_phi[n_tracks]/F");
+  m_tree_track->Branch("track_charge", &m_trk_charge,  "track_charge[n_tracks]/I");
+  m_tree_track->Branch("track_d0",        &m_trk_d0,        "track_d0[n_tracks]/F");
+  m_tree_track->Branch("track_normChi2",  &m_trk_normChi2,  "track_normChi2[n_tracks]/F");
+  m_tree_track->Branch("track_nValidHits",&m_trk_nValidHits,"track_nValidHits[n_tracks]/I");
 }
 
-TrackExtractor::TrackExtractor(const std::string& name, TFile *a_file)
-  :BaseExtractor(name)
+TrackExtractor::TrackExtractor(const std::string& name, const edm::ParameterSet& settings, TFile *a_file)
+  : BaseExtractor(name, settings, a_file)
 {
   std::cout << "TrackExtractor objet is retrieved" << std::endl;
 
@@ -131,3 +127,6 @@ void TrackExtractor::getInfo(int ievt)
 {
   m_tree_track->GetEntry(ievt); 
 }
+
+DEFINE_EDM_PLUGIN(PatExtractorExtractorFactory, TrackExtractor, "track_extractor");
+DEFINE_EDM_PLUGIN(PatExtractorExtractorReadOnlyFactory, TrackExtractor, "track_extractor");

@@ -31,8 +31,8 @@ class VertexExtractor: public BaseExtractor<reco::Vertex>
 
   public:
 
-    VertexExtractor(const std::string& name, const edm::InputTag& tag, bool doTree);
-    VertexExtractor(const std::string& name, TFile *a_file);
+    VertexExtractor(const std::string& name, const edm::ParameterSet&);
+    VertexExtractor(const std::string& name, const edm::ParameterSet&, TFile *a_file);
     virtual ~VertexExtractor();
 
     void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const reco::Vertex& part, int index); 
