@@ -217,7 +217,7 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
 
   if (part.gsfTrack().isNonnull())
   {
-    m_ele_numberOfMissedInnerLayer[index] = part.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS);
+    m_ele_numberOfMissedInnerLayer[index] = part.gsfTrack()->trackerExpectedHitsInner().numberOfHits();
   }
 
   if (m_isPF)
