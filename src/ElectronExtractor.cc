@@ -285,8 +285,7 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
         chIso03,
         phIso03,
         nhIso03,
-        rhoIso,
-        ea);
+        rhoIso);
 
     m_ele_passLooseID[index] = EgammaCutBasedEleId::PassWP(
         EgammaCutBasedEleId::LOOSE,
@@ -297,8 +296,7 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
         chIso03,
         phIso03,
         nhIso03,
-        rhoIso,
-        ea);
+        rhoIso);
 
     m_ele_passMediumID[index] = EgammaCutBasedEleId::PassWP(
         EgammaCutBasedEleId::MEDIUM,
@@ -309,8 +307,7 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
         chIso03,
         phIso03,
         nhIso03,
-        rhoIso,
-        ea);
+        rhoIso);
 
     m_ele_passTightID[index] = EgammaCutBasedEleId::PassWP(
         EgammaCutBasedEleId::TIGHT,
@@ -321,8 +318,7 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
         chIso03,
         phIso03,
         nhIso03,
-        rhoIso,
-        ea);
+        rhoIso);
 
     // Compute effective area
     float AEff03 = ElectronEffectiveArea::GetElectronEffectiveArea(ElectronEffectiveArea::kEleGammaAndNeutralHadronIso03, part.superCluster()->eta(), ea);
