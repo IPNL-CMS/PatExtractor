@@ -54,8 +54,8 @@ EventExtractor::EventExtractor(const std::string& name, TFile *a_file)
 EventExtractor::~EventExtractor()
 {}
 
-void EventExtractor::beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode) {
-  SuperBaseExtractor::beginJob(std::forward<edm::ConsumesCollector>(collector), isInAnalysisMode);
+void EventExtractor::doConsumes(edm::ConsumesCollector&& collector) {
+  SuperBaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
 
   if (m_isMC) {
     m_puSummaryToken = collector.consumes<std::vector<PileupSummaryInfo>>(edm::InputTag("addPileupInfo"));

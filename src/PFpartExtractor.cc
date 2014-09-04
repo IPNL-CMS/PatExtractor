@@ -192,8 +192,8 @@ void printout(const RefCountedKinematicTree& myTree)
 PFpartExtractor::~PFpartExtractor()
 {}
 
-void PFpartExtractor::beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode) {
-  BaseExtractor::beginJob(std::forward<edm::ConsumesCollector>(collector), isInAnalysisMode);
+void PFpartExtractor::doConsumes(edm::ConsumesCollector&& collector) {
+  BaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
 
   m_primaryVerticesToken = collector.consumes<reco::VertexCollection>(edm::InputTag("offlinePrimaryVertices"));
 }

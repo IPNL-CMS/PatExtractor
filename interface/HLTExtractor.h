@@ -110,7 +110,7 @@ class HLTExtractor: public SuperBaseExtractor
   HLTExtractor(const std::string& name, bool doTree, const edm::ParameterSet& config);
   HLTExtractor(const std::string& name, TFile *a_file);
   ~HLTExtractor();
-  virtual void beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode);
+  virtual void doConsumes(edm::ConsumesCollector&& collector);
 
   virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor);
   void getInfo(int ievt); 

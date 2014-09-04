@@ -180,8 +180,8 @@ MuonExtractor::~MuonExtractor()
   delete m_muo_lorentzvector;
 }
 
-void MuonExtractor::beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode) {
-  BaseExtractor::beginJob(std::forward<edm::ConsumesCollector>(collector), isInAnalysisMode);
+void MuonExtractor::doConsumes(edm::ConsumesCollector&& collector) {
+  BaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
 
   m_vertexToken = collector.consumes<reco::VertexCollection>(m_vertexTag);
 }

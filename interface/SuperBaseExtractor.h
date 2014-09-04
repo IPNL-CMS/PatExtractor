@@ -19,6 +19,11 @@ class SuperBaseExtractor
   public:
     SuperBaseExtractor(std::shared_ptr<ScaleFactorService> sf = std::shared_ptr<ScaleFactorService>()): m_isMC(false), m_OK(false), m_scaleFactorService(sf) {} 
     virtual ~SuperBaseExtractor() {}
+
+    virtual void doConsumes(edm::ConsumesCollector&& collector) {
+      m_superCalled = true;
+    }
+
     virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor) = 0;
     virtual void getInfo(int ievt) = 0;
 
@@ -30,9 +35,7 @@ class SuperBaseExtractor
       m_isMC = isMC;
     }
 
-    virtual void beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode) {
-      m_superCalled = true;
-    }
+    virtual void beginJob(bool isInAnalysisMode) {}
 
     virtual void endJob(bool isInAnalysisMode) {}
 

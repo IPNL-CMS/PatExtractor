@@ -170,8 +170,8 @@ ElectronExtractor::~ElectronExtractor() {
   delete m_ele_lorentzvector;
 }
 
-void ElectronExtractor::beginJob(edm::ConsumesCollector&& collector, bool isInAnalysisMode) {
-  BaseExtractor::beginJob(std::forward<edm::ConsumesCollector>(collector), isInAnalysisMode);
+void ElectronExtractor::doConsumes(edm::ConsumesCollector&& collector) {
+  BaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
 
   m_allConversionsToken = collector.consumes<reco::ConversionCollection>(edm::InputTag("allConversions"));
   m_offlineBeamSpotToken = collector.consumes<reco::BeamSpot>(edm::InputTag("offlineBeamSpot"));
