@@ -95,6 +95,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
 
 
     float getJetBTagProb_CSV(int jetidx) const { return m_jet_btag_CSV[jetidx]; }
+    float getJetBTagProb_CSVInclusive(int jetidx) const { return m_jet_btag_CSVInclusive[jetidx]; }
     float getJetBTagProb_TCHP(int jetidx) const { return m_jet_btag_TCHP[jetidx]; }
 
     //float getJetBTagProb_SSVHP(int jetidx) {return m_jet_btag_SSVHP[jetidx];}
@@ -137,6 +138,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     int isPFJetLoose(int muidx) const { return m_jet_isPFJetLoose[muidx]; }
     
     // PU jet ID
+    float getPuJetFullDiscriminant(int muidx) const { return m_jet_puJetFullDiscriminant[muidx]; }
     int getPuJetFullId(int muidx) const { return m_jet_puJetFullId[muidx]; }
     int getPuJetCutBasedId(int muidx) const { return m_jet_puJetCutBasedId[muidx]; }
 
@@ -213,21 +215,18 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     float	m_jet_nhadEfrac[m_jets_MAX];
     int   m_jet_isPFJetLoose[m_jets_MAX];
 
-    //float	m_jet_btag_BjetProb[m_jets_MAX];
-    //float	m_jet_btag_SSVHE[m_jets_MAX];
-    //float	m_jet_btag_SSVHP[m_jets_MAX];
-    //float	m_jet_btag_TCHE[m_jets_MAX];
     float	m_jet_btag_jetProb[m_jets_MAX];
     float	m_jet_btag_TCHP[m_jets_MAX];
     float	m_jet_btag_CSV[m_jets_MAX];
+    float	m_jet_btag_CSVInclusive[m_jets_MAX];
     
     //PuJetId
+    int    m_jet_puJetFullDiscriminant[m_jets_MAX];
     int    m_jet_puJetFullId[m_jets_MAX];
     int    m_jet_puJetCutBasedId[m_jets_MAX];
     // is loose wp  : 4
     // is medium wp : 6
     // is tight wp  : 7
-
 
     int  m_jet_MCIndex[m_jets_MAX];
 
