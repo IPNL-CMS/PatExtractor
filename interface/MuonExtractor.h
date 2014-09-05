@@ -77,6 +77,19 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
     // Setters/Getters
 
     TLorentzVector *getMuLorentzVector(int muidx) {return (TLorentzVector*)m_muo_lorentzvector->At(muidx);}
+
+    int isLooseMuon(size_t index) const {
+      return m_muo_isLoose[index];
+    }
+
+    int isSoftMuon(size_t index) const {
+      return m_muo_isSoft[index];
+    }
+
+    int isTightMuon(size_t index) const {
+      return m_muo_isTight[index];
+    }
+
     int getMuisHighPt(int muidx) {return m_muo_isHighPt[muidx];}
     int getMuisGlobal(int muidx) {return m_muo_isGlobal[muidx];}
     int getMuisGood(int muidx) {return m_muo_isGood[muidx];}
@@ -139,6 +152,9 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
     float	m_muo_vx[m_muons_MAX];
     float	m_muo_vy[m_muons_MAX];
     float	m_muo_vz[m_muons_MAX];
+    int 	m_muo_isLoose[m_muons_MAX];
+    int 	m_muo_isSoft[m_muons_MAX];
+    int 	m_muo_isTight[m_muons_MAX];
     int 	m_muo_isHighPt[m_muons_MAX];
     int 	m_muo_isGlobal[m_muons_MAX];
     int 	m_muo_isGood[m_muons_MAX];
