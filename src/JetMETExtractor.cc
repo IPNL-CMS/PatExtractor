@@ -108,18 +108,19 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
   m_tree_jet->Branch("jet_nemEfrac",      &m_jet_nemEfrac,     "jet_nemEfrac[n_jets]/F");
   m_tree_jet->Branch("jet_nhadEfrac",     &m_jet_nhadEfrac,    "jet_nhadEfrac[n_jets]/F");
   m_tree_jet->Branch("jet_isPFJetLoose",  &m_jet_isPFJetLoose, "jet_isPFJetLoose[n_jets]/I");
-  m_tree_jet->Branch("jet_puJetFullId",       &m_jet_puJetFullId,      "jet_puJetFullId[n_jets]/I");
-  m_tree_jet->Branch("jet_puJetCutBasedId",       &m_jet_puJetCutBasedId,      "jet_puJetCutBasedId[n_jets]/I");
+
+
+  m_tree_jet->Branch("jet_puJetFullDiscriminant", &m_jet_puJetFullDiscriminant, "jet_puJetFullDiscriminant[n_jets]/I");
+  m_tree_jet->Branch("jet_puJetFullId", &m_jet_puJetFullId, "jet_puJetFullId[n_jets]/I");
+  m_tree_jet->Branch("jet_puJetCutBasedId", &m_jet_puJetCutBasedId, "jet_puJetCutBasedId[n_jets]/I");
 
   // 2012 b-tag algo
-  m_tree_jet->Branch("jet_btag_jetProb",  &m_jet_btag_jetProb, "jet_btag_jetProb[n_jets]/F");
-  m_tree_jet->Branch("jet_btag_TCHP",    &m_jet_btag_TCHP,   "jet_btag_TCHP[n_jets]/F");
-  m_tree_jet->Branch("jet_btag_CSV",    &m_jet_btag_CSV,   "jet_btag_CSV[n_jets]/F");
+  m_tree_jet->Branch("jet_btag_jetProb", &m_jet_btag_jetProb, "jet_btag_jetProb[n_jets]/F");
+  m_tree_jet->Branch("jet_btag_TCHP", &m_jet_btag_TCHP, "jet_btag_TCHP[n_jets]/F");
+  m_tree_jet->Branch("jet_btag_CSV", &m_jet_btag_CSV, "jet_btag_CSV[n_jets]/F");
+  // 2015
+  m_tree_jet->Branch("jet_btag_CSVInclusive", &m_jet_btag_CSVInclusive, "jet_btag_CSVInclusive[n_jets]/F");
 
-  //m_tree_jet->Branch("jet_btag_BjetProb", &m_jet_btag_BjetProb,"jet_btag_BjetProb[n_jets]/F");
-  //m_tree_jet->Branch("jet_btag_SSVHE",    &m_jet_btag_SSVHE,   "jet_btag_SSVHE[n_jets]/F");
-  //m_tree_jet->Branch("jet_btag_SSVHP",    &m_jet_btag_SSVHP,   "jet_btag_SSVHP[n_jets]/F");
-  //m_tree_jet->Branch("jet_btag_TCHE",    &m_jet_btag_TCHE,   "jet_btag_TCHE[n_jets]/F");
   m_tree_jet->Branch("jet_mcParticleIndex",&m_jet_MCIndex,"jet_mcParticleIndex[n_jets]/I");
 
   m_tree_jet->Branch("jet_algo_parton_flavor", &m_jet_algo_parton_flavor, "jet_algo_parton_flavor[n_jets]/I");
@@ -215,25 +216,22 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
       m_tree_jet->SetBranchAddress("jet_nhadEfrac",     &m_jet_nhadEfrac);
     if (m_tree_jet->FindBranch("jet_isPFJetLoose")) 
       m_tree_jet->SetBranchAddress("jet_isPFJetLoose",  &m_jet_isPFJetLoose);
-    if (m_tree_jet->FindBranch("jet_puJetFullId")) 
-      m_tree_jet->SetBranchAddress("jet_puJetFullId",  &m_jet_puJetFullId);
-    if (m_tree_jet->FindBranch("jet_puJetCutBasedId")) 
-      m_tree_jet->SetBranchAddress("jet_puJetCutBasedId",  &m_jet_puJetCutBasedId);
-    /*  if (m_tree_jet->FindBranch("jet_btag_BjetProb")) 
-        m_tree_jet->SetBranchAddress("jet_btag_BjetProb", &m_jet_btag_BjetProb);
-        if (m_tree_jet->FindBranch("jet_btag_SSVHE")) 
-        m_tree_jet->SetBranchAddress("jet_btag_SSVHE",    &m_jet_btag_SSVHE);
-        if (m_tree_jet->FindBranch("jet_btag_SSVHP")) 
-        m_tree_jet->SetBranchAddress("jet_btag_SSVHP",    &m_jet_btag_SSVHP);
-        if (m_tree_jet->FindBranch("jet_btag_TCHE")) 
-        m_tree_jet->SetBranchAddress("jet_btag_TCHE",     &m_jet_btag_TCHE);  */
 
-    if (m_tree_jet->FindBranch("jet_btag_jetProb")) 
+    if (m_tree_jet->FindBranch("jet_puJetFullDiscriminant"))
+      m_tree_jet->SetBranchAddress("jet_puJetFullDiscriminant",  &m_jet_puJetFullDiscriminant);
+    if (m_tree_jet->FindBranch("jet_puJetFullId"))
+      m_tree_jet->SetBranchAddress("jet_puJetFullId",  &m_jet_puJetFullId);
+    if (m_tree_jet->FindBranch("jet_puJetCutBasedId"))
+      m_tree_jet->SetBranchAddress("jet_puJetCutBasedId",  &m_jet_puJetCutBasedId);
+
+    if (m_tree_jet->FindBranch("jet_btag_jetProb"))
       m_tree_jet->SetBranchAddress("jet_btag_jetProb",  &m_jet_btag_jetProb);
-    if (m_tree_jet->FindBranch("jet_btag_TCHP")) 
+    if (m_tree_jet->FindBranch("jet_btag_TCHP"))
       m_tree_jet->SetBranchAddress("jet_btag_TCHP",     &m_jet_btag_TCHP);
     if (m_tree_jet->FindBranch("jet_btag_CSV")) 
       m_tree_jet->SetBranchAddress("jet_btag_CSV",      &m_jet_btag_CSV);
+    if (m_tree_jet->FindBranch("jet_btag_CSVInclusive")) 
+      m_tree_jet->SetBranchAddress("jet_btag_CSVInclusive", &m_jet_btag_CSVInclusive);
 
     if (m_tree_jet->FindBranch("jet_algo_parton_flavor"))
       m_tree_jet->SetBranchAddress("jet_algo_parton_flavor", &m_jet_algo_parton_flavor);
@@ -469,20 +467,17 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
 
     // PU Jet ID from JetToolBox
     // https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetToolbox
-    m_jet_puJetFullId[index]       = part.hasUserInt("pileupJetIdEvaluator:fullId") ? part.userFloat("pileupJetIdEvaluator:fullId") : -1;
-    m_jet_puJetCutBasedId[index]   = part.hasUserInt("pileupJetIdEvaluator:cutbasedId") ? part.userFloat("pileupJetIdEvaluator:cutbasedId") : -1;
-
-    //m_jet_btag_jetProb[index]  = part.bDiscriminator("jetProbabilityBJetTags");
-    //m_jet_btag_BjetProb[index] = part.bDiscriminator("jetBProbabilityBJetTags");
-    //m_jet_btag_SSVHE[index]    = part.bDiscriminator("simpleSecondaryVertexHighEffBJetTags");
-    //m_jet_btag_SSVHP[index]    = part.bDiscriminator("simpleSecondaryVertexHighPurBJetTags");
-    //m_jet_btag_TCHE[index]     = part.bDiscriminator("trackCountingHighEffBJetTags");
-    //m_jet_btag_TCHP[index]     = part.bDiscriminator("trackCountingHighPurBJetTags");
+    m_jet_puJetFullDiscriminant[index] = part.hasUserFloat("pileupJetId:fullDiscriminant") ? part.userFloat("pileupJetId:fullDiscriminant") : -1;
+    m_jet_puJetFullId[index]           = part.hasUserInt("pileupJetId:fullId") ? part.userFloat("pileupJetId:fullId") : -1;
+    m_jet_puJetCutBasedId[index]       = part.hasUserInt("pileupJetId:cutbasedId") ? part.userFloat("pileupJetId:cutbasedId") : -1;
 
     // 2012: See https://twiki.cern.ch/twiki/bin/viewauth/CMS/BTagPerformanceOP
-    m_jet_btag_jetProb[index]  = part.bDiscriminator("jetProbabilityBJetTags");
-    m_jet_btag_TCHP[index]     = part.bDiscriminator("trackCountingHighPurBJetTags");
-    m_jet_btag_CSV[index]      = part.bDiscriminator("combinedSecondaryVertexBJetTags");
+    m_jet_btag_jetProb[index]      = part.bDiscriminator("jetProbabilityBJetTags");
+    m_jet_btag_TCHP[index]         = part.bDiscriminator("trackCountingHighPurBJetTags");
+    m_jet_btag_CSV[index]          = part.bDiscriminator("combinedSecondaryVertexBJetTags");
+
+    // 2015
+    m_jet_btag_CSVInclusive[index] = part.bDiscriminator("combinedInclusiveSecondaryVertexBJetTags");
   }
 
   m_jet_algo_parton_flavor[index] = part.partonFlavour();
@@ -579,16 +574,14 @@ void JetMETExtractor::reset()
     m_jet_nemEfrac[i] = 0.;
     m_jet_nhadEfrac[i] = 0.;
     m_jet_isPFJetLoose[i] = 0.;
+    m_jet_puJetFullDiscriminant[i] = 0.;
     m_jet_puJetFullId[i] = 0.;
     m_jet_puJetCutBasedId[i] = 0.;
     
-    //m_jet_btag_BjetProb[i] = 0.;
-    //m_jet_btag_SSVHE[i] = 0.;
-    //m_jet_btag_SSVHP[i] = 0.;
-    //m_jet_btag_TCHE[i] = 0.;
     m_jet_btag_jetProb[i] = 0.;
     m_jet_btag_TCHP[i] = 0.;
     m_jet_btag_CSV[i] = 0.;
+    m_jet_btag_CSVInclusive[i] = 0.;
 
     m_jet_MCIndex[i]    = -1;
 
