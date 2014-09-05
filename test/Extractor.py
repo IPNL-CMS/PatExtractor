@@ -7,11 +7,11 @@
 #########################################
 
 def readFile(file):
-  return cms.untracked.string(open(file).read())
+    return cms.untracked.string(open(file).read())
 
 import FWCore.ParameterSet.Config as cms
 
-process = cms.Process("PATextractor2")
+process = cms.Process("PATextractor")
 
 
 #########################################
@@ -31,8 +31,8 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.load("Extractors.PatExtractor.PAT_extractor_cff")
 
 process.maxEvents = cms.untracked.PSet(
-  input = cms.untracked.int32(-1) #
-  )
+        input = cms.untracked.int32(-1) #
+        )
 
 #Global tag and data type choice
 process.GlobalTag.globaltag = 'PLS170_V7AN1::All'
@@ -40,18 +40,18 @@ process.PATextraction.isMC  = isMC
 
 #Input PAT file to extract
 process.source = cms.Source("PoolSource",
-  fileNames = cms.untracked.vstring(
-      'file:Zprime750_13TeV_miniaod.root'
-      ),
-  skipEvents=cms.untracked.uint32(15278),
-  duplicateCheckMode = cms.untracked.string( 'noDuplicateCheck' ),
-  )
+        fileNames = cms.untracked.vstring(
+            'file:Zprime750_13TeV_miniaod.root'
+            ),
+        skipEvents=cms.untracked.uint32(15278),
+        duplicateCheckMode = cms.untracked.string( 'noDuplicateCheck' ),
+        )
 
 #Output extracted file name
 if isMC:
-  process.PATextraction.extractedRootFile = cms.string('extracted_mc.root')
+    process.PATextraction.extractedRootFile = cms.string('extracted_mc.root')
 else:
-  process.PATextraction.extractedRootFile = cms.string('extracted.root')
+    process.PATextraction.extractedRootFile = cms.string('extracted.root')
 
 #########################################
 #
@@ -75,15 +75,15 @@ process.PATextraction.extractors.Vertices.enable = True
 process.PATextraction.extractors.HLT.enable = True
 
 if not isMC:
-  process.PATextraction.extractorsHLT.parameters.triggers = readFile("triggers.xml")
+    process.PATextraction.extractorsHLT.parameters.triggers = readFile("triggers.xml")
 
 # Jets correction : needs a valid global tags, or an external DB where JEC are stored
 process.PATextraction.extractors.jetmet.parameters.redoJetCorrection = False
 
 if isMC:
-  process.PATextraction.extractors.jetmet.parameters.jetCorrectorLabel = "ak5PFchsL1FastL2L3"
+    process.PATextraction.extractors.jetmet.parameters.jetCorrectorLabel = "ak4PFchsL1FastL2L3"
 else:
-  process.PATextraction.extractors.jetmet.parameters.jetCorrectorLabel = "ak5PFchsL1FastL2L3Residual"
+    process.PATextraction.extractors.jetmet.parameters.jetCorrectorLabel = "ak4PFchsL1FastL2L3Residual"
 
 process.PATextraction.extractors.jetmet.parameters.doJER = False # Disable automatically on data
 
