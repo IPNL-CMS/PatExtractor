@@ -6,7 +6,7 @@ from JetMETCorrections.Configuration.JetCorrectionProducers_cff import *
 from Extractors.PatExtractor.PAT_extractor_cfi import *
 
 # Customize input collection to use ones from miniAOD
-PATextraction.extractors.MC.parameters.input = cms.InputTag("packedGenParticles")
+PATextraction.extractors.MC.parameters.input = cms.InputTag("prunedGenParticles")
 
 PATextraction.extractors.track.enable = False
 
