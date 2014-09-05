@@ -35,6 +35,9 @@ MuonExtractor::MuonExtractor(const std::string& name, const edm::ParameterSet& s
   m_tree_muon->Branch("muon_vy",  &m_muo_vy,   "muon_vy[n_muons]/F");  
   m_tree_muon->Branch("muon_vz",  &m_muo_vz,   "muon_vz[n_muons]/F");  
   m_tree_muon->Branch("muon_charge", &m_muo_charge,  "muon_charge[n_muons]/I");
+  m_tree_muon->Branch("muon_isLooseMuon", &m_muo_isLoose, "muon_isLooseMuon[n_muons]/I");
+  m_tree_muon->Branch("muon_isSoftMuon", &m_muo_isSoft, "muon_isSoftMuon[n_muons]/I");
+  m_tree_muon->Branch("muon_isTightMuon", &m_muo_isTight, "muon_isTightMuon[n_muons]/I");
   m_tree_muon->Branch("muon_isHighPt", 	&m_muo_isHighPt,  "muon_isHighPt[n_muons]/I");
   m_tree_muon->Branch("muon_isGood", 	&m_muo_isGood,  "muon_isGood[n_muons]/I");
   m_tree_muon->Branch("muon_isGlobal", 	&m_muo_isGlobal,  "muon_isGlobal[n_muons]/I");
@@ -104,6 +107,12 @@ MuonExtractor::MuonExtractor(const std::string& name, const edm::ParameterSet& s
     m_tree_muon->SetBranchAddress("muon_vz",  &m_muo_vz);
   if (m_tree_muon->FindBranch("muon_charge"))
     m_tree_muon->SetBranchAddress("muon_charge", &m_muo_charge);
+  if (m_tree_muon->FindBranch("muon_isLooseMuon"))
+    m_tree_muon->SetBranchAddress("muon_isLooseMuon", &m_muo_isLoose);
+  if (m_tree_muon->FindBranch("muon_isSoftMuon"))
+    m_tree_muon->SetBranchAddress("muon_isSoftMuon", &m_muo_isSoft);
+  if (m_tree_muon->FindBranch("muon_isTightMuon"))
+    m_tree_muon->SetBranchAddress("muon_isTightMuon", &m_muo_isTight);
   if (m_tree_muon->FindBranch("muon_isHighPt"))
     m_tree_muon->SetBranchAddress("muon_isHighPt", 	&m_muo_isHighPt);
   if (m_tree_muon->FindBranch("muon_isGood"))
@@ -201,6 +210,9 @@ void MuonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iS
   m_muo_vx[index]                             = part.vx();
   m_muo_vy[index]                             = part.vy();
   m_muo_vz[index]                             = part.vz();
+  m_muo_isLoose[index]                        = part.isLooseMuon();
+  m_muo_isSoft[index]                         = part.isSoftMuon(pvHandle->at(0));
+  m_muo_isTight[index]                        = part.isTightMuon(pvHandle->at(0));
   m_muo_isHighPt[index]                       = part.isHighPtMuon(pvHandle->at(0));
   m_muo_isGlobal[index]                       = part.isGlobalMuon();
   m_muo_isGood[index]                         = muon::isGoodMuon(part, muon::TMOneStationTight);
@@ -272,6 +284,9 @@ void MuonExtractor::reset()
     m_muo_vx[i] = 0.;
     m_muo_vy[i] = 0.;
     m_muo_vz[i] = 0.;
+    m_muo_isLoose[i] = 0;
+    m_muo_isSoft[i] = 0;
+    m_muo_isTight[i] = 0;
     m_muo_isHighPt[i] = 0;
     m_muo_isGlobal[i] = 0;
     m_muo_isGood[i] = 0;
