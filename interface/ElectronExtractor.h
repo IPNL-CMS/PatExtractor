@@ -125,6 +125,10 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
     }
 
   private:
+    edm::InputTag m_allConversionsTag;
+    edm::InputTag m_offlineBeamSpotTag;
+    edm::InputTag m_primaryVerticesTag;
+    edm::InputTag m_rhoTag;
 
     edm::EDGetTokenT<reco::ConversionCollection> m_allConversionsToken;
     edm::EDGetTokenT<reco::BeamSpot> m_offlineBeamSpotToken;

@@ -1,7 +1,9 @@
 #include "../interface/EventExtractor.h"
 
 EventExtractor::EventExtractor(const std::string& name, const edm::ParameterSet& parameters):
-  SuperBaseExtractor(name, parameters)
+  SuperBaseExtractor(name, parameters),
+  m_puSummaryTag(parameters.getParameter<edm::InputTag>("pileup_summary")),
+  m_generatorTag(parameters.getParameter<edm::InputTag>("generator"))
 {
   // Tree definition
 
@@ -60,8 +62,8 @@ void EventExtractor::doConsumes(edm::ConsumesCollector&& collector) {
   SuperBaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
 
   if (m_isMC) {
-    m_puSummaryToken = collector.consumes<std::vector<PileupSummaryInfo>>(edm::InputTag("addPileupInfo"));
-    m_generatorToken = collector.consumes<GenEventInfoProduct>(edm::InputTag("generator"));
+    m_puSummaryToken = collector.consumes<std::vector<PileupSummaryInfo>>(m_puSummaryTag);
+    m_generatorToken = collector.consumes<GenEventInfoProduct>(m_generatorTag);
   }
 }
 

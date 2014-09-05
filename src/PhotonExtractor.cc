@@ -2,7 +2,12 @@
 
 
 PhotonExtractor::PhotonExtractor(const std::string& name, const edm::ParameterSet& settings)
-  : BaseExtractor(name, settings)
+  : BaseExtractor(name, settings),
+  m_matchedPromptElectronTag(settings.getParameter<edm::InputTag>("matched_electron")),
+  m_chargedHadronsIsolationTag(settings.getParameter<edm::InputTag>("charged_hadrons_iso")),
+  m_neutralHadronsIsolationTag(settings.getParameter<edm::InputTag>("neutral_hadrons_iso")),
+  m_photonsIsolationTag(settings.getParameter<edm::InputTag>("photons_iso")),
+  m_rhoTag(settings.getParameter<edm::InputTag>("rho"))
 {
   m_deltaR_cut = 0.2; // Maximum acceptable distance for MC matching
   
@@ -78,11 +83,11 @@ PhotonExtractor::~PhotonExtractor()
 void PhotonExtractor::doConsumes(edm::ConsumesCollector&& collector) {
   BaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
 
-  m_rhoToken = collector.consumes<double>(edm::InputTag("kt6PFJets", "rho", "RECO"));
-  m_matchedPromptElectronToken = collector.consumes<edm::ValueMap<bool>>(edm::InputTag("photonPFIsolation", "hasMatchedPromptElectron", "PAT"));
-  m_chargedHadronsIsolationToken = collector.consumes<edm::ValueMap<double>>(edm::InputTag("photonPFIsolation", "chargedHadronsIsolation", "PAT"));
-  m_neutralHadronsIsolationToken = collector.consumes<edm::ValueMap<double>>(edm::InputTag("photonPFIsolation", "neutralHadronsIsolation", "PAT"));
-  m_photonsIsolationToken = collector.consumes<edm::ValueMap<double>>(edm::InputTag("photonPFIsolation", "photonsIsolation", "PAT"));
+  m_rhoToken = collector.consumes<double>(m_rhoTag);
+  m_matchedPromptElectronToken = collector.consumes<edm::ValueMap<bool>>(m_matchedPromptElectronTag);
+  m_chargedHadronsIsolationToken = collector.consumes<edm::ValueMap<double>>(m_chargedHadronsIsolationTag);
+  m_neutralHadronsIsolationToken = collector.consumes<edm::ValueMap<double>>(m_neutralHadronsIsolationTag);
+  m_photonsIsolationToken = collector.consumes<edm::ValueMap<double>>(m_photonsIsolationTag);
 }
 
 enum class IsolationType {

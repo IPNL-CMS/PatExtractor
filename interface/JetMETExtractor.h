@@ -166,8 +166,13 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
   private:
 
     TTree* m_tree_jet;
+    edm::InputTag m_rawMetTag;
+    edm::InputTag m_particleFlowTag;
+    edm::InputTag m_primaryVerticesTag;
+    edm::InputTag m_rhoTag;
+
     edm::EDGetTokenT<pat::METCollection> m_metToken;
-    edm::EDGetTokenT<pat::METCollection>  m_rawMetToken;
+    edm::EDGetTokenT<pat::METCollection> m_rawMetToken;
     edm::EDGetTokenT<reco::PFCandidateCollection> m_particleFlowToken;
     edm::EDGetTokenT<reco::VertexCollection> m_primaryVerticesToken;
     edm::EDGetTokenT<double> m_rhoToken;

@@ -49,21 +49,27 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
 
             event = cms.PSet(
                 type = cms.string("event_extractor"),
-                enable = cms.bool(False)
+                enable = cms.bool(True),
+                parameters = cms.PSet(
+                    pileup_summary = cms.InputTag("addPileupInfo"),
+                    generator = cms.InputTag("generator")
+                    )
                 ),
 
             MC = cms.PSet(
                 type = cms.string("mc_extractor"),
                 enable = cms.bool(False),
                 parameters = cms.PSet(
-                    do_jpsi = cms.bool(False)
+                    input = cms.InputTag("genParticles"),
+                    do_jpsi = cms.bool(True)
                     )
                 ),
 
             HLT = cms.PSet(
                 type = cms.string("hlt_extractor"),
-                enable = cms.bool(False),
+                enable = cms.bool(True),
                 parameters = cms.PSet(
+                    input = cms.InputTag("TriggerResults", "", "HLT"),
                     triggers = cms.untracked.string("")
                     )
                 ),
@@ -80,13 +86,14 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
                 type = cms.string("pfparticle_extractor"),
                 enable = cms.bool(False),
                 parameters = cms.PSet(
-                    input = cms.InputTag("particleFlow")
+                    input = cms.InputTag("particleFlow"),
+                    vertices = cms.InputTag("offlinePrimaryVertices")
                     )
                 ),
 
             Vertices = cms.PSet(
                 type = cms.string("vertex_extractor"),
-                enable = cms.bool(False),
+                enable = cms.bool(True),
                 parameters = cms.PSet(
                     input = cms.InputTag("offlinePrimaryVertices")
                     )
@@ -94,9 +101,13 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
 
             electron_PF = cms.PSet(
                 type = cms.string("electron_extractor"),
-                enable = cms.bool(False),
+                enable = cms.bool(True),
                 parameters = cms.PSet(
-                    input = cms.InputTag("selectedPatElectronsPFlow")
+                    input = cms.InputTag("selectedPatElectronsPFlow"),
+                    vertices = cms.InputTag("offlinePrimaryVertices"),
+                    conversions = cms.InputTag("allConversions"),
+                    beamspot = cms.InputTag("offlineBeamSpot"),
+                    rho = cms.InputTag("kt6PFJets", "rho", "RECO")
                     )
                 ),
 
@@ -104,13 +115,17 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
                     type = cms.string("electron_extractor"),
                     enable = cms.bool(False),
                     parameters = cms.PSet(
-                        input = cms.InputTag("selectedPatElectronsLoosePFlow")
+                        input = cms.InputTag("selectedPatElectronsLoosePFlow"),
+                        vertices = cms.InputTag("offlinePrimaryVertices"),
+                        conversions = cms.InputTag("allConversions"),
+                        beamspot = cms.InputTag("offlineBeamSpot"),
+                        rho = cms.InputTag("kt6PFJets", "rho", "RECO")
                         )
                     ),
 
             muon_PF = cms.PSet(
                     type = cms.string("muon_extractor"),
-                    enable = cms.bool(False),
+                    enable = cms.bool(True),
                     parameters = cms.PSet(
                         input = cms.InputTag("selectedPatMuonsPFlow"),
                         vertices = cms.InputTag("offlinePrimaryVertices")
@@ -128,10 +143,14 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
 
             jetmet = cms.PSet(
                     type = cms.string("jet_met_extractor"),
-                    enable = cms.bool(False),
+                    enable = cms.bool(True),
                     parameters = cms.PSet(
                         input_jets = cms.InputTag("selectedPatJetsPFlow"),
                         input_met = cms.InputTag("patMETsPFlow"),
+                        input_raw_met = cms.InputTag("patPFMetPFlow"),
+                        pf_candidates = cms.InputTag("particleFlow"),
+                        vertices = cms.InputTag("offlinePrimaryVertices"),
+                        rho = cms.InputTag("kt6PFJets", "rho", "RECO"),
 
                         tree_name_jets = cms.string("jet_PF"),
                         tree_name_met = cms.string("MET_PF"),
@@ -158,7 +177,12 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
                     type = cms.string("photon_extractor"),
                     enable = cms.bool(False),
                     parameters = cms.PSet(
-                        input = cms.InputTag("selectedPatPhotons")
+                        input = cms.InputTag("selectedPatPhotons"),
+                        matched_electron = cms.InputTag("photonPFIsolation", "hasMatchedPromptElectron", "PAT"),
+                        charged_hadrons_iso = cms.InputTag("photonPFIsolation", "chargedHadronsIsolation", "PAT"),
+                        neutral_hadrons_iso = cms.InputTag("photonPFIsolation", "neutralHadronsIsolation", "PAT"),
+                        photons_iso = cms.InputTag("photonPFIsolation", "photonsIsolation", "PAT"),
+                        rho = cms.InputTag("kt6PFJets", "rho", "RECO")
                         )
                     )
             ),

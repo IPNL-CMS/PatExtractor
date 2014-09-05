@@ -5,7 +5,9 @@
 using namespace tinyxml2;
 
 HLTExtractor::HLTExtractor(const std::string& name, const edm::ParameterSet& config):
-  SuperBaseExtractor(name, config), m_triggersXML(config.getUntrackedParameter<std::string>("triggers", ""))
+  SuperBaseExtractor(name, config),
+  m_triggerResultsTag(config.getParameter<edm::InputTag>("input")),
+  m_triggersXML(config.getUntrackedParameter<std::string>("triggers", ""))
 {
   m_filterHLT = m_triggersXML.length() > 0;
 
@@ -82,7 +84,7 @@ HLTExtractor::~HLTExtractor()
 void HLTExtractor::doConsumes(edm::ConsumesCollector&& collector) {
   SuperBaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
 
-  m_triggerResultsToken = collector.consumes<edm::TriggerResults>(edm::InputTag("TriggerResults", "", "HLT"));
+  m_triggerResultsToken = collector.consumes<edm::TriggerResults>(m_triggerResultsTag);
 }
 
 //
