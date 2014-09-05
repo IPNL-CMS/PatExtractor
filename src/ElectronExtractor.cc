@@ -7,15 +7,20 @@
 #include <DataFormats/RecoCandidate/interface/IsoDepositVetos.h>
 
 ElectronExtractor::ElectronExtractor(const std::string& name, const edm::ParameterSet& parameters)
-  : BaseExtractor(name, parameters), m_ele_lorentzvector(nullptr)
+  : BaseExtractor(name, parameters), 
+  m_allConversionsTag(parameters.getParameter<edm::InputTag>("conversions")),
+  m_offlineBeamSpotTag(parameters.getParameter<edm::InputTag>("beamspot")),
+  m_primaryVerticesTag(parameters.getParameter<edm::InputTag>("vertices")),
+  m_rhoTag(parameters.getParameter<edm::InputTag>("rho")),
+  m_ele_lorentzvector(nullptr)
 {
   m_ele_lorentzvector = new TClonesArray("TLorentzVector");
 
   const auto& sfWorkingPoints = ScaleFactorService::getInstance().getElectronScaleFactorWorkingPoints();
   for (auto& it: sfWorkingPoints) {
-      std::string name = "electron_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
-      m_scaleFactors[name] = ScaleFactorCollection();
-      m_scaleFactors[name].setWriteMode();
+    std::string name = "electron_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
+    m_scaleFactors[name] = ScaleFactorCollection();
+    m_scaleFactors[name].setWriteMode();
   };
 
   setPF((m_tag.label()).find("PFlow"));
@@ -167,17 +172,10 @@ ElectronExtractor::~ElectronExtractor() {
 void ElectronExtractor::doConsumes(edm::ConsumesCollector&& collector) {
   BaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
 
-  m_allConversionsToken = collector.consumes<reco::ConversionCollection>(edm::InputTag("allConversions"));
-  m_offlineBeamSpotToken = collector.consumes<reco::BeamSpot>(edm::InputTag("offlineBeamSpot"));
-  m_primaryVerticesToken = collector.consumes<reco::VertexCollection>(edm::InputTag("goodOfflinePrimatryVertices"));
-
-  edm::InputTag rhoInputTag;
-  if (! m_isMC)
-    rhoInputTag = edm::InputTag("kt6PFJets", "rho", "RECO");
-  else
-    rhoInputTag = edm::InputTag("kt6PFJetsForIsolation", "rho", "PAT");
-
-  m_rhoToken = collector.consumes<double>(rhoInputTag);
+  m_allConversionsToken = collector.consumes<reco::ConversionCollection>(m_allConversionsTag);
+  m_offlineBeamSpotToken = collector.consumes<reco::BeamSpot>(m_offlineBeamSpotTag);
+  m_primaryVerticesToken = collector.consumes<reco::VertexCollection>(m_primaryVerticesTag);
+  m_rhoToken = collector.consumes<double>(m_rhoTag);
 }
 
 //

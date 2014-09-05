@@ -92,7 +92,8 @@ void printout(const RefCountedKinematicTree& myTree)
 //-------------------------------------------------------------------------
 
   PFpartExtractor::PFpartExtractor(const std::string& name, const edm::ParameterSet& settings):
-    BaseExtractor(name, settings)
+    BaseExtractor(name, settings),
+    m_primaryVerticesTag(settings.getParameter<edm::InputTag>("vertices"))
 {
   // Set everything to 0
   m_pf_lorentzvector = new TClonesArray("TLorentzVector");
@@ -187,7 +188,7 @@ PFpartExtractor::~PFpartExtractor()
 void PFpartExtractor::doConsumes(edm::ConsumesCollector&& collector) {
   BaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
 
-  m_primaryVerticesToken = collector.consumes<reco::VertexCollection>(edm::InputTag("offlinePrimaryVertices"));
+  m_primaryVerticesToken = collector.consumes<reco::VertexCollection>(m_primaryVerticesTag);
 }
 
 //

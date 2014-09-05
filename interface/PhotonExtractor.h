@@ -90,6 +90,12 @@ class PhotonExtractor: public BaseExtractor<pat::Photon>
   private:
 
     TTree* m_tree_photon;
+    edm::InputTag m_matchedPromptElectronTag;
+    edm::InputTag m_chargedHadronsIsolationTag;
+    edm::InputTag m_neutralHadronsIsolationTag;
+    edm::InputTag m_photonsIsolationTag;
+    edm::InputTag m_rhoTag;
+
     edm::EDGetTokenT<double> m_rhoToken;
     edm::EDGetTokenT<edm::ValueMap<bool>> m_matchedPromptElectronToken;
     edm::EDGetTokenT<edm::ValueMap<double>> m_chargedHadronsIsolationToken;

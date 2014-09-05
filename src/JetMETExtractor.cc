@@ -21,6 +21,10 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
 
   m_tag = config.getParameter<edm::InputTag>("input_jets");
   m_metTag = config.getParameter<edm::InputTag>("input_met"); 
+  m_rawMetTag = config.getParameter<edm::InputTag>("input_raw_met");
+  m_particleFlowTag = config.getParameter<edm::InputTag>("pf_candidates");
+  m_primaryVerticesTag = config.getParameter<edm::InputTag>("vertices");
+  m_rhoTag = config.getParameter<edm::InputTag>("rho");
 
   mCorrectJets = config.getUntrackedParameter<bool>("redoJetCorrection", false);
   mUseGlobalTagForJEC = config.getUntrackedParameter<bool>("useGlobalTagForJEC", true);
@@ -137,15 +141,15 @@ void JetMETExtractor::doConsumes(edm::ConsumesCollector&& collector) {
   m_metToken = collector.consumes<pat::METCollection>(m_metTag);
 
   if (mCorrectJets || mRedoTypeI) {
-    m_rawMetToken = collector.consumes<pat::METCollection>(edm::InputTag("patPFMetPFlow"));
+    m_rawMetToken = collector.consumes<pat::METCollection>(m_rawMetTag);
   }
 
   if (mSaveUnclusteredParticles) {
-    m_particleFlowToken = collector.consumes<reco::PFCandidateCollection>(edm::InputTag("particleFlow"));
+    m_particleFlowToken = collector.consumes<reco::PFCandidateCollection>(m_particleFlowTag);
   }
 
-  m_primaryVerticesToken = collector.consumes<reco::VertexCollection>(edm::InputTag("goodOfflinePrimaryVertices"));
-  m_rhoToken = collector.consumes<double>(edm::InputTag("kt6PFJets", "rho", "RECO"));
+  m_primaryVerticesToken = collector.consumes<reco::VertexCollection>(m_primaryVerticesTag);
+  m_rhoToken = collector.consumes<double>(m_rhoTag);
 }
 
 void JetMETExtractor::beginJob(bool isInAnalysisMode) {

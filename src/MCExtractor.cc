@@ -2,7 +2,8 @@
 
 
 MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& settings):
-  SuperBaseExtractor(name, settings)
+  SuperBaseExtractor(name, settings),
+  m_genParticleTag(settings.getParameter<edm::InputTag>("input"))
 {
   _doJpsi = settings.getParameter<bool>("do_jpsi");
   // Set everything to 0
@@ -111,7 +112,7 @@ MCExtractor::~MCExtractor()
 void MCExtractor::doConsumes(edm::ConsumesCollector&& collector) {
   SuperBaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
 
-  m_genParticleToken = collector.consumes<reco::GenParticleCollection>(edm::InputTag("genParticles"));
+  m_genParticleToken = collector.consumes<reco::GenParticleCollection>(m_genParticleTag);
 }
 
 //
