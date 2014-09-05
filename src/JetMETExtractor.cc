@@ -19,7 +19,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
 : BaseExtractor(name, config)
 {
 
-  m_tag = config.getParameter<edm::InputTag>("input_jets");
+  m_jetsTag = config.getParameter<edm::InputTag>("input_jets");
   m_metTag = config.getParameter<edm::InputTag>("input_met"); 
   m_rawMetTag = config.getParameter<edm::InputTag>("input_raw_met");
   m_particleFlowTag = config.getParameter<edm::InputTag>("pf_candidates");
@@ -138,6 +138,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
 void JetMETExtractor::doConsumes(edm::ConsumesCollector&& collector) {
   BaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
 
+  m_jetsToken = collector.consumes<pat::JetCollection>(m_jetsTag);
   m_metToken = collector.consumes<pat::METCollection>(m_metTag);
 
   if (mCorrectJets || mRedoTypeI) {
@@ -309,7 +310,7 @@ bool JetMETExtractor::isPFJetLoose(const pat::Jet& jet)
 void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* m_MC) 
 {
   edm::Handle<pat::JetCollection>  jetHandle;
-  event.getByToken(m_token, jetHandle);
+  event.getByToken(m_jetsToken, jetHandle);
   pat::JetCollection p_jets = *jetHandle;
 
   reset();
