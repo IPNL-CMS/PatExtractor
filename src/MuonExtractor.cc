@@ -208,22 +208,22 @@ void MuonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iS
   m_muo_charge[index]                         = part.charge();
   m_muo_nMatchedStations[index]               = part.numberOfMatchedStations();
   m_muo_dZ[index]                             = fabs(part.muonBestTrack()->dz(pvHandle->at(0).position()));
-  m_muo_trackerLayersWithMeasurement[index]   = part.track()->hitPattern().trackerLayersWithMeasurement();
-  
+
   if (part.outerTrack().isNonnull())
   {
     m_muo_dB[index]              = part.dB();
     m_muo_nMatches[index]        = part.numberOfMatches();
   }
-  
+
   if (part.innerTrack().isNonnull())
   {
-    m_muo_dB[index]                        = part.dB();
-    m_muo_pixelLayerWithMeasurement[index] = part.innerTrack()->hitPattern().pixelLayersWithMeasurement();
-    m_muo_nValPixelHits[index]             = part.innerTrack()->hitPattern().numberOfValidPixelHits();
-    m_muo_nValTrackerHits[index]           = part.innerTrack()->hitPattern().numberOfValidTrackerHits();
-    m_muo_d0[index]                        = part.innerTrack()->d0(); 
-    m_muo_d0error[index]                   = part.innerTrack()->d0Error();
+    m_muo_dB[index]                           = part.dB();
+    m_muo_pixelLayerWithMeasurement[index]    = part.innerTrack()->hitPattern().pixelLayersWithMeasurement();
+    m_muo_nValPixelHits[index]                = part.innerTrack()->hitPattern().numberOfValidPixelHits();
+    m_muo_nValTrackerHits[index]              = part.innerTrack()->hitPattern().numberOfValidTrackerHits();
+    m_muo_d0[index]                           = part.innerTrack()->d0();
+    m_muo_d0error[index]                      = part.innerTrack()->d0Error();
+    m_muo_trackerLayersWithMeasurement[index] = part.innerTrack()->hitPattern().trackerLayersWithMeasurement();
   }
   
   if (part.globalTrack().isNonnull())

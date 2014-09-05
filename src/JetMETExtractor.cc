@@ -293,7 +293,7 @@ bool JetMETExtractor::isPFJetLoose(const pat::Jet& jet)
   // Jet ID works only with uncorrected jet. *EnergyFraction functions take care of that all alone
   bool isValid = jet.neutralHadronEnergyFraction() < 0.99;
   isValid &= jet.neutralEmEnergyFraction() < 0.99;
-  isValid &= jet.getPFConstituents().size() > 1;
+  isValid &= jet.numberOfDaughters() > 1;
   if (fabs(jet.eta()) < 2.4) {
     isValid &= jet.chargedHadronEnergyFraction() > 0.;
     isValid &= jet.chargedMultiplicity() > 0;
