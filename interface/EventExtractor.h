@@ -60,6 +60,9 @@ class EventExtractor: public SuperBaseExtractor
  private:
   
   TTree* m_tree_event;
+  edm::InputTag m_puSummaryTag;
+  edm::InputTag m_generatorTag;
+
   edm::EDGetTokenT<std::vector<PileupSummaryInfo>> m_puSummaryToken;
   edm::EDGetTokenT<GenEventInfoProduct> m_generatorToken;
 

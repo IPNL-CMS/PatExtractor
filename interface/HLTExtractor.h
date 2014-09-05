@@ -137,6 +137,7 @@ class HLTExtractor: public SuperBaseExtractor
  private:
   
   TTree* m_tree_HLT;
+  edm::InputTag m_triggerResultsTag;
   edm::EDGetTokenT<edm::TriggerResults> m_triggerResultsToken;
 
   int m_n_HLTs;

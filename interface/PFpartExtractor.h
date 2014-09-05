@@ -82,6 +82,7 @@ class PFpartExtractor: public BaseExtractor<reco::PFCandidate>
   private:
 
     TTree* m_tree_pfpart;
+    edm::InputTag m_primaryVerticesTag;
     edm::EDGetTokenT<reco::VertexCollection> m_primaryVerticesToken;
 
     static const int 	m_pfpart_MAX  = 100;
