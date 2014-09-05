@@ -112,7 +112,7 @@ MCExtractor::~MCExtractor()
 void MCExtractor::doConsumes(edm::ConsumesCollector&& collector) {
   SuperBaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
 
-  m_genParticleToken = collector.consumes<reco::GenParticleCollection>(m_genParticleTag);
+  m_genParticleToken = collector.consumes<edm::View<reco::Candidate>>(m_genParticleTag);
 }
 
 //
@@ -122,11 +122,10 @@ void MCExtractor::doConsumes(edm::ConsumesCollector&& collector) {
 
 void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor)
 {
-  edm::Handle<reco::GenParticleCollection> genParticles;
-  event.getByToken(m_genParticleToken, genParticles);
+  edm::Handle<edm::View<reco::Candidate>> genParticlesHandle;
+  event.getByToken(m_genParticleToken, genParticlesHandle);
 
   MCExtractor::reset();
-  m_n_MCs = static_cast<int>(genParticles->size());
 
   int   id = 0;
   int   id_r = 0;
@@ -139,12 +138,15 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
 
   int ipart = 0;
 
-  const reco::GenParticle* mothertmp;
-  const reco::GenParticle* motherleptontmp;
+  const edm::View<reco::Candidate>& genParticles = *genParticlesHandle;
+  m_n_MCs = static_cast<int>(genParticles.size());
+
+  const reco::Candidate* mothertmp;
+  const reco::Candidate* motherleptontmp;
 
   for(int i=0; i < m_n_MCs; ++i) 
   {
-    const reco::Candidate & p = (*genParticles)[i];
+    const reco::Candidate & p = genParticles[i];
 
     id    = p.pdgId();
     st    = p.status(); 
@@ -172,7 +174,7 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
 
         for(int j = 0; j < m_n_MCs; ++j) 
         {
-          const reco::Candidate &p2 = (*genParticles)[j];
+          const reco::Candidate &p2 = genParticles[j];
 
           if (p2.pdgId() != id_r) continue;
           if (fabs(p2.px()-px_r)>0.0001) continue;
@@ -193,7 +195,7 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
 
           for(int j=0; j < m_n_MCs; ++j) 
           {
-            const reco::Candidate &p2 = (*genParticles)[j];
+            const reco::Candidate &p2 = genParticles[j];
 
             if (p2.pdgId() != id_r) continue;
             if (fabs(p2.px()-px_r)>0.0001) continue;
@@ -224,21 +226,21 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
       new((*m_MC_lorentzvector)[ipart]) TLorentzVector(p.px(),p.py(),p.pz(),p.energy());
 
       if (_doJpsi && id==443) {
-        mothertmp = &(*genParticles)[i];
+        mothertmp = & genParticles[i];
         for (int ifrag=0; ifrag<10; ifrag++) {
           if (mothertmp->mother() == 0) break;
-          mothertmp = (reco::GenParticle*) mothertmp->mother();
+          mothertmp = mothertmp->mother();
           if (fabs(mothertmp->pdgId())==92 || fabs(mothertmp->pdgId())==91) break;
         }
         for (int imb=0; imb<100; imb++) {
           if (mothertmp->mother(imb) != 0 && fabs(mothertmp->mother(imb)->pdgId())==5) {
-            mothertmp = (reco::GenParticle*) mothertmp->mother(imb);
+            mothertmp = mothertmp->mother(imb);
             break;
           } 
         }
         if (fabs(mothertmp->pdgId()) == 5) {
           for (int ib=0; ib<10; ib++) {
-            if (mothertmp->mother() !=0 && (fabs(mothertmp->mother()->pdgId())==5 || fabs(mothertmp->mother()->pdgId())==21)) mothertmp = (reco::GenParticle*) mothertmp->mother();
+            if (mothertmp->mother() !=0 && (fabs(mothertmp->mother()->pdgId())==5 || fabs(mothertmp->mother()->pdgId())==21)) mothertmp = mothertmp->mother();
             else break;
           }
           if(mothertmp->mother() !=0) mothertmp = (reco::GenParticle*) mothertmp->mother();
@@ -248,10 +250,10 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
         //std::cout << "JPsiFromTop = " << m_MC_JPsiFromTop[ipart] << "JPsiFromAntiTop = " << m_MC_JPsiFromAntiTop[ipart] << std::endl;
       }	
       if (_doJpsi && (fabs(id)==11 || fabs(id) ==13)) {
-        motherleptontmp = &(*genParticles)[i];
+        motherleptontmp = &genParticles[i];
         for (int i=0; i<10; i++) {
           if (motherleptontmp->mother() == 0) break;
-          motherleptontmp = (reco::GenParticle*) motherleptontmp->mother();
+          motherleptontmp = motherleptontmp->mother();
           if (motherleptontmp->pdgId()==6) {
             m_MC_LeptonFromTop[ipart] = true;
             break;

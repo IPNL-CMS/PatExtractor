@@ -62,7 +62,7 @@ class MCExtractor: public SuperBaseExtractor
   
   TTree* m_tree_MC;
   edm::InputTag m_genParticleTag;
-  edm::EDGetTokenT<reco::GenParticleCollection> m_genParticleToken;
+  edm::EDGetTokenT<edm::View<reco::Candidate>> m_genParticleToken;
 
   static const int 	m_MCs_MAX        = 1000;
 
