@@ -142,8 +142,16 @@ void PatExtractor::endJob() {
 void PatExtractor::fillInfo(const edm::Event *event, const edm::EventSetup& iSetup) 
 {
   MCExtractor* mcExtractor = static_cast<MCExtractor*>(getExtractor("MC").get());
-  for (auto& extractor: m_extractors)
-    extractor->writeInfo(*event, iSetup, mcExtractor);
+  for (auto& extractor: m_extractors) {
+    try {
+      extractor->writeInfo(*event, iSetup, mcExtractor);
+    } catch (cms::Exception& e) {
+      std::stringstream context;
+      context << "Calling event method for extractor " << typeid(*extractor).name() << "/\'" << extractor->getName() << "\'";
+      e.addContext(context.str());
+      throw e;
+    }
+  }
 }
 
 

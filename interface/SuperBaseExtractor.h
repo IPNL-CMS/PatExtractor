@@ -49,6 +49,10 @@ class SuperBaseExtractor
       }
     }
 
+    std::string getName() const {
+      return m_name;
+    }
+
   protected:
     std::string m_name;
     bool m_isMC;
