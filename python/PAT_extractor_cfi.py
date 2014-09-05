@@ -70,6 +70,7 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
                 enable = cms.bool(True),
                 parameters = cms.PSet(
                     input = cms.InputTag("TriggerResults", "", "HLT"),
+                    prescales = cms.InputTag("OnlyOnMiniAOD"),
                     triggers = cms.untracked.string("")
                     )
                 ),

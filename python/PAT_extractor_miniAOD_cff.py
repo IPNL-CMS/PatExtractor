@@ -8,6 +8,8 @@ from Extractors.PatExtractor.PAT_extractor_cfi import *
 # Customize input collection to use ones from miniAOD
 PATextraction.extractors.MC.parameters.input = cms.InputTag("prunedGenParticles")
 
+PATextraction.extractors.HLT.parameters.prescales = cms.InputTag("patTrigger")
+
 PATextraction.extractors.track.enable = False
 
 PATextraction.extractors.PFpart.parameters.input = cms.InputTag('packedPFCandidates')
