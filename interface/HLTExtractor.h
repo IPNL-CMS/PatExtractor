@@ -8,6 +8,7 @@
 
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
+#include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Utilities/interface/InputTag.h"
@@ -134,14 +135,21 @@ class HLTExtractor: public SuperBaseExtractor
     return m_passed;
   }
 
+  int getPrescale(size_t index) const {
+    return (*m_prescales)[index];
+  }
+
  private:
   
   TTree* m_tree_HLT;
   edm::InputTag m_triggerResultsTag;
+  edm::InputTag m_triggerPrescalesTag;
   edm::EDGetTokenT<edm::TriggerResults> m_triggerResultsToken;
+  edm::EDGetTokenT<pat::PackedTriggerPrescales> m_triggerPrescalesToken;
 
   int m_n_HLTs;
   std::vector< std::string > *m_HLT_vector;
+  std::vector<int>* m_prescales;
 
   bool m_filterHLT;
   std::string m_triggersXML;

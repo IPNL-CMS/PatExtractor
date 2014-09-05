@@ -7,13 +7,15 @@ using namespace tinyxml2;
 HLTExtractor::HLTExtractor(const std::string& name, const edm::ParameterSet& config):
   SuperBaseExtractor(name, config),
   m_triggerResultsTag(config.getParameter<edm::InputTag>("input")),
+  m_triggerPrescalesTag(config.getParameter<edm::InputTag>("prescales")),
   m_triggersXML(config.getUntrackedParameter<std::string>("triggers", ""))
 {
   m_filterHLT = m_triggersXML.length() > 0;
 
   // Set everything to 0
 
-  m_HLT_vector = new std::vector< std::string >;
+  m_HLT_vector = new std::vector<std::string>;
+  m_prescales = new std::vector<int>();
   m_mustPass = new std::string();
   reset();
 
@@ -22,7 +24,8 @@ HLTExtractor::HLTExtractor(const std::string& name, const edm::ParameterSet& con
   m_OK = true;
   m_tree_HLT       = new TTree(name.c_str(), "HLT info");  
   m_tree_HLT->Branch("n_paths",  &m_n_HLTs,"n_paths/I");       
-  m_tree_HLT->Branch("HLT_vector","vector<string>",&m_HLT_vector);
+  m_tree_HLT->Branch("HLT_vector", "vector<string>",&m_HLT_vector);
+  m_tree_HLT->Branch("prescale", "vector<int>", &m_prescales);
 
   m_tree_HLT->Branch("HLT_filtered", &m_filterHLT, "HLT_filtered/O");
   m_tree_HLT->Branch("HLT_mustPass", &m_mustPass);
@@ -60,13 +63,17 @@ HLTExtractor::HLTExtractor(const std::string& name, const edm::ParameterSet& con
 
   // Branches definition
   m_HLT_vector = new std::vector<std::string>();
+  m_prescales = new std::vector<int>();
   m_mustPass = NULL;
 
   if (m_tree_HLT->FindBranch("n_paths")) 
     m_tree_HLT->SetBranchAddress("n_paths",  &m_n_HLTs);       
 
   if (m_tree_HLT->FindBranch("HLT_vector"))
-    m_tree_HLT->SetBranchAddress("HLT_vector",&m_HLT_vector);
+    m_tree_HLT->SetBranchAddress("HLT_vector", &m_HLT_vector);
+
+  if (m_tree_HLT->FindBranch("prescale"))
+    m_tree_HLT->SetBranchAddress("prescale", &m_prescales);
 
   if (m_tree_HLT->FindBranch("HLT_filtered"))
     m_tree_HLT->SetBranchAddress("HLT_filtered", &m_filterHLT);
@@ -85,6 +92,7 @@ void HLTExtractor::doConsumes(edm::ConsumesCollector&& collector) {
   SuperBaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
 
   m_triggerResultsToken = collector.consumes<edm::TriggerResults>(m_triggerResultsTag);
+  m_triggerPrescalesToken = collector.consumes<pat::PackedTriggerPrescales>(m_triggerPrescalesTag);
 }
 
 //
@@ -105,19 +113,25 @@ void HLTExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
   edm::Handle<edm::TriggerResults> triggerResults ;
   event.getByToken(m_triggerResultsToken, triggerResults);
 
+  edm::Handle<pat::PackedTriggerPrescales> triggerPrescales;
+  event.getByToken(m_triggerPrescalesToken, triggerPrescales);
+
   if (triggerResults.isValid())
   {
     const edm::TriggerNames & triggerNames = event.triggerNames(*triggerResults);
 
     for(int i = 0 ; i < static_cast<int>(triggerResults->size()); i++) 
     {
-      if (triggerResults->accept(i)!=0)
+      if (triggerResults->accept(i) != 0)
       {
         std::string triggerName = triggerNames.triggerName(i);
         if (triggerName == "HLTriggerFinalPath") continue; // This one is pretty useless...
         if (triggerName[0] == 'A') continue;     // Remove AlCa HLT paths
 
         m_HLT_vector->push_back(triggerName);
+        if (triggerPrescales.isValid()) {
+          m_prescales->push_back(triggerPrescales->getPrescaleForIndex(i));
+        }
         m_n_HLTs++;
 
         if (triggerRegex) {
@@ -148,6 +162,7 @@ void HLTExtractor::reset()
 {
   m_n_HLTs = 0;
   m_HLT_vector->clear();
+  m_prescales->clear();
   m_passed = false;
   *m_mustPass = "";
 }
