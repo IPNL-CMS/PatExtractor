@@ -702,27 +702,39 @@ void JetMETExtractor::correctJets(pat::JetCollection& jets, const edm::Event& iE
 
 double JetMETExtractor::getResCorrFactor(const pat::Jet& jet) {
 
-  double factor = 0.;
-  double error  = 0.;
+  const auto& getFactor = [this] (float nominal, float down, float up) -> float {
+    switch (mJERSign) {
+      case 0:
+        return nominal;
+
+      case 1:
+        return up;
+
+      case -1:
+        return down;
+
+      default:
+        throw new edm::Exception(edm::errors::LogicError, "Invalid JER sign: " + mJERSign);
+    }
+  };
 
   if (fabs(jet.eta()) > 0. && fabs(jet.eta()) <= 0.5) {
-    factor = 1.052;
-    error = (mJERSign == 1) ? 0.062 : 0.061;
+    return getFactor(1.079, 1.053, 1.105);
   } else if (fabs(jet.eta()) > 0.5 && fabs(jet.eta()) <= 1.1) {
-    factor = 1.057;
-    error = (mJERSign == 1) ? 0.056 : 0.055;
+    return getFactor(1.099, 1.071, 1.127);
   } else if (fabs(jet.eta()) > 1.1 && fabs(jet.eta()) <= 1.7) {
-    factor = 1.096;
-    error = (mJERSign == 1) ? 0.063 : 0.062;
+    return getFactor(1.121, 1.092, 1.150);
   } else if (fabs(jet.eta()) > 1.7 && fabs(jet.eta()) <= 2.3) {
-    factor = 1.134;
-    error = (mJERSign == 1) ? 0.087 : 0.085;
-  } else if (fabs(jet.eta()) > 2.3 && fabs(jet.eta()) <= 5.0) {
-    factor = 1.288;
-    error = (mJERSign == 1) ? 0.155 : 0.153;
+    return getFactor(1.208, 1.162, 1.254);
+  } else if (fabs(jet.eta()) > 2.3 && fabs(jet.eta()) <= 2.8) {
+    return getFactor(1.254, 1.192, 1.316);
+  } else if (fabs(jet.eta()) > 2.8 && fabs(jet.eta()) <= 3.2) {
+    return getFactor(1.395, 1.332, 1.458);
+  } else if (fabs(jet.eta()) > 3.2 && fabs(jet.eta()) <= 5.0) {
+    return getFactor(1.056, 0.865, 1.247);
   }
 
-  return factor + mJERSign * error;
+  return 1.;
 }
 
 void JetMETExtractor::correctJetsMETresolution(pat::JetCollection& jets, pat::MET& met) {
