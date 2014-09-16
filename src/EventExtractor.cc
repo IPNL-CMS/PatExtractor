@@ -6,6 +6,7 @@ EventExtractor::EventExtractor(const std::string& name)
 {
   //std::cout << "EventExtractor objet is created" << std::endl;
 
+  m_OK = true;
 
   // Tree definition
 
@@ -34,6 +35,7 @@ EventExtractor::EventExtractor(const std::string& name, TFile *a_file)
 
   m_tree_event = dynamic_cast<TTree*>(a_file->Get(name.c_str()));
 
+  m_OK = false;
 
   if (!m_tree_event)
     std::cout << "Event tree not defined, this is bad" << std::endl;
@@ -54,6 +56,8 @@ EventExtractor::EventExtractor(const std::string& name, TFile *a_file)
     m_tree_event->SetBranchAddress("nTrueInteractions", &m_nTrueInteractions);
   if (m_tree_event->FindBranch("generator_weight"))
     m_tree_event->SetBranchAddress("generator_weight", &m_generator_weight);
+
+  m_OK = true;
 }
 
 EventExtractor::~EventExtractor()
