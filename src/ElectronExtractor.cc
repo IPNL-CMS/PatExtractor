@@ -96,6 +96,12 @@ ElectronExtractor::ElectronExtractor(const std::string& name, std::shared_ptr<Sc
 {
   m_file = a_file;
 
+  const auto& sfWorkingPoints = m_scaleFactorService->getElectronScaleFactorWorkingPoints();
+  for (auto& it: sfWorkingPoints) {
+      std::string name = "electron_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
+      m_scaleFactors[name] = ScaleFactorCollection();
+  };
+
   // Tree definition
   m_OK = false;
 
@@ -211,7 +217,7 @@ ElectronExtractor::ElectronExtractor(const std::string& name, std::shared_ptr<Sc
 
   for (auto& it: m_scaleFactors) {
     if (m_tree_electron->FindBranch(it.first.c_str()))
-      m_tree_electron->Branch(it.first.c_str(), & it.second.getBackingArray());
+      m_tree_electron->SetBranchAddress(it.first.c_str(), & it.second.getBackingArray());
   }
 }
 
