@@ -6,6 +6,7 @@ EventExtractor::EventExtractor(const std::string& name, const edm::ParameterSet&
   m_generatorTag(parameters.getParameter<edm::InputTag>("generator"))
 {
   // Tree definition
+  m_OK = true;
 
   m_tree_event    = new TTree(name.c_str(), "Event info");  
 
@@ -33,6 +34,7 @@ EventExtractor::EventExtractor(const std::string& name, const edm::ParameterSet&
 
   m_tree_event = dynamic_cast<TTree*>(file->Get(name.c_str()));
 
+  m_OK = false;
 
   if (!m_tree_event)
     std::cout << "Event tree not defined, this is bad" << std::endl;
@@ -53,6 +55,8 @@ EventExtractor::EventExtractor(const std::string& name, const edm::ParameterSet&
     m_tree_event->SetBranchAddress("nTrueInteractions", &m_nTrueInteractions);
   if (m_tree_event->FindBranch("generator_weight"))
     m_tree_event->SetBranchAddress("generator_weight", &m_generator_weight);
+
+  m_OK = true;
 }
 
 EventExtractor::~EventExtractor()
