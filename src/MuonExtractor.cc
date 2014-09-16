@@ -78,6 +78,12 @@ MuonExtractor::MuonExtractor(const std::string& name, const edm::ParameterSet& s
   m_file = a_file;
   std::cout << "MuonExtractor objet is retrieved" << std::endl;
 
+  const auto& sfWorkingPoints = m_scaleFactorService->getMuonScaleFactorWorkingPoints();
+  for (auto& it: sfWorkingPoints) {
+      std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
+      m_scaleFactors[name] = ScaleFactorCollection();
+  }
+
   // Tree definition
   m_OK = false;
 
@@ -175,7 +181,7 @@ MuonExtractor::MuonExtractor(const std::string& name, const edm::ParameterSet& s
 
   for (auto& it: m_scaleFactors) {
     if (m_tree_muon->FindBranch(it.first.c_str()))
-      m_tree_muon->Branch(it.first.c_str(), & it.second.getBackingArray());
+      m_tree_muon->SetBranchAddress(it.first.c_str(), & it.second.getBackingArray());
   }
 }
 
