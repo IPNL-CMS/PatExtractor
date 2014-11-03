@@ -94,6 +94,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
 
   m_tree_jet = NULL;
   m_tree_jet     = new TTree(jetsTreeName.c_str(), "PAT PF jet info");  
+  m_tree_jet->SetAutoSave(0);
   m_tree_jet->Branch("n_jets",  &m_size,   "n_jets/i");  
   m_tree_jet->Branch("jet_4vector","TClonesArray",&m_jet_lorentzvector, 5000, 0);
   m_tree_jet->Branch("genjet_4vector","TClonesArray",&m_genjet_lorentzvector, 5000, 0);
@@ -130,6 +131,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
 
   m_tree_met = NULL;
   m_tree_met = new TTree(metTreeName.c_str(), "PAT PF MET info");  
+  m_tree_met->SetAutoSave(0);
   m_tree_met->Branch("met_4vector","TClonesArray",&m_met_lorentzvector, 1000, 0);
   m_tree_met->Branch("sumEt", &m_met_sumEt, "sumEt/F");  
   m_tree_met->Branch("unclustered_particle_4vector","TClonesArray",&m_unclustered_particle_lorentzvector, 1000, 0);

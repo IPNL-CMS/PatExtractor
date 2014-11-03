@@ -31,6 +31,7 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::Paramet
   m_OK = true;
 
   m_tree_electron     = new TTree(m_name.c_str(), "PAT PF electron info");  
+  m_tree_electron->SetAutoSave(0);
   m_tree_electron->Branch("n_electrons",                       &m_size, "n_electrons/i");  
   m_tree_electron->Branch("electron_4vector","TClonesArray",   &m_ele_lorentzvector, 1000, 0);
   m_tree_electron->Branch("electron_vx",                       &m_ele_vx,     "electron_vx[n_electrons]/F");  
