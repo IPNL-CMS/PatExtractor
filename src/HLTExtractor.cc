@@ -22,6 +22,7 @@ HLTExtractor::HLTExtractor(const std::string& name, bool doTree, const edm::Para
   {
     m_OK = true;
     m_tree_HLT       = new TTree(name.c_str(), "HLT info");  
+    m_tree_HLT->SetAutoSave(0);
     m_tree_HLT->Branch("n_paths",  &m_n_HLTs,"n_paths/I");       
     m_tree_HLT->Branch("HLT_vector","vector<string>",&m_HLT_vector);
 

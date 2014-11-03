@@ -11,6 +11,7 @@ EventExtractor::EventExtractor(const std::string& name)
   // Tree definition
 
   m_tree_event    = new TTree(name.c_str(), "Event info");  
+  m_tree_event->SetAutoSave(0);
 
   // Branches definition
 
