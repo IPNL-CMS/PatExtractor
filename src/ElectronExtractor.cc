@@ -75,10 +75,10 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::Paramet
 {
   m_file = a_file;
 
-  const auto& sfWorkingPoints = m_scaleFactorService->getElectronScaleFactorWorkingPoints();
+  const auto& sfWorkingPoints = ScaleFactorService::getInstance().getElectronScaleFactorWorkingPoints();
   for (auto& it: sfWorkingPoints) {
-      std::string name = "electron_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
-      m_scaleFactors[name] = ScaleFactorCollection();
+    std::string name = "electron_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
+    m_scaleFactors[name] = ScaleFactorCollection();
   };
 
   // Tree definition
