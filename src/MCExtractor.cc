@@ -16,6 +16,7 @@ MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& setti
   m_OK = true;
 
   m_tree_MC = new TTree(name.c_str(), "PAT MC info");  
+  m_tree_MC->SetAutoSave(0);
   m_tree_MC->Branch("MC_4vector","TClonesArray",&m_MC_lorentzvector, 1000, 0);
   m_tree_MC->Branch("n_MCs",  &m_n_MCs,"n_MCs/I");  
   m_tree_MC->Branch("MC_index",   &m_MC_index,    "MC_index[n_MCs]/I");  

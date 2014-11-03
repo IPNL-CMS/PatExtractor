@@ -29,6 +29,7 @@ MuonExtractor::MuonExtractor(const std::string& name, const edm::ParameterSet& s
   m_OK = true;
 
   m_tree_muon         = new TTree(m_name.c_str(), "PAT PF muon info"); 
+  m_tree_muon->SetAutoSave(0);
   m_tree_muon->Branch("n_muons",  &m_size,  "n_muons/i");  
   m_tree_muon->Branch("muon_4vector","TClonesArray",&m_muo_lorentzvector, 1000, 0);
   m_tree_muon->Branch("muon_vx",  &m_muo_vx,   "muon_vx[n_muons]/F");  
