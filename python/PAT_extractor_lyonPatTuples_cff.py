@@ -22,8 +22,18 @@ PATextraction.extractors.electron_PF.parameters.vertices = cms.InputTag("offline
 PATextraction.extractors.electron_PF.parameters.conversions = cms.InputTag("reducedEgamma", "reducedConversions", "PAT")
 PATextraction.extractors.electron_PF.parameters.rho = cms.InputTag("fixedGridRhoAll")
 
-PATextraction.extractors.muon_PF.parameters.input = cms.InputTag("patMETsPFlow")
+PATextraction.extractors.electrons_loose.enable = cms.bool(True)
+PATextraction.extractors.electrons_loose.parameters.input = cms.InputTag("slimmedAllElectronsPFlow")
+PATextraction.extractors.electrons_loose.parameters.vertices = cms.InputTag("offlineSlimmedPrimaryVertices")
+PATextraction.extractors.electrons_loose.parameters.conversions = cms.InputTag("reducedEgamma", "reducedConversions", "PAT")
+PATextraction.extractors.electrons_loose.parameters.rho = cms.InputTag("fixedGridRhoAll")
+
+PATextraction.extractors.muon_PF.parameters.input = cms.InputTag("slimmedMuonsPFlow")
 PATextraction.extractors.muon_PF.parameters.vertices = cms.InputTag("offlineSlimmedPrimaryVertices")
+
+PATextraction.extractors.muons_loose.enable = cms.bool(True)
+PATextraction.extractors.muons_loose.parameters.input = cms.InputTag("slimmedAllMuonsPFlow")
+PATextraction.extractors.muons_loose.parameters.vertices = cms.InputTag("offlineSlimmedPrimaryVertices")
 
 PATextraction.extractors.jetmet.parameters.input_jets = cms.InputTag("slimmedJetsPFlow")
 PATextraction.extractors.jetmet.parameters.input_met = cms.InputTag("patMETsPFlow")
