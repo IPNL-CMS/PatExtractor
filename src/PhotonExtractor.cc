@@ -270,6 +270,3 @@ void PhotonExtractor::fillTree()
 {
   m_tree_photon->Fill(); 
 }
-
-DEFINE_EDM_PLUGIN(PatExtractorExtractorFactory, PhotonExtractor, "photon_extractor");
-DEFINE_EDM_PLUGIN(PatExtractorExtractorReadOnlyFactory, PhotonExtractor, "photon_extractor");

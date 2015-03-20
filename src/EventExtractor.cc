@@ -174,6 +174,3 @@ void EventExtractor::print()
   std::cout << "From run           : " << EventExtractor::run() << std::endl;
   std::cout << "------------------------------------" << std::endl;
 }
-
-DEFINE_EDM_PLUGIN(PatExtractorExtractorFactory, EventExtractor, "event_extractor");
-DEFINE_EDM_PLUGIN(PatExtractorExtractorReadOnlyFactory, EventExtractor, "event_extractor");

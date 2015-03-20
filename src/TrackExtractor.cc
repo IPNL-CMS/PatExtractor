@@ -127,6 +127,3 @@ void TrackExtractor::getInfo(int ievt)
 {
   m_tree_track->GetEntry(ievt); 
 }
-
-DEFINE_EDM_PLUGIN(PatExtractorExtractorFactory, TrackExtractor, "track_extractor");
-DEFINE_EDM_PLUGIN(PatExtractorExtractorReadOnlyFactory, TrackExtractor, "track_extractor");

@@ -351,6 +351,3 @@ void MCExtractor::constructGeneration(int gene, int npart)
 int MCExtractor::getSize() const {
   return m_n_MCs;
 }
-
-DEFINE_EDM_PLUGIN(PatExtractorExtractorFactory, MCExtractor, "mc_extractor");
-DEFINE_EDM_PLUGIN(PatExtractorExtractorReadOnlyFactory, MCExtractor, "mc_extractor");

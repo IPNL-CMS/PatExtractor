@@ -246,6 +246,3 @@ void Triggers::print() {
     }
   }
 }
-
-DEFINE_EDM_PLUGIN(PatExtractorExtractorFactory, HLTExtractor, "hlt_extractor");
-DEFINE_EDM_PLUGIN(PatExtractorExtractorReadOnlyFactory, HLTExtractor, "hlt_extractor");

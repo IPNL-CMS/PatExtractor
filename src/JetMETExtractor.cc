@@ -967,6 +967,3 @@ void JetMETExtractor::setMETLorentzVector(int idx, float E, float Px, float Py, 
 {
   new((*m_met_lorentzvector)[idx]) TLorentzVector(Px,Py,Pz,E);
 }
-
-DEFINE_EDM_PLUGIN(PatExtractorExtractorFactory, JetMETExtractor, "jet_met_extractor");
-DEFINE_EDM_PLUGIN(PatExtractorExtractorReadOnlyFactory, JetMETExtractor, "jet_met_extractor");
