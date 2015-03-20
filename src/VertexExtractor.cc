@@ -116,6 +116,3 @@ float VertexExtractor::dist_to_vtx(int vtxidx, float x, float y, float z)
   return sqrt(dx*dx+dy*dy+dz*dz);
 
 }
-
-DEFINE_EDM_PLUGIN(PatExtractorExtractorFactory, VertexExtractor, "vertex_extractor");
-DEFINE_EDM_PLUGIN(PatExtractorExtractorReadOnlyFactory, VertexExtractor, "vertex_extractor");

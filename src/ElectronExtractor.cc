@@ -403,6 +403,3 @@ void ElectronExtractor::fillTree()
 {
   m_tree_electron->Fill(); 
 }
-
-DEFINE_EDM_PLUGIN(PatExtractorExtractorFactory, ElectronExtractor, "electron_extractor");
-DEFINE_EDM_PLUGIN(PatExtractorExtractorReadOnlyFactory, ElectronExtractor, "electron_extractor");

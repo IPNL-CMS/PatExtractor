@@ -544,6 +544,3 @@ void PFpartExtractor::getInfo(int ievt)
 {
   m_tree_pfpart->GetEntry(ievt); 
 }
-
-DEFINE_EDM_PLUGIN(PatExtractorExtractorFactory, PFpartExtractor, "pfparticle_extractor");
-DEFINE_EDM_PLUGIN(PatExtractorExtractorReadOnlyFactory, PFpartExtractor, "pfparticle_extractor");

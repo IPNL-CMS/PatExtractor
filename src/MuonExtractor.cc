@@ -332,6 +332,3 @@ void MuonExtractor::fillTree()
 {
   m_tree_muon->Fill(); 
 }
-
-DEFINE_EDM_PLUGIN(PatExtractorExtractorFactory, MuonExtractor, "muon_extractor");
-DEFINE_EDM_PLUGIN(PatExtractorExtractorReadOnlyFactory, MuonExtractor, "muon_extractor");
