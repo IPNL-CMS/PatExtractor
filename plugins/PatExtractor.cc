@@ -95,7 +95,14 @@ void PatExtractor::analyze(const edm::Event& event, const edm::EventSetup& setup
     PatExtractor::fillInfo(&event, setup); // Fill the ROOTuple
     // Execute each plugins
     for (auto& plugin: m_plugins) {
-      plugin->analyze(event, setup, *this);
+      try {
+        plugin->analyze(event, setup, *this);
+      } catch (cms::Exception& e) {
+        std::stringstream context;
+        context << "Calling analyze method for plugin " << typeid(*plugin).name();
+        e.addContext(context.str());
+        throw e;
+      }
     }
   }
 

@@ -51,8 +51,11 @@ class PatExtractor : public edm::EDAnalyzer {
   std::shared_ptr<SuperBaseExtractor> getExtractor(const std::string& name) {
     if (m_extractorsIndexes.count(name))
       return m_extractors[m_extractorsIndexes[name]];
-    else
-      return std::shared_ptr<SuperBaseExtractor>();
+    else {
+      std::stringstream details;
+      details << "Extractor '" << name << "' not found. Please load it first in the python configuration";
+      throw edm::Exception(edm::errors::NotFound, details.str());
+    }
   }
 
  private:
