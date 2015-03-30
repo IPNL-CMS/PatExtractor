@@ -122,6 +122,10 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   //m_tree_jet->Branch("jet_btag_SSVHE",    &m_jet_btag_SSVHE,   "jet_btag_SSVHE[n_jets]/F");
   //m_tree_jet->Branch("jet_btag_SSVHP",    &m_jet_btag_SSVHP,   "jet_btag_SSVHP[n_jets]/F");
   //m_tree_jet->Branch("jet_btag_TCHE",    &m_jet_btag_TCHE,   "jet_btag_TCHE[n_jets]/F");
+
+  m_tree_jet->Branch("jet_qgtag_MLP",    &m_jet_qgtag_MLP,   "jet_qgtag_MLP[n_jets]/F");
+  m_tree_jet->Branch("jet_qgtag_likelihood",    &m_jet_qgtag_likelihood,   "jet_qgtag_likelihood[n_jets]/F");
+
   m_tree_jet->Branch("jet_mcParticleIndex",&m_jet_MCIndex,"jet_mcParticleIndex[n_jets]/I");
 
   m_tree_jet->Branch("jet_algo_parton_flavor", &m_jet_algo_parton_flavor, "jet_algo_parton_flavor[n_jets]/I");
@@ -215,6 +219,12 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
       m_tree_jet->SetBranchAddress("jet_btag_TCHP",     &m_jet_btag_TCHP);
     if (m_tree_jet->FindBranch("jet_btag_CSV")) 
       m_tree_jet->SetBranchAddress("jet_btag_CSV",      &m_jet_btag_CSV);
+
+    if (m_tree_jet->FindBranch("jet_qgtag_MLP"))
+      m_tree_jet->SetBranchAddress("jet_qgtag_MLP",      &m_jet_qgtag_MLP);
+
+    if (m_tree_jet->FindBranch("jet_qgtag_likelihood"))
+      m_tree_jet->SetBranchAddress("jet_qgtag_likelihood",      &m_jet_qgtag_likelihood);
 
     if (m_tree_jet->FindBranch("jet_algo_parton_flavor"))
       m_tree_jet->SetBranchAddress("jet_algo_parton_flavor", &m_jet_algo_parton_flavor);
@@ -400,6 +410,23 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
       
     pat::JetRef jetRef(jetHandle, i);    
     JetMETExtractor::writeInfo(event, iSetup, p_jets.at(i), m_size, jetRef); 
+
+
+    // Retrieve QGTag info
+
+    edm::Handle<edm::ValueMap<float> >  QGTagsHandleMLP;
+    edm::Handle<edm::ValueMap<float> >  QGTagsHandleLikelihood;
+    event.getByLabel("QGTagger","qgMLP", QGTagsHandleMLP);
+    event.getByLabel("QGTagger","qgLikelihood", QGTagsHandleLikelihood);
+
+    for (pat::JetCollection::const_iterator jet = p_jets.begin();  jet != p_jets.end(); ++jet){
+      int ijet = jet - p_jets.begin();
+      pat::JetRef jetRef(jetHandle, ijet);
+
+      if (QGTagsHandleMLP.isValid()) m_jet_qgtag_MLP[ijet] = (*QGTagsHandleMLP)[jetRef];
+      if (QGTagsHandleLikelihood.isValid()) m_jet_qgtag_likelihood[ijet] = (*QGTagsHandleLikelihood)[jetRef];
+    }
+
 
     if (m_MC)
       doMCMatch(p_jets.at(i), event, m_MC, m_size);
@@ -601,6 +628,9 @@ void JetMETExtractor::reset()
     m_jet_btag_jetProb[i] = 0.;
     m_jet_btag_TCHP[i] = 0.;
     m_jet_btag_CSV[i] = 0.;
+
+    m_jet_qgtag_MLP[i] = 0.;
+    m_jet_qgtag_likelihood[i] = 0.;
 
     m_jet_MCIndex[i]    = -1;
 

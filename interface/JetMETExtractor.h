@@ -100,6 +100,9 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     //float getJetBTagProb_SSVHP(int jetidx) {return m_jet_btag_SSVHP[jetidx];}
     //float getJetBTagProb_TCHE(int jetidx) {return m_jet_btag_TCHE[jetidx];}
 
+    float getJetQGTagProb_MLP(int jetidx) const { return m_jet_qgtag_MLP[jetidx]; }
+    float getJetQGTagProb_Likelihood(int jetidx) const { return m_jet_qgtag_likelihood[jetidx]; }
+
     int getJetMCIndex(int jetidx) {return m_jet_MCIndex[jetidx];}
 
     /**
@@ -211,6 +214,9 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     float	m_jet_btag_TCHP[m_jets_MAX];
     float	m_jet_btag_CSV[m_jets_MAX];
     
+    float	m_jet_qgtag_MLP[m_jets_MAX];
+    float	m_jet_qgtag_likelihood[m_jets_MAX];
+
     //PuJetId
     int    m_jet_puJetFullId[m_jets_MAX];
     int    m_jet_puJetCutBasedId[m_jets_MAX];
