@@ -390,6 +390,11 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
   if (mJESSign != 0)
     doJESSystematics(p_jets, MET);
 
+  // Retrieve QGTag info
+  edm::Handle<edm::ValueMap<float> >  QGTagsHandleMLP;
+  edm::Handle<edm::ValueMap<float> >  QGTagsHandleLikelihood;
+  event.getByLabel("QGTagger","qgMLP", QGTagsHandleMLP);
+  event.getByLabel("QGTagger","qgLikelihood", QGTagsHandleLikelihood);
 
   for (unsigned int i = 0; i < p_jets.size(); ++i)
   {
@@ -413,19 +418,8 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
 
 
     // Retrieve QGTag info
-
-    edm::Handle<edm::ValueMap<float> >  QGTagsHandleMLP;
-    edm::Handle<edm::ValueMap<float> >  QGTagsHandleLikelihood;
-    event.getByLabel("QGTagger","qgMLP", QGTagsHandleMLP);
-    event.getByLabel("QGTagger","qgLikelihood", QGTagsHandleLikelihood);
-
-    for (pat::JetCollection::const_iterator jet = p_jets.begin();  jet != p_jets.end(); ++jet){
-      int ijet = jet - p_jets.begin();
-      pat::JetRef jetRef(jetHandle, ijet);
-
-      if (QGTagsHandleMLP.isValid()) m_jet_qgtag_MLP[ijet] = (*QGTagsHandleMLP)[jetRef];
-      if (QGTagsHandleLikelihood.isValid()) m_jet_qgtag_likelihood[ijet] = (*QGTagsHandleLikelihood)[jetRef];
-    }
+    if (QGTagsHandleMLP.isValid()) m_jet_qgtag_MLP[i] = (*QGTagsHandleMLP)[jetRef];
+    if (QGTagsHandleLikelihood.isValid()) m_jet_qgtag_likelihood[i] = (*QGTagsHandleLikelihood)[jetRef];
 
 
     if (m_MC)
