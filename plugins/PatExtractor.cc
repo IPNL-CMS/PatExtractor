@@ -14,6 +14,7 @@ PatExtractor::PatExtractor(const edm::ParameterSet& config) :
   do_Electron_   (config.getUntrackedParameter<bool>("doElectron", false)),
 
   do_Jet_        (config.getUntrackedParameter<bool>("doJet", false)),
+  do_KVF_        (config.getUntrackedParameter<bool>("doKVF", false)),
   do_Muon_       (config.getUntrackedParameter<bool>("doMuon", false)),
   do_MET_        (config.getUntrackedParameter<bool>("doMET", false)),
   do_Vertex_     (config.getUntrackedParameter<bool>("doVertex", false)),
@@ -276,6 +277,9 @@ void PatExtractor::initialize(const edm::ParameterSet& config)
   if (do_Jet_ || do_MET_)
     addExtractor("JetMET", new JetMETExtractor("jet_PF", "MET_PF", m_scaleFactors, config));
 
+  if (do_KVF_)
+    addExtractor("KVF", new KVFExtractor("jet_PF", m_scaleFactors, config));
+
   if (do_Photon_)
     addExtractor("photons", new PhotonExtractor("photon", photon_tag_, do_Photon_));
 
@@ -328,6 +332,7 @@ void PatExtractor::retrieve(const edm::ParameterSet& config)
   addExtractor("muons_loose", new MuonExtractor("muon_loose_PF", m_scaleFactors, m_infile));
 
   addExtractor("JetMET", new JetMETExtractor("jet_PF", "MET_PF", m_scaleFactors, m_infile));
+  addExtractor("KVF", new KVFExtractor("jet_PF", m_scaleFactors, m_infile));
   addExtractor("photons", new PhotonExtractor("photon", m_infile));
 
   // We set some variables wrt the info retrieved (if the tree is not there, don't go further...)  
@@ -336,6 +341,7 @@ void PatExtractor::retrieve(const edm::ParameterSet& config)
   do_Photon_   = getExtractor("photons")->isOK();
   do_Electron_ = getExtractor("electrons")->isOK();
   do_Jet_      = getExtractor("JetMET")->isOK();
+  do_KVF_      = getExtractor("KVF")->isOK();
   do_Muon_     = getExtractor("muons")->isOK();
   do_Vertex_   = getExtractor("vertex")->isOK();
   do_Trk_      = getExtractor("track")->isOK();

@@ -70,6 +70,7 @@ process.PATextraction.doMuon     = True
 process.PATextraction.doElectron = True
 process.PATextraction.doJet      = True
 process.PATextraction.doMET      = True
+process.PATextraction.doKVF      = True
 process.PATextraction.doVertex   = True
 
 

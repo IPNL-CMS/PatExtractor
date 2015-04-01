@@ -107,6 +107,9 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
        saveUnclusteredParticles = cms.untracked.bool(False)
    ),
 
+   # Add KVF information (for J/psi reconstruction)
+   doKVF         = cms.untracked.bool(False), # will use jet_PF and MET_PF infos
+
    # Add PV information
    doVertex      = cms.untracked.bool(False),
    vtx_tag       = cms.InputTag( "offlinePrimaryVertices" ),

@@ -23,6 +23,7 @@
 #include "../interface/PhotonExtractor.h"
 #include "../interface/JetMETExtractor.h"
 #include "../interface/METExtractor.h"
+#include "../interface/KVFExtractor.h"
 #include "../interface/MuonExtractor.h"
 #include "../interface/VertexExtractor.h"
 #include "../interface/EventExtractor.h"
@@ -83,6 +84,7 @@ class PatExtractor : public edm::EDAnalyzer {
   bool do_Electron_;
 
   bool do_Jet_;
+  bool do_KVF_;
   bool do_Muon_;
   bool do_MET_;
   bool do_Vertex_;

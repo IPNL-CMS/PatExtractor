@@ -9,7 +9,7 @@
 <!ATTLIST correction onlyondata (true|false) "false">
 ]>
 <payloads>
-  <corrections path="Extractors/PatExtractor/data/" prefix="Summer13_V4">
+  <corrections path="Extractors/PatExtractor/data/" prefix="Winter14_V8">
     <correction name="L1FastJet" />
     <correction name="L2Relative" />
     <correction name="L3Absolute" />

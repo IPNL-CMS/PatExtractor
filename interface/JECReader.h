@@ -46,7 +46,8 @@ class XMLSimpleStr {
 };
 
 
-FactorizedJetCorrector* makeFactorizedJetCorrectorFromXML(const std::string& xmlfile, const std::string& jetAlgo, const bool isMC) {
+inline FactorizedJetCorrector* makeFactorizedJetCorrectorFromXML(const std::string& xmlfile, const std::string& jetAlgo, const bool isMC)
+{
 
   try {
     XMLPlatformUtils::Initialize();
@@ -145,5 +146,4 @@ FactorizedJetCorrector* makeFactorizedJetCorrectorFromXML(const std::string& xml
   XMLPlatformUtils::Terminate();
   return NULL;
 }
-
 
