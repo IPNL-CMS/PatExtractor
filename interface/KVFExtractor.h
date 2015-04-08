@@ -21,6 +21,7 @@
 #include <CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h>
 #include "CMGTools/External/interface/PileupJetIdentifier.h"
 #include <DataFormats/ParticleFlowCandidate/interface/PFCandidate.h>
+#include "TrackingTools/TransientTrack/interface/TransientTrack.h"
 
 #include "../interface/BaseExtractor.h"
 #include "../interface/MCExtractor.h"
@@ -42,8 +43,8 @@ class KVFExtractor: public BaseExtractor<pat::Jet>
 
   public:
 
-    KVFExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, const edm::ParameterSet& config);
-    KVFExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, TFile *a_file);
+    KVFExtractor(const std::string& name_jpsi, const std::string& name_d0, const std::string& name_jet, std::shared_ptr<ScaleFactorService> sf, const edm::ParameterSet& config);
+    KVFExtractor(const std::string& name_jpsi, const std::string& name_d0, const std::string& name_jet, std::shared_ptr<ScaleFactorService> sf, TFile *a_file);
     virtual ~KVFExtractor();
     virtual void beginJob();
 
@@ -104,14 +105,18 @@ class KVFExtractor: public BaseExtractor<pat::Jet>
 
   private:
 
-    TTree* m_tree_jpsi;
+    double m_muJpsiMinPt;
+    double m_jpsiMassMin;
+    double m_jpsiMassMax;
+    int m_nTrD0Max;
+    double m_trD0MinPt;
 
     bool mCorrectJets;
     bool mUseGlobalTagForJEC;
     std::string mJecPayload;
     std::string mJecJetAlgo;
     std::string mJetCorrectorLabel;
-    GreaterByPt<pat::Jet> mSorter;
+    GreaterByPt<pat::Jet> mSorterJets;
     bool mDoJER;
     bool mDoLooseJetID;
     int  mJERSign;
@@ -124,10 +129,13 @@ class KVFExtractor: public BaseExtractor<pat::Jet>
 
     // Jpsi
 
+    TTree* m_tree_jpsi;
+
     static const int 	m_jpsi_MAX  = 10;
     
     int           m_jpsi_size;
     int           m_jpsi_indjet[m_jpsi_MAX];
+    float         m_jpsi_jet_btag_CSV[m_jpsi_MAX];
     int           m_jpsi_indpf1[m_jpsi_MAX];
     int           m_jpsi_indpf2[m_jpsi_MAX];
     TClonesArray* m_jpsi_jet_lorentzvector;
@@ -144,6 +152,51 @@ class KVFExtractor: public BaseExtractor<pat::Jet>
     float         m_jpsikvf_L3D[m_jpsi_MAX];
     float         m_jpsikvf_sigmaL3D[m_jpsi_MAX];
     float         m_jpsikvf_L3DoverSigmaL3D[m_jpsi_MAX];
+
+    // D0
+
+    GreaterByPt<reco::PFCandidate> mSorterPFs;
+
+    TTree* m_tree_mujet;
+
+    static const int 	m_mujet_MAX = 20;
+    static const int 	m_d0_MAX  = 100;
+    static const int 	m_tr_MAX  = 10;
+    
+    int           m_mujet_size;
+    float         m_mujet_jet_btag_CSV[m_mujet_MAX];
+    TClonesArray* m_mujet_jet_lorentzvector;
+    TClonesArray* m_mujet_nonisomuplus_lorentzvector;
+    int           m_mujet_nonisomuplus_pdgid[m_mujet_MAX];
+    TClonesArray* m_mujet_nonisomuminus_lorentzvector;
+    int           m_mujet_nonisomuminus_pdgid[m_mujet_MAX];
+    int           m_mujet_ntr[m_mujet_MAX];
+    float         m_mujet_sump[m_mujet_MAX];
+    float         m_mujet_sumpt[m_mujet_MAX];
+    float         m_mujet_sumvecp[m_mujet_MAX];
+    TClonesArray* m_mujet_tr_lorentzvector; 
+    TClonesArray* m_mujet_tr_lorentzvector_int; 
+    int           m_mujet_tr_pdgid[m_mujet_MAX][m_tr_MAX]; 
+    int           m_mujet_nd0[m_mujet_MAX];
+    TClonesArray* m_mujet_d0pf_lorentzvector;
+    TClonesArray* m_mujet_d0pf_lorentzvector_int;
+    TClonesArray* m_mujet_d0kvf_lorentzvector;
+    TClonesArray* m_mujet_d0kvf_lorentzvector_int;
+    TClonesArray* m_mujet_d0kvf_pion_lorentzvector;
+    TClonesArray* m_mujet_d0kvf_pion_lorentzvector_int;
+    int           m_mujet_d0kvf_pion_pdgid[m_mujet_MAX][m_d0_MAX];
+    TClonesArray* m_mujet_d0kvf_kaon_lorentzvector;
+    TClonesArray* m_mujet_d0kvf_kaon_lorentzvector_int;
+    int           m_mujet_d0kvf_kaon_pdgid[m_mujet_MAX][m_d0_MAX];
+    float         m_mujet_d0kvf_vx[m_mujet_MAX][m_d0_MAX];
+    float         m_mujet_d0kvf_vy[m_mujet_MAX][m_d0_MAX];
+    float         m_mujet_d0kvf_vz[m_mujet_MAX][m_d0_MAX];
+    bool          m_mujet_d0kvf_vtxvalid[m_mujet_MAX][m_d0_MAX];
+    float         m_mujet_d0kvf_vtxchi2[m_mujet_MAX][m_d0_MAX];
+    float         m_mujet_d0kvf_ndf[m_mujet_MAX][m_d0_MAX];
+    float         m_mujet_d0kvf_L3D[m_mujet_MAX][m_d0_MAX];
+    float         m_mujet_d0kvf_sigmaL3D[m_mujet_MAX][m_d0_MAX];
+    float         m_mujet_d0kvf_L3DoverSigmaL3D[m_mujet_MAX][m_d0_MAX];
     
 };
 

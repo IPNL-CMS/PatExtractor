@@ -107,8 +107,17 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
        saveUnclusteredParticles = cms.untracked.bool(False)
    ),
 
-   # Add KVF information (for J/psi reconstruction)
-   doKVF         = cms.untracked.bool(False), # will use jet_PF and MET_PF infos
+   # Add KVF information (for J/psi and D0 reconstruction -- will use jet_PF infos)
+   doKVF         = cms.untracked.bool(False), 
+   jpsi_KVF      = cms.PSet(
+        muJpsiMinPt   = cms.untracked.double(4.),
+        jpsiMassMin   = cms.untracked.double(2.8),
+        jpsiMassMax   = cms.untracked.double(3.4),
+   ),
+   d0_KVF      = cms.PSet(
+        nTrD0Max      = cms.untracked.uint32(3),
+        trD0MinPt     = cms.untracked.double(0.2),
+   ),
 
    # Add PV information
    doVertex      = cms.untracked.bool(False),

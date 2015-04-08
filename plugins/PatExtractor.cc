@@ -278,7 +278,7 @@ void PatExtractor::initialize(const edm::ParameterSet& config)
     addExtractor("JetMET", new JetMETExtractor("jet_PF", "MET_PF", m_scaleFactors, config));
 
   if (do_KVF_)
-    addExtractor("KVF", new KVFExtractor("jet_PF", m_scaleFactors, config));
+    addExtractor("KVF", new KVFExtractor("jpsi_KVF", "d0_KVF", "jet_PF", m_scaleFactors, config));
 
   if (do_Photon_)
     addExtractor("photons", new PhotonExtractor("photon", photon_tag_, do_Photon_));
@@ -332,7 +332,7 @@ void PatExtractor::retrieve(const edm::ParameterSet& config)
   addExtractor("muons_loose", new MuonExtractor("muon_loose_PF", m_scaleFactors, m_infile));
 
   addExtractor("JetMET", new JetMETExtractor("jet_PF", "MET_PF", m_scaleFactors, m_infile));
-  addExtractor("KVF", new KVFExtractor("jet_PF", m_scaleFactors, m_infile));
+  addExtractor("KVF", new KVFExtractor("jpsi_KVF", "d0_KVF", "jet_PF", m_scaleFactors, m_infile));
   addExtractor("photons", new PhotonExtractor("photon", m_infile));
 
   // We set some variables wrt the info retrieved (if the tree is not there, don't go further...)  
