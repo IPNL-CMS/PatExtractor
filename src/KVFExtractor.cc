@@ -175,19 +175,14 @@ void printOut(const RefCountedKinematicTree& myTree)
   m_jpsikvf_mu1_lorentzvector = new TClonesArray("TLorentzVector");
   m_jpsikvf_mu2_lorentzvector = new TClonesArray("TLorentzVector");
 
-  m_mujet_jet_lorentzvector            = new TClonesArray("TLorentzVector");
-  m_mujet_nonisomuplus_lorentzvector   = new TClonesArray("TLorentzVector");
-  m_mujet_nonisomuminus_lorentzvector  = new TClonesArray("TLorentzVector");
-  m_mujet_tr_lorentzvector             = new TClonesArray("TClonesArray");
-  m_mujet_tr_lorentzvector_int         = new TClonesArray("TLorentzVector");
-  m_mujet_d0pf_lorentzvector           = new TClonesArray("TClonesArray");
-  m_mujet_d0pf_lorentzvector_int       = new TClonesArray("TLorentzVector");
-  m_mujet_d0kvf_lorentzvector          = new TClonesArray("TClonesArray");
-  m_mujet_d0kvf_lorentzvector_int      = new TClonesArray("TLorentzVector");
-  m_mujet_d0kvf_pion_lorentzvector     = new TClonesArray("TClonesArray");
-  m_mujet_d0kvf_pion_lorentzvector_int = new TClonesArray("TLorentzVector");
-  m_mujet_d0kvf_kaon_lorentzvector     = new TClonesArray("TClonesArray");
-  m_mujet_d0kvf_kaon_lorentzvector_int = new TClonesArray("TLorentzVector");
+  m_mujet_jet_lorentzvector           = new TClonesArray("TLorentzVector");
+  m_mujet_nonisomuplus_lorentzvector  = new TClonesArray("TLorentzVector");
+  m_mujet_nonisomuminus_lorentzvector = new TClonesArray("TLorentzVector");
+  m_mujet_tr_lorentzvector            = new TClonesArray("TLorentzVector");
+  m_mujet_d0pf_lorentzvector          = new TClonesArray("TLorentzVector");
+  m_mujet_d0kvf_lorentzvector         = new TClonesArray("TLorentzVector");
+  m_mujet_d0kvf_pion_lorentzvector    = new TClonesArray("TLorentzVector");
+  m_mujet_d0kvf_kaon_lorentzvector    = new TClonesArray("TLorentzVector");
 
   reset();
 
@@ -228,24 +223,28 @@ void printOut(const RefCountedKinematicTree& myTree)
   m_tree_mujet->Branch("mujet_sump", &m_mujet_sump, "mujet_sump[n_mujet]/F"); 
   m_tree_mujet->Branch("mujet_sumpt", &m_mujet_sumpt, "mujet_sumpt[n_mujet]/F"); 
   m_tree_mujet->Branch("mujet_sumvecp", &m_mujet_sumvecp, "mujet_sumvecp[n_mujet]/F"); 
+  m_tree_mujet->Branch("n_tr", &m_mujet_tr_size, "n_tr/I");
+  m_tree_mujet->Branch("mujet_tr_indmujet", &m_mujet_tr_indmujet, "mujet_tr_indmujet[n_tr]/I"); 
+  m_tree_mujet->Branch("mujet_tr_pdgid", &m_mujet_tr_pdgid, "mujet_tr_pdgid[n_tr]/I"); 
   m_tree_mujet->Branch("mujet_tr_4vector", "TClonesArray", &m_mujet_tr_lorentzvector, 1000, 0); 
-  m_tree_mujet->Branch("mujet_tr_pdgid", &m_mujet_tr_pdgid, "mujet_tr_pdgid[n_mujet][m_tr_MAX]/I"); 
+  m_tree_mujet->Branch("n_d0", &m_mujet_d0_size, "n_d0/I");
   m_tree_mujet->Branch("mujet_nd0", &m_mujet_nd0, "mujet_nd0[n_mujet]/I");
+  m_tree_mujet->Branch("mujet_d0_indmujet", &m_mujet_d0kvf_indmujet, "mujet_d0_indmujet[n_d0]/I"); 
   m_tree_mujet->Branch("mujet_d0pf_4vector", "TClonesArray", &m_mujet_d0pf_lorentzvector, 1000, 0);
   m_tree_mujet->Branch("mujet_d0_4vector", "TClonesArray", &m_mujet_d0kvf_lorentzvector, 1000, 0);
   m_tree_mujet->Branch("mujet_d0_kaon_4vector", "TClonesArray", &m_mujet_d0kvf_kaon_lorentzvector, 1000, 0);
-  m_tree_mujet->Branch("mujet_d0_kaon_pdgid", &m_mujet_d0kvf_kaon_pdgid, "mujet_d0_kaon_pdgid[n_mujet][mujet_nd0]/I"); 
+  m_tree_mujet->Branch("mujet_d0_kaon_pdgid", &m_mujet_d0kvf_kaon_pdgid, "mujet_d0_kaon_pdgid[n_d0]/I"); 
   m_tree_mujet->Branch("mujet_d0_pion_4vector", "TClonesArray", &m_mujet_d0kvf_pion_lorentzvector, 1000, 0);
-  m_tree_mujet->Branch("mujet_d0_pion_pdgid", &m_mujet_d0kvf_pion_pdgid, "mujet_d0_pion_pdgid[n_mujet][mujet_nd0]/I"); 
-  m_tree_mujet->Branch("mujet_d0_vx", &m_mujet_d0kvf_vx,	"mujet_d0kvf_vx[n_mujet][mujet_nd0]/F");  
-  m_tree_mujet->Branch("mujet_d0_vy", &m_mujet_d0kvf_vy,	"mujet_d0kvf_vy[n_mujet][mujet_nd0]/F");  
-  m_tree_mujet->Branch("mujet_d0_vz", &m_mujet_d0kvf_vz,	"mujet_d0kvf_vz[n_mujet][mujet_nd0]/F");
-  m_tree_mujet->Branch("mujet_d0_vtxvalid", &m_mujet_d0kvf_vtxvalid, "mujet_d0kvf_vtxvalid[n_mujet][mujet_nd0]/O");
-  m_tree_mujet->Branch("mujet_d0_vtxchi2", &m_mujet_d0kvf_vtxchi2,  "mujet_d0kvf_vtxchi2[n_mujet][mujet_nd0]/F");
-  m_tree_mujet->Branch("mujet_d0_ndf",	&m_mujet_d0kvf_ndf,	"mujet_d0kvf_ndf[n_mujet][mujet_nd0]/F");  
-  m_tree_mujet->Branch("mujet_d0_L3D",	&m_mujet_d0kvf_L3D,	"mujet_d0kvf_L3D[n_mujet][mujet_nd0]/F");  
-  m_tree_mujet->Branch("mujet_d0_sigmaL3D", &m_mujet_d0kvf_sigmaL3D, "mujet_d0kvf_sigmaL3D[n_mujet][mujet_nd0]/F");  
-  m_tree_mujet->Branch("mujet_d0_L3DoverSigmaL3D", &m_mujet_d0kvf_L3DoverSigmaL3D, "mujet_d0kvf_L3DoverSigmaL3D[n_mujet][mujet_nd0]/F");  
+  m_tree_mujet->Branch("mujet_d0_pion_pdgid", &m_mujet_d0kvf_pion_pdgid, "mujet_d0_pion_pdgid[n_d0]/I"); 
+  m_tree_mujet->Branch("mujet_d0_vx", &m_mujet_d0kvf_vx,	"mujet_d0kvf_vx[n_d0]/F");  
+  m_tree_mujet->Branch("mujet_d0_vy", &m_mujet_d0kvf_vy,	"mujet_d0kvf_vy[n_d0]/F");  
+  m_tree_mujet->Branch("mujet_d0_vz", &m_mujet_d0kvf_vz,	"mujet_d0kvf_vz[n_d0]/F");
+  m_tree_mujet->Branch("mujet_d0_vtxvalid", &m_mujet_d0kvf_vtxvalid, "mujet_d0kvf_vtxvalid[n_d0]/O");
+  m_tree_mujet->Branch("mujet_d0_vtxchi2", &m_mujet_d0kvf_vtxchi2,  "mujet_d0kvf_vtxchi2[n_d0]/F");
+  m_tree_mujet->Branch("mujet_d0_ndf",	&m_mujet_d0kvf_ndf,	"mujet_d0kvf_ndf[n_d0]/F");  
+  m_tree_mujet->Branch("mujet_d0_L3D",	&m_mujet_d0kvf_L3D,	"mujet_d0kvf_L3D[n_d0]/F");  
+  m_tree_mujet->Branch("mujet_d0_sigmaL3D", &m_mujet_d0kvf_sigmaL3D, "mujet_d0kvf_sigmaL3D[n_d0]/F");  
+  m_tree_mujet->Branch("mujet_d0_L3DoverSigmaL3D", &m_mujet_d0kvf_L3DoverSigmaL3D, "mujet_d0kvf_L3DoverSigmaL3D[n_d0]/F");  
 }
 
 void KVFExtractor::beginJob() {
@@ -320,19 +319,14 @@ void KVFExtractor::beginJob() {
   }
   if (m_tree_mujet) {
 
-    m_mujet_jet_lorentzvector            = new TClonesArray("TLorentzVector");
-    m_mujet_nonisomuplus_lorentzvector   = new TClonesArray("TLorentzVector");
-    m_mujet_nonisomuminus_lorentzvector  = new TClonesArray("TLorentzVector");
-    m_mujet_tr_lorentzvector             = new TClonesArray("TClonesArray"); 
-    m_mujet_tr_lorentzvector_int         = new TClonesArray("TLorentzVector"); 
-    m_mujet_d0pf_lorentzvector           = new TClonesArray("TClonesArray");
-    m_mujet_d0pf_lorentzvector_int       = new TClonesArray("TLorentzVector");
-    m_mujet_d0kvf_lorentzvector          = new TClonesArray("TClonesArray");
-    m_mujet_d0kvf_lorentzvector_int      = new TClonesArray("TLorentzVector");
-    m_mujet_d0kvf_pion_lorentzvector     = new TClonesArray("TClonesArray");
-    m_mujet_d0kvf_pion_lorentzvector_int = new TClonesArray("TLorentzVector");
-    m_mujet_d0kvf_kaon_lorentzvector     = new TClonesArray("TClonesArray");
-    m_mujet_d0kvf_kaon_lorentzvector_int = new TClonesArray("TLorentzVector");
+    m_mujet_jet_lorentzvector           = new TClonesArray("TLorentzVector");
+    m_mujet_nonisomuplus_lorentzvector  = new TClonesArray("TLorentzVector");
+    m_mujet_nonisomuminus_lorentzvector = new TClonesArray("TLorentzVector");
+    m_mujet_tr_lorentzvector            = new TClonesArray("TLorentzVector"); 
+    m_mujet_d0pf_lorentzvector          = new TClonesArray("TLorentzVector");
+    m_mujet_d0kvf_lorentzvector         = new TClonesArray("TLorentzVector");
+    m_mujet_d0kvf_pion_lorentzvector    = new TClonesArray("TLorentzVector");
+    m_mujet_d0kvf_kaon_lorentzvector    = new TClonesArray("TLorentzVector");
 
     if (m_tree_mujet->FindBranch("n_mujet")) 
       m_tree_mujet->Branch("n_mujet", &m_mujet_size);
@@ -356,12 +350,20 @@ void KVFExtractor::beginJob() {
       m_tree_mujet->Branch("mujet_sumpt", &m_mujet_sumpt);
     if (m_tree_mujet->FindBranch("mujet_sumvecp")) 
       m_tree_mujet->Branch("mujet_sumvecp", &m_mujet_sumvecp);
-    if (m_tree_mujet->FindBranch("mujet_tr_4vector")) 
-      m_tree_mujet->Branch("mujet_tr_4vector", &m_mujet_tr_lorentzvector); 
+    if (m_tree_mujet->FindBranch("n_tr")) 
+      m_tree_mujet->Branch("n_tr", &m_mujet_tr_size);
+    if (m_tree_mujet->FindBranch("mujet_tr_indmujet")) 
+      m_tree_mujet->Branch("mujet_tr_indmujet", &m_mujet_tr_indmujet); 
     if (m_tree_mujet->FindBranch("mujet_tr_pdgid")) 
       m_tree_mujet->Branch("mujet_tr_pdgid", &m_mujet_tr_pdgid); 
+    if (m_tree_mujet->FindBranch("mujet_tr_4vector")) 
+      m_tree_mujet->Branch("mujet_tr_4vector", &m_mujet_tr_lorentzvector); 
+    if (m_tree_mujet->FindBranch("n_d0")) 
+      m_tree_mujet->Branch("n_d0", &m_mujet_d0_size);
     if (m_tree_mujet->FindBranch("mujet_nd0")) 
       m_tree_mujet->Branch("mujet_nd0", &m_mujet_nd0);
+    if (m_tree_mujet->FindBranch("mujet_d0_indmujet")) 
+      m_tree_mujet->Branch("mujet_d0_indmujet", &m_mujet_d0kvf_indmujet); 
     if (m_tree_mujet->FindBranch("mujet_d0pf_4vector")) 
       m_tree_mujet->Branch("mujet_d0pf_4vector", &m_mujet_d0pf_lorentzvector);
     if (m_tree_mujet->FindBranch("mujet_d0_4vector")) 
@@ -470,6 +472,8 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
 
   int nJpsi = 0; 
   int nMuJet = 0;
+  int nTr = 0;
+  int nD0 = 0;
 
   for (unsigned int i = 0; i < p_jets.size(); ++i)
   {
@@ -734,16 +738,18 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
         }
         if (m_mujet_nonisomuplus_pdgid[nMuJet-1] != 0 && m_mujet_nonisomuminus_pdgid[nMuJet-1] != 0) break;
       }
-      m_mujet_tr_lorentzvector_int->Clear();
       for (unsigned int j = 0; j < std::min((unsigned int)myPFs.size(), (unsigned int)m_tr_MAX); j++) {
-        new((*m_mujet_tr_lorentzvector_int)[j]) TLorentzVector(myPFs[j].px(),myPFs[j].py(),myPFs[j].pz(),myPFs[j].energy());
-        m_mujet_tr_pdgid[nMuJet-1][j] = myPFs[j].pdgId();
+        ++nTr;
+        new((*m_mujet_tr_lorentzvector)[nTr-1]) TLorentzVector(myPFs[j].px(),myPFs[j].py(),myPFs[j].pz(),myPFs[j].energy());
+        m_mujet_tr_pdgid[nTr-1] = myPFs[j].pdgId();
+        m_mujet_tr_indmujet[nTr-1] = nMuJet-1;
       }
       for (unsigned int j = std::min((unsigned int)myPFs.size(), (unsigned int)m_tr_MAX); j < (unsigned int)m_tr_MAX; j++) {
-        new((*m_mujet_tr_lorentzvector_int)[j]) TLorentzVector(0., 0., 0., 0.);
-        m_mujet_tr_pdgid[nMuJet-1][j] = 0;
+        ++nTr;
+        new((*m_mujet_tr_lorentzvector)[nTr-1]) TLorentzVector(0., 0., 0., 0.);
+        m_mujet_tr_pdgid[nTr-1] = 0;
+        m_mujet_tr_indmujet[nTr-1] = nMuJet-1;
       }
-      (*m_mujet_tr_lorentzvector)[nMuJet-1] = new TClonesArray(*m_mujet_tr_lorentzvector_int); // FIXME
 
 
       // Reconstruct the D0
@@ -761,11 +767,7 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
       edm::ESHandle<TransientTrackBuilder> theKPiB;
       iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",theKPiB);  
 
-      int nD0 = 0;
-      m_mujet_d0pf_lorentzvector_int->Clear();
-      m_mujet_d0kvf_lorentzvector_int->Clear();
-      m_mujet_d0kvf_kaon_lorentzvector_int->Clear();
-      m_mujet_d0kvf_pion_lorentzvector_int->Clear();
+      int nd0 = 0;
 
       for(unsigned int j = 0; j < std::min((unsigned int)myKPis.size(), (unsigned int)m_nTrD0Max); ++j) {
 
@@ -775,7 +777,9 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
           if (j == k) continue;
           if (myKPis[j].charge() + myKPis[k].charge() != 0) continue;
 
+          ++nd0;
           ++nD0;
+          m_mujet_d0kvf_indmujet[nD0-1] = nMuJet-1;
 
           double eD0  = myKPis[j].energy()+myKPis[k].energy();
           double pxD0 = myKPis[j].px()+myKPis[k].px();
@@ -786,7 +790,7 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
           else mD0 = 0.;
 
           // save the D0 from 2 PF particles (which can be different from D0 from 2 tracks)
-          new((*m_mujet_d0pf_lorentzvector_int)[nD0-1]) TLorentzVector(pxD0, pyD0, pzD0, eD0);
+          new((*m_mujet_d0pf_lorentzvector)[nD0-1]) TLorentzVector(pxD0, pyD0, pzD0, eD0);
 
           // Make the Transient tracks
           reco::TransientTrack tr1 = (*theKPiB).build(myKPis[j].trackRef());// j one is kaon
@@ -822,9 +826,9 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
             std::cout <<"D0 vertexTree is invalid. Fit failed." << std::endl;
 
             // Need to fill empty quantities : OK for tables, but need to create empty TLorentzVector
-            new((*m_mujet_d0kvf_lorentzvector_int)[nD0-1]) TLorentzVector(0.,0.,0.,0.);
-            new((*m_mujet_d0kvf_pion_lorentzvector_int)[nD0-1]) TLorentzVector(0.,0.,0.,0.);
-            new((*m_mujet_d0kvf_kaon_lorentzvector_int)[nD0-1]) TLorentzVector(0.,0.,0.,0.);
+            new((*m_mujet_d0kvf_lorentzvector)[nD0-1]) TLorentzVector(0.,0.,0.,0.);
+            new((*m_mujet_d0kvf_pion_lorentzvector)[nD0-1]) TLorentzVector(0.,0.,0.,0.);
+            new((*m_mujet_d0kvf_kaon_lorentzvector)[nD0-1]) TLorentzVector(0.,0.,0.,0.);
 
             continue;
 
@@ -836,17 +840,17 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
             RefCountedKinematicParticle d0 = vertexFitTree->currentParticle();
             AlgebraicVector7 par0 = d0->currentState().kinematicParameters().vector();
             double e0 = d0->currentState().kinematicParameters().energy();
-            new((*m_mujet_d0kvf_lorentzvector_int)[nD0-1]) TLorentzVector(par0(3),par0(4),par0(5),e0);
+            new((*m_mujet_d0kvf_lorentzvector)[nD0-1]) TLorentzVector(par0(3),par0(4),par0(5),e0);
 
             RefCountedKinematicVertex d0_vertex = vertexFitTree->currentDecayVertex();
             if ( d0_vertex->vertexIsValid()) {
 
-              m_mujet_d0kvf_vx[nMuJet-1][nD0-1] = d0_vertex->position().x();
-              m_mujet_d0kvf_vy[nMuJet-1][nD0-1] = d0_vertex->position().y();
-              m_mujet_d0kvf_vz[nMuJet-1][nD0-1] = d0_vertex->position().z();
-              m_mujet_d0kvf_vtxvalid[nMuJet-1][nD0-1] = true;
-              m_mujet_d0kvf_vtxchi2[nMuJet-1][nD0-1] = d0_vertex->chiSquared();
-              m_mujet_d0kvf_ndf[nMuJet-1][nD0-1] = d0_vertex->degreesOfFreedom();
+              m_mujet_d0kvf_vx[nD0-1] = d0_vertex->position().x();
+              m_mujet_d0kvf_vy[nD0-1] = d0_vertex->position().y();
+              m_mujet_d0kvf_vz[nD0-1] = d0_vertex->position().z();
+              m_mujet_d0kvf_vtxvalid[nD0-1] = true;
+              m_mujet_d0kvf_vtxchi2[nD0-1] = d0_vertex->chiSquared();
+              m_mujet_d0kvf_ndf[nD0-1] = d0_vertex->degreesOfFreedom();
 
               // Compute the distance between the PV and the Jpsi vertex :
               //----------------------------------------------------------
@@ -884,27 +888,27 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
               double intery = pow((py/m)/sigmay, 2.);
               double interz = pow((pz/m)/sigmaz, 2.);
 
-              m_mujet_d0kvf_sigmaL3D[nMuJet-1][nD0-1] = pow( interx + intery + interz , -0.5);
-              //std::cout << "sigmaL3D = " << m_mujet_d0kvf_sigmaL3D[nMuJet-1][nD0-1] << std::endl;
+              m_mujet_d0kvf_sigmaL3D[nD0-1] = pow( interx + intery + interz , -0.5);
+              //std::cout << "sigmaL3D = " << m_mujet_d0kvf_sigmaL3D[nD0-1] << std::endl;
 
               double part1 = 0.;
               double part2 = 0.;
               double part3 = 0.;
               if (vtx.size() >0) {
-                part1 = (px/m)*pow(m_mujet_d0kvf_sigmaL3D[nMuJet-1][nD0-1]/sigmax,2.)*(svPos.x() - vtx[0].x());
-                part2 = (py/m)*pow(m_mujet_d0kvf_sigmaL3D[nMuJet-1][nD0-1]/sigmay,2.)*(svPos.y() - vtx[0].y());
-                part3 = (pz/m)*pow(m_mujet_d0kvf_sigmaL3D[nMuJet-1][nD0-1]/sigmaz,2.)*(svPos.z() - vtx[0].z());
+                part1 = (px/m)*pow(m_mujet_d0kvf_sigmaL3D[nD0-1]/sigmax,2.)*(svPos.x() - vtx[0].x());
+                part2 = (py/m)*pow(m_mujet_d0kvf_sigmaL3D[nD0-1]/sigmay,2.)*(svPos.y() - vtx[0].y());
+                part3 = (pz/m)*pow(m_mujet_d0kvf_sigmaL3D[nD0-1]/sigmaz,2.)*(svPos.z() - vtx[0].z());
               }  else {
-                part1 = (px/m)*pow(m_mujet_d0kvf_sigmaL3D[nMuJet-1][nD0-1]/sigmax,2.)*svPos.x();
-                part2 = (py/m)*pow(m_mujet_d0kvf_sigmaL3D[nMuJet-1][nD0-1]/sigmay,2.)*svPos.y();
-                part3 = (pz/m)*pow(m_mujet_d0kvf_sigmaL3D[nMuJet-1][nD0-1]/sigmaz,2.)*svPos.z();
+                part1 = (px/m)*pow(m_mujet_d0kvf_sigmaL3D[nD0-1]/sigmax,2.)*svPos.x();
+                part2 = (py/m)*pow(m_mujet_d0kvf_sigmaL3D[nD0-1]/sigmay,2.)*svPos.y();
+                part3 = (pz/m)*pow(m_mujet_d0kvf_sigmaL3D[nD0-1]/sigmaz,2.)*svPos.z();
               }
 
-              m_mujet_d0kvf_L3D[nMuJet-1][nD0-1] = fabs(part1 + part2 + part3);
-              //std::cout << "L3D = " << m_mujet_d0kvf_L3D[nMuJet-1][nD0-1] << std::endl;  
+              m_mujet_d0kvf_L3D[nD0-1] = fabs(part1 + part2 + part3);
+              //std::cout << "L3D = " << m_mujet_d0kvf_L3D[nD0-1] << std::endl;  
 
-              m_mujet_d0kvf_L3DoverSigmaL3D[nMuJet-1][nD0-1] = m_mujet_d0kvf_L3D[nMuJet-1][nD0-1]/m_mujet_d0kvf_sigmaL3D[nMuJet-1][nD0-1];
-              //std::cout << "(L/sigma)3D = " << m_mujet_d0kvf_L3DoverSigmaL3D[nMuJet-1][nD0-1] << std::endl;    
+              m_mujet_d0kvf_L3DoverSigmaL3D[nD0-1] = m_mujet_d0kvf_L3D[nD0-1]/m_mujet_d0kvf_sigmaL3D[nD0-1];
+              //std::cout << "(L/sigma)3D = " << m_mujet_d0kvf_L3DoverSigmaL3D[nD0-1] << std::endl;    
 
               if (!vtxHandle.isValid()) {
                 std::cout << "KVFExtractor::writeInfo(): vtxHandle for D0 is not valid..." << std::endl;
@@ -917,13 +921,13 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
                 // Order is : x,y,z,px,py,pz,m
                 AlgebraicVector7 par1 = d0_children[0]->currentState().kinematicParameters().vector();
                 double e1 = d0_children[0]->currentState().kinematicParameters().energy();
-                new((*m_mujet_d0kvf_kaon_lorentzvector_int)[nD0-1]) TLorentzVector(par1(3),par1(4),par1(5),e1);
-                m_mujet_d0kvf_kaon_pdgid[nMuJet-1][nD0-1] = myKPis[j].charge()*321; 
+                new((*m_mujet_d0kvf_kaon_lorentzvector)[nD0-1]) TLorentzVector(par1(3),par1(4),par1(5),e1);
+                m_mujet_d0kvf_kaon_pdgid[nD0-1] = myKPis[j].charge()*321; 
 
                 AlgebraicVector7 par2 = d0_children[1]->currentState().kinematicParameters().vector();
                 double e2 = d0_children[1]->currentState().kinematicParameters().energy();
-                new((*m_mujet_d0kvf_pion_lorentzvector_int)[nD0-1]) TLorentzVector(par2(3),par2(4),par2(5),e2);
-                m_mujet_d0kvf_pion_pdgid[nMuJet-1][nD0-1] = myKPis[k].charge()*211; 
+                new((*m_mujet_d0kvf_pion_lorentzvector)[nD0-1]) TLorentzVector(par2(3),par2(4),par2(5),e2);
+                m_mujet_d0kvf_pion_pdgid[nD0-1] = myKPis[k].charge()*211; 
               }
 
             } 
@@ -935,11 +939,7 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
         } // end 2nd PF loop
       } // end 1st PF loop
 
-      m_mujet_nd0[nMuJet-1] = nD0;
-      (*m_mujet_d0pf_lorentzvector)[nMuJet-1] = new TClonesArray(*m_mujet_d0pf_lorentzvector_int);
-      (*m_mujet_d0kvf_lorentzvector)[nMuJet-1] = new TClonesArray(*m_mujet_d0kvf_lorentzvector_int);
-      (*m_mujet_d0kvf_kaon_lorentzvector)[nMuJet-1] = new TClonesArray(*m_mujet_d0kvf_kaon_lorentzvector_int);
-      (*m_mujet_d0kvf_pion_lorentzvector)[nMuJet-1] = new TClonesArray(*m_mujet_d0kvf_pion_lorentzvector_int);
+      m_mujet_nd0[nMuJet-1] = nd0;
       
       // end of D0 stuff
 
@@ -949,6 +949,8 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
   }  // jet loop
 
   m_mujet_size = nMuJet;
+  m_mujet_tr_size = nTr;
+  m_mujet_d0_size = nD0;
 
   // end of mu tagged jet stuff
 
@@ -1006,17 +1008,14 @@ void KVFExtractor::reset()
   m_mujet_nonisomuplus_lorentzvector->Clear();
   m_mujet_nonisomuminus_lorentzvector->Clear();
   m_mujet_tr_lorentzvector->Clear(); 
-  m_mujet_tr_lorentzvector_int->Clear(); 
   m_mujet_d0pf_lorentzvector->Clear();
-  m_mujet_d0pf_lorentzvector_int->Clear();
   m_mujet_d0kvf_lorentzvector->Clear();
-  m_mujet_d0kvf_lorentzvector_int->Clear();
   m_mujet_d0kvf_pion_lorentzvector->Clear();
-  m_mujet_d0kvf_pion_lorentzvector_int->Clear();
   m_mujet_d0kvf_kaon_lorentzvector->Clear();
-  m_mujet_d0kvf_kaon_lorentzvector_int->Clear();
 
   m_mujet_size = 0;
+  m_mujet_tr_size = 0;
+  m_mujet_d0_size = 0;
 
   for (int i = 0; i < m_mujet_MAX; ++i) {
     m_mujet_jet_btag_CSV[i] = 0;
@@ -1026,23 +1025,25 @@ void KVFExtractor::reset()
     m_mujet_sump[i] = 0;
     m_mujet_sumpt[i] = 0;
     m_mujet_sumvecp[i] = 0;
-    for (int j = 0; j < m_tr_MAX; j++) {
-      m_mujet_tr_pdgid[i][j] = 0;
-    } 
     m_mujet_nd0[i] = 0;
-    for (int j = 0; j < m_d0_MAX; ++j) {
-      m_mujet_d0kvf_pion_pdgid[i][j] = 0; 
-      m_mujet_d0kvf_kaon_pdgid[i][j] = 0; 
-      m_mujet_d0kvf_vx[i][j] = 0;  
-      m_mujet_d0kvf_vy[i][j] = 0;  
-      m_mujet_d0kvf_vz[i][j] = 0;
-      m_mujet_d0kvf_vtxvalid[i][j] = 0;
-      m_mujet_d0kvf_vtxchi2[i][j] = 0;
-      m_mujet_d0kvf_ndf[i][j] = 0;  
-      m_mujet_d0kvf_L3D[i][j] = 0;  
-      m_mujet_d0kvf_sigmaL3D[i][j] = 0;  
-      m_mujet_d0kvf_L3DoverSigmaL3D[i][j] = 0;  
-    }
+  }
+  for (int i = 0; i < m_Tr_MAX; i++) {
+    m_mujet_tr_indmujet[i] = 0;
+    m_mujet_tr_pdgid[i] = 0;
+  } 
+  for (int i = 0; i < m_D0_MAX; ++i) {
+    m_mujet_d0kvf_indmujet[i] = 0;
+    m_mujet_d0kvf_pion_pdgid[i] = 0; 
+    m_mujet_d0kvf_kaon_pdgid[i] = 0; 
+    m_mujet_d0kvf_vx[i] = 0;  
+    m_mujet_d0kvf_vy[i] = 0;  
+    m_mujet_d0kvf_vz[i] = 0;
+    m_mujet_d0kvf_vtxvalid[i] = 0;
+    m_mujet_d0kvf_vtxchi2[i] = 0;
+    m_mujet_d0kvf_ndf[i] = 0;  
+    m_mujet_d0kvf_L3D[i] = 0;  
+    m_mujet_d0kvf_sigmaL3D[i] = 0;  
+    m_mujet_d0kvf_L3DoverSigmaL3D[i] = 0;  
   }
 }
 

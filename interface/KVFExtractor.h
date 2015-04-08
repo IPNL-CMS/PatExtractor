@@ -161,9 +161,13 @@ class KVFExtractor: public BaseExtractor<pat::Jet>
 
     static const int 	m_mujet_MAX = 20;
     static const int 	m_d0_MAX  = 100;
+    static const int 	m_D0_MAX  = m_d0_MAX*m_mujet_MAX;
     static const int 	m_tr_MAX  = 10;
+    static const int 	m_Tr_MAX  = m_tr_MAX*m_mujet_MAX;
     
     int           m_mujet_size;
+    int           m_mujet_tr_size;
+    int           m_mujet_d0_size;
     float         m_mujet_jet_btag_CSV[m_mujet_MAX];
     TClonesArray* m_mujet_jet_lorentzvector;
     TClonesArray* m_mujet_nonisomuplus_lorentzvector;
@@ -174,29 +178,26 @@ class KVFExtractor: public BaseExtractor<pat::Jet>
     float         m_mujet_sump[m_mujet_MAX];
     float         m_mujet_sumpt[m_mujet_MAX];
     float         m_mujet_sumvecp[m_mujet_MAX];
+    int           m_mujet_tr_indmujet[m_Tr_MAX]; 
     TClonesArray* m_mujet_tr_lorentzvector; 
-    TClonesArray* m_mujet_tr_lorentzvector_int; 
-    int           m_mujet_tr_pdgid[m_mujet_MAX][m_tr_MAX]; 
+    int           m_mujet_tr_pdgid[m_Tr_MAX]; 
     int           m_mujet_nd0[m_mujet_MAX];
+    int           m_mujet_d0kvf_indmujet[m_D0_MAX]; 
     TClonesArray* m_mujet_d0pf_lorentzvector;
-    TClonesArray* m_mujet_d0pf_lorentzvector_int;
     TClonesArray* m_mujet_d0kvf_lorentzvector;
-    TClonesArray* m_mujet_d0kvf_lorentzvector_int;
     TClonesArray* m_mujet_d0kvf_pion_lorentzvector;
-    TClonesArray* m_mujet_d0kvf_pion_lorentzvector_int;
-    int           m_mujet_d0kvf_pion_pdgid[m_mujet_MAX][m_d0_MAX];
+    int           m_mujet_d0kvf_pion_pdgid[m_D0_MAX];
     TClonesArray* m_mujet_d0kvf_kaon_lorentzvector;
-    TClonesArray* m_mujet_d0kvf_kaon_lorentzvector_int;
-    int           m_mujet_d0kvf_kaon_pdgid[m_mujet_MAX][m_d0_MAX];
-    float         m_mujet_d0kvf_vx[m_mujet_MAX][m_d0_MAX];
-    float         m_mujet_d0kvf_vy[m_mujet_MAX][m_d0_MAX];
-    float         m_mujet_d0kvf_vz[m_mujet_MAX][m_d0_MAX];
-    bool          m_mujet_d0kvf_vtxvalid[m_mujet_MAX][m_d0_MAX];
-    float         m_mujet_d0kvf_vtxchi2[m_mujet_MAX][m_d0_MAX];
-    float         m_mujet_d0kvf_ndf[m_mujet_MAX][m_d0_MAX];
-    float         m_mujet_d0kvf_L3D[m_mujet_MAX][m_d0_MAX];
-    float         m_mujet_d0kvf_sigmaL3D[m_mujet_MAX][m_d0_MAX];
-    float         m_mujet_d0kvf_L3DoverSigmaL3D[m_mujet_MAX][m_d0_MAX];
+    int           m_mujet_d0kvf_kaon_pdgid[m_D0_MAX];
+    float         m_mujet_d0kvf_vx[m_D0_MAX];
+    float         m_mujet_d0kvf_vy[m_D0_MAX];
+    float         m_mujet_d0kvf_vz[m_D0_MAX];
+    bool          m_mujet_d0kvf_vtxvalid[m_D0_MAX];
+    float         m_mujet_d0kvf_vtxchi2[m_D0_MAX];
+    float         m_mujet_d0kvf_ndf[m_D0_MAX];
+    float         m_mujet_d0kvf_L3D[m_D0_MAX];
+    float         m_mujet_d0kvf_sigmaL3D[m_D0_MAX];
+    float         m_mujet_d0kvf_L3DoverSigmaL3D[m_D0_MAX];
     
 };
 
