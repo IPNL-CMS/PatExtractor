@@ -1,9 +1,10 @@
 #include "../interface/MCExtractor.h"
 
 
-MCExtractor::MCExtractor(const std::string& name, bool doTree, bool doJpsi)
+MCExtractor::MCExtractor(const std::string& name, bool doTree, bool doJpsi, bool doD0)
 {
   _doJpsi = doJpsi; 
+  _doD0 = doD0;
   // Set everything to 0
 
   m_OK = false;
@@ -12,6 +13,11 @@ MCExtractor::MCExtractor(const std::string& name, bool doTree, bool doJpsi)
     m_MC_JPsi_lorentzvector = new TClonesArray("TLorentzVector");
     m_MC_Bhad_lorentzvector = new TClonesArray("TLorentzVector");
     m_MC_Bquark_lorentzvector = new TClonesArray("TLorentzVector");
+  }
+  if (_doD0) {
+    m_MC_D0_lorentzvector = new TClonesArray("TLorentzVector");
+    m_MC_D0_daughter0_lorentzvector = new TClonesArray("TLorentzVector");
+    m_MC_D0_daughter1_lorentzvector = new TClonesArray("TLorentzVector");
   }
   reset();
 
@@ -60,12 +66,20 @@ MCExtractor::MCExtractor(const std::string& name, bool doTree, bool doJpsi)
       m_tree_MC->Branch("MC_Bquark_py",  &m_MC_Bquark_py,   "MC_Bquark_py[n_MCs]/F");  
       m_tree_MC->Branch("MC_Bquark_pz",  &m_MC_Bquark_pz,   "MC_Bquark_pz[n_MCs]/F");  
     }
+    if (_doD0) {
+      m_tree_MC->Branch("MC_D0_4vector","TClonesArray",&m_MC_D0_lorentzvector, 1000, 0);
+      m_tree_MC->Branch("MC_D0_daughter0_4vector","TClonesArray",&m_MC_D0_daughter0_lorentzvector, 1000, 0);
+      m_tree_MC->Branch("MC_D0_daughter0_id",  &m_MC_D0_daughter0_id,   "MC_daughter0_id[n_MCs]/I");  
+      m_tree_MC->Branch("MC_D0_daughter1_4vector","TClonesArray",&m_MC_D0_daughter1_lorentzvector, 1000, 0);
+      m_tree_MC->Branch("MC_D0_daughter1_id",  &m_MC_D0_daughter1_id,   "MC_D0_daughter1_id[n_MCs]/I");  
+    }
   }
 }
 
-MCExtractor::MCExtractor(const std::string& name, TFile *a_file, bool doJpsi)
+MCExtractor::MCExtractor(const std::string& name, TFile *a_file, bool doJpsi, bool doD0)
 {
   _doJpsi = doJpsi; 
+  _doD0 = doD0; 
   std::cout << "MCExtractor object is retrieved" << std::endl;
 
   // Tree definition
@@ -86,6 +100,11 @@ MCExtractor::MCExtractor(const std::string& name, TFile *a_file, bool doJpsi)
     m_MC_JPsi_lorentzvector = new TClonesArray("TLorentzVector");
     m_MC_Bhad_lorentzvector = new TClonesArray("TLorentzVector");
     m_MC_Bquark_lorentzvector = new TClonesArray("TLorentzVector");
+  }
+  if(_doD0) {
+    m_MC_D0_lorentzvector = new TClonesArray("TLorentzVector");
+    m_MC_D0_daughter0_lorentzvector = new TClonesArray("TLorentzVector");
+    m_MC_D0_daughter1_lorentzvector = new TClonesArray("TLorentzVector");
   }
 
   if (m_tree_MC->FindBranch("n_MCs")) 
@@ -162,6 +181,18 @@ MCExtractor::MCExtractor(const std::string& name, TFile *a_file, bool doJpsi)
     if (m_tree_MC->FindBranch("MC_Bquark_pz")) 
       m_tree_MC->SetBranchAddress("MC_Bquark_pz",  &m_MC_Bquark_pz);
   }
+  if (_doD0) {
+    if (m_tree_MC->FindBranch("MC_D0_4vector")) 
+      m_tree_MC->SetBranchAddress("MC_D0_4vector",&m_MC_D0_lorentzvector);
+    if (m_tree_MC->FindBranch("MC_D0_daughter0_4vector")) 
+      m_tree_MC->SetBranchAddress("MC_D0_daughter0_4vector",&m_MC_D0_daughter0_lorentzvector);
+    if (m_tree_MC->FindBranch("MC_D0_daughter0_id")) 
+      m_tree_MC->SetBranchAddress("MC_D0_daughter0_id",  &m_MC_D0_daughter0_id);
+    if (m_tree_MC->FindBranch("MC_D0_daughter1_4vector")) 
+      m_tree_MC->SetBranchAddress("MC_D0_daughter1_4vector",&m_MC_D0_daughter1_lorentzvector);
+    if (m_tree_MC->FindBranch("MC_D0_daughter1_id")) 
+      m_tree_MC->SetBranchAddress("MC_D0_daughter1_id",  &m_MC_D0_daughter1_id);
+  }
 }
 
 
@@ -209,7 +240,7 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
     int iMo1 = -1;
     int iMo2 = -1;
 
-    if (st == 3 || (st >= 21 && st <= 29) || ( _doJpsi && id == 443 && p.numberOfDaughters() == 2 && fabs(p.daughter(0)->pdgId()) ==  13 && fabs(p.daughter(1)->pdgId()) ==  13))
+    if (st == 3 || (st >= 21 && st <= 29) || (_doJpsi && id == 443 && p.numberOfDaughters() == 2 && abs(p.daughter(0)->pdgId()) ==  13 && abs(p.daughter(1)->pdgId()) ==  13) || (_doD0 && id == 421 && p.numberOfDaughters() == 2 && ((abs(p.daughter(0)->pdgId()) ==  321 && abs(p.daughter(1)->pdgId()) ==  211) || (abs(p.daughter(0)->pdgId()) ==  211 && abs(p.daughter(1)->pdgId()) ==  321))))
     {
 
       // MC@NLO use different status code
@@ -278,7 +309,15 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
       m_MC_phi[ipart]        = p.phi();
       new((*m_MC_lorentzvector)[ipart]) TLorentzVector(p.px(),p.py(),p.pz(),p.energy());
 
-      if (_doJpsi && id==443) {
+      if (_doD0 && id == 421) {
+        mothertmp = &(*genParticles)[i];
+        new((*m_MC_D0_lorentzvector)[ipart]) TLorentzVector(mothertmp->px(),mothertmp->py(),mothertmp->pz(),mothertmp->energy());
+        new((*m_MC_D0_daughter0_lorentzvector)[ipart]) TLorentzVector(mothertmp->daughter(0)->px(),mothertmp->daughter(0)->py(),mothertmp->daughter(0)->pz(),mothertmp->daughter(0)->energy());
+        m_MC_D0_daughter0_id[ipart] = mothertmp->daughter(0)->pdgId();
+        new((*m_MC_D0_daughter1_lorentzvector)[ipart]) TLorentzVector(mothertmp->daughter(1)->px(),mothertmp->daughter(1)->py(),mothertmp->daughter(1)->pz(),mothertmp->daughter(1)->energy());
+        m_MC_D0_daughter1_id[ipart] = mothertmp->daughter(1)->pdgId();
+      }
+      if (_doJpsi && id == 443) {
         mothertmp = &(*genParticles)[i];
         new((*m_MC_JPsi_lorentzvector)[ipart]) TLorentzVector(mothertmp->px(),mothertmp->py(),mothertmp->pz(),mothertmp->energy());
         m_MC_JPsi_E[ipart]  = mothertmp->energy();
@@ -296,10 +335,10 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
             m_MC_Bhad_pz[ipart] = mothertmp->pz();
             m_MC_Bhad_id[ipart] = mothertmp->pdgId();
           }
-          if (fabs(mothertmp->pdgId())==92 || fabs(mothertmp->pdgId())==91) break;
+          if (abs(mothertmp->pdgId())==92 || abs(mothertmp->pdgId())==91) break;
         }
         for (int imb=0; imb<100; imb++) {
-          if (mothertmp->mother(imb) != 0 && fabs(mothertmp->mother(imb)->pdgId())==5) {
+          if (mothertmp->mother(imb) != 0 && abs(mothertmp->mother(imb)->pdgId())==5) {
             mothertmp = (reco::GenParticle*) mothertmp->mother(imb);
             new((*m_MC_Bquark_lorentzvector)[ipart]) TLorentzVector(mothertmp->px(),mothertmp->py(),mothertmp->pz(),mothertmp->energy());
             m_MC_Bquark_E[ipart]  = mothertmp->energy();
@@ -308,9 +347,9 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
             break;
           } 
         }
-        if (fabs(mothertmp->pdgId()) == 5) {
+        if (abs(mothertmp->pdgId()) == 5) {
           for (int ib=0; ib<10; ib++) {
-            if (mothertmp->mother() !=0 && (fabs(mothertmp->mother()->pdgId())==5 || fabs(mothertmp->mother()->pdgId())==21)) mothertmp = (reco::GenParticle*) mothertmp->mother();
+            if (mothertmp->mother() !=0 && (abs(mothertmp->mother()->pdgId())==5 || abs(mothertmp->mother()->pdgId())==21)) mothertmp = (reco::GenParticle*) mothertmp->mother();
             else break;
           }
           if(mothertmp->mother() !=0) mothertmp = (reco::GenParticle*) mothertmp->mother();
@@ -319,7 +358,7 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
         }	
         //std::cout << "JPsiFromTop = " << m_MC_JPsiFromTop[ipart] << "JPsiFromAntiTop = " << m_MC_JPsiFromAntiTop[ipart] << std::endl;
       }	
-      if (_doJpsi && (fabs(id)==11 || fabs(id) ==13)) {
+      if (_doJpsi && (abs(id) == 11 || abs(id) == 13)) {
         motherleptontmp = &(*genParticles)[i];
         for (int i=0; i<10; i++) {
           if (motherleptontmp->mother() == 0) break;
@@ -390,25 +429,36 @@ void MCExtractor::reset()
       m_MC_JPsiFromAntiTop[i] = false;
       m_MC_LeptonFromTop[i] = false;
       m_MC_LeptonFromAntiTop[i] = false;
-      m_MC_JPsi_lorentzvector->Clear();
       m_MC_JPsi_E[i] = 0.;
       m_MC_JPsi_px[i] = 0.;
       m_MC_JPsi_py[i] = 0.;
       m_MC_JPsi_pz[i] = 0.;
-      m_MC_Bhad_lorentzvector->Clear();
       m_MC_Bhad_E[i] = 0.;
       m_MC_Bhad_px[i] = 0.;
       m_MC_Bhad_py[i] = 0.;
       m_MC_Bhad_pz[i] = 0.;
       m_MC_Bhad_id[i] = 0;
-      m_MC_Bquark_lorentzvector->Clear();
       m_MC_Bquark_E[i] = 0.;
       m_MC_Bquark_px[i] = 0.;
       m_MC_Bquark_py[i] = 0.;
       m_MC_Bquark_pz[i] = 0.;
     }
+    if (_doD0) {
+      m_MC_D0_daughter0_id[i] = 0;
+      m_MC_D0_daughter1_id[i] = 0;
+    }
   }
   m_MC_lorentzvector->Clear();
+  if (_doJpsi) {
+    m_MC_JPsi_lorentzvector->Clear();
+    m_MC_Bhad_lorentzvector->Clear();
+    m_MC_Bquark_lorentzvector->Clear();
+  }
+  if (_doD0) {
+    m_MC_D0_lorentzvector->Clear();
+    m_MC_D0_daughter0_lorentzvector->Clear();
+    m_MC_D0_daughter1_lorentzvector->Clear();
+  }
 }
 
 

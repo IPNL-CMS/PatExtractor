@@ -66,6 +66,7 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
    doMC          = cms.untracked.bool(False),
    MC_tag        = cms.InputTag( "" ),
    doMCjpsi      = cms.untracked.bool(False),
+   doMCd0        = cms.untracked.bool(False),
                              
    # Add Photon information
    doPhoton      = cms.untracked.bool(False),

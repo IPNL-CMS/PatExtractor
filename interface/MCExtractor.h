@@ -30,8 +30,8 @@ class MCExtractor: public SuperBaseExtractor
 
  public:
 
-  MCExtractor(const std::string& name, bool doTree, bool doJpsi = false);
-  MCExtractor(const std::string& name, TFile *a_file, bool doJpsi = false);
+  MCExtractor(const std::string& name, bool doTree, bool doJpsi = false, bool doD0 = false);
+  MCExtractor(const std::string& name, TFile *a_file, bool doJpsi = false, bool doD0 = false);
   virtual ~MCExtractor();
 
   virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor);
@@ -102,6 +102,13 @@ class MCExtractor: public SuperBaseExtractor
   float	m_MC_Bquark_px[m_MCs_MAX];
   float	m_MC_Bquark_py[m_MCs_MAX];
   float	m_MC_Bquark_pz[m_MCs_MAX];
+  
+  bool _doD0;
+  TClonesArray *m_MC_D0_lorentzvector;
+  TClonesArray *m_MC_D0_daughter0_lorentzvector;
+  int   m_MC_D0_daughter0_id[m_MCs_MAX];
+  TClonesArray *m_MC_D0_daughter1_lorentzvector;
+  int   m_MC_D0_daughter1_id[m_MCs_MAX];
 
   void constructGeneration(int gene, int npart);
 };
