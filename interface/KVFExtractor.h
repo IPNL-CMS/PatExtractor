@@ -109,7 +109,8 @@ class KVFExtractor: public BaseExtractor<pat::Jet>
     double m_jpsiMassMin;
     double m_jpsiMassMax;
     int m_nTrD0Max;
-    double m_trD0MinPt;
+    double m_trSumMinPt;
+    double m_trUnfoldMinPt;
 
     bool mCorrectJets;
     bool mUseGlobalTagForJEC;
@@ -164,9 +165,12 @@ class KVFExtractor: public BaseExtractor<pat::Jet>
     static const int 	m_D0_MAX  = m_d0_MAX*m_mujet_MAX;
     static const int 	m_tr_MAX  = 10;
     static const int 	m_Tr_MAX  = m_tr_MAX*m_mujet_MAX;
+    static const int 	m_unfold_tr_MAX = 500;
+    static const int  m_unfold_Tr_MAX = m_unfold_tr_MAX*m_mujet_MAX;
     
     int           m_mujet_size;
     int           m_mujet_tr_size;
+    int           m_mujet_unfold_tr_size;
     int           m_mujet_d0_size;
     float         m_mujet_jet_btag_CSV[m_mujet_MAX];
     TClonesArray* m_mujet_jet_lorentzvector;
@@ -198,6 +202,18 @@ class KVFExtractor: public BaseExtractor<pat::Jet>
     float         m_mujet_d0kvf_L3D[m_D0_MAX];
     float         m_mujet_d0kvf_sigmaL3D[m_D0_MAX];
     float         m_mujet_d0kvf_L3DoverSigmaL3D[m_D0_MAX];
+
+    int           m_mujet_unfold_indmujet[m_unfold_Tr_MAX]; 
+    float         m_mujet_unfold_tr_recopt[m_unfold_Tr_MAX];
+    float         m_mujet_unfold_tr_recoeta[m_unfold_Tr_MAX];
+    float         m_mujet_unfold_tr_genpt[m_unfold_Tr_MAX];
+    float         m_mujet_unfold_tr_geneta[m_unfold_Tr_MAX];
+    float         m_mujet_unfold_tr_dr[m_unfold_Tr_MAX];
+    float         m_mujet_unfold_mu_recopt[m_unfold_Tr_MAX];
+    float         m_mujet_unfold_mu_recoeta[m_unfold_Tr_MAX];
+    float         m_mujet_unfold_mu_genpt[m_unfold_Tr_MAX];
+    float         m_mujet_unfold_mu_geneta[m_unfold_Tr_MAX];
+    float         m_mujet_unfold_mu_dr[m_unfold_Tr_MAX];
     
 };
 

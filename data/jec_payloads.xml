@@ -13,6 +13,6 @@
     <correction name="L1FastJet" />
     <correction name="L2Relative" />
     <correction name="L3Absolute" />
-    <correction name="L2L3Residual_test" onlyondata="true" />
+    <correction name="L2L3Residual" onlyondata="true" />
   </corrections>
 </payloads>

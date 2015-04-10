@@ -33,6 +33,7 @@
 #include "RecoVertex/KinematicFit/interface/KinematicParticleFitter.h"
 #include "RecoVertex/KinematicFit/interface/MassKinematicConstraint.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
 #define DEBUG false
 
@@ -116,7 +117,8 @@ void printOut(const RefCountedKinematicTree& myTree)
   const edm::ParameterSet& d0Config = config.getParameter<edm::ParameterSet>(name_d0);
 
   m_nTrD0Max = d0Config.getUntrackedParameter<unsigned int>("nTrD0Max");
-  m_trD0MinPt = d0Config.getUntrackedParameter<double>("trD0MinPt");
+  m_trSumMinPt = d0Config.getUntrackedParameter<double>("trSumMinPt");
+  m_trUnfoldMinPt = d0Config.getUntrackedParameter<double>("trUnfoldMinPt");
 
   const edm::ParameterSet& jetConfig = config.getParameter<edm::ParameterSet>(name_jet);
 
@@ -245,6 +247,18 @@ void printOut(const RefCountedKinematicTree& myTree)
   m_tree_mujet->Branch("mujet_d0_L3D",	&m_mujet_d0kvf_L3D,	"mujet_d0kvf_L3D[n_d0]/F");  
   m_tree_mujet->Branch("mujet_d0_sigmaL3D", &m_mujet_d0kvf_sigmaL3D, "mujet_d0kvf_sigmaL3D[n_d0]/F");  
   m_tree_mujet->Branch("mujet_d0_L3DoverSigmaL3D", &m_mujet_d0kvf_L3DoverSigmaL3D, "mujet_d0kvf_L3DoverSigmaL3D[n_d0]/F");  
+  m_tree_mujet->Branch("n_unfold_tr", &m_mujet_unfold_tr_size, "n_unfold_tr/I");
+  m_tree_mujet->Branch("mujet_unfold_indmujet", &m_mujet_unfold_indmujet, "mujet_unfold_indmujet[n_unfold_tr]/I"); 
+  m_tree_mujet->Branch("mujet_unfold_tr_recopt", &m_mujet_unfold_tr_recopt, "mujet_unfold_tr_recopt[n_unfold_tr]/F");
+  m_tree_mujet->Branch("mujet_unfold_tr_recoeta", &m_mujet_unfold_tr_recoeta, "mujet_unfold_tr_recoeta[n_unfold_tr]/F");
+  m_tree_mujet->Branch("mujet_unfold_tr_genpt", &m_mujet_unfold_tr_genpt, "mujet_unfold_tr_genpt[n_unfold_tr]/F");
+  m_tree_mujet->Branch("mujet_unfold_tr_geneta", &m_mujet_unfold_tr_geneta, "mujet_unfold_tr_geneta[n_unfold_tr]/F");
+  m_tree_mujet->Branch("mujet_unfold_tr_dr", &m_mujet_unfold_tr_dr, "mujet_unfold_tr_dr[n_unfold_tr]/F");
+  m_tree_mujet->Branch("mujet_unfold_mu_recopt", &m_mujet_unfold_mu_recopt, "mujet_unfold_mu_recopt[n_unfold_tr]/F");
+  m_tree_mujet->Branch("mujet_unfold_mu_recoeta", &m_mujet_unfold_mu_recoeta, "mujet_unfold_mu_recoeta[n_unfold_tr]/F");
+  m_tree_mujet->Branch("mujet_unfold_mu_genpt", &m_mujet_unfold_mu_genpt, "mujet_unfold_mu_genpt[n_unfold_tr]/F");
+  m_tree_mujet->Branch("mujet_unfold_mu_geneta", &m_mujet_unfold_mu_geneta, "mujet_unfold_mu_geneta[n_unfold_tr]/F");
+  m_tree_mujet->Branch("mujet_unfold_mu_dr", &m_mujet_unfold_mu_dr, "mujet_unfold_mu_dr[n_unfold_tr]/F");
 }
 
 void KVFExtractor::beginJob() {
@@ -394,6 +408,30 @@ void KVFExtractor::beginJob() {
       m_tree_mujet->Branch("mujet_d0_sigmaL3D", &m_mujet_d0kvf_sigmaL3D);  
     if (m_tree_mujet->FindBranch("mujet_d0_L3DoverSigmaL3D")) 
       m_tree_mujet->Branch("mujet_d0_L3DoverSigmaL3D", &m_mujet_d0kvf_L3DoverSigmaL3D);  
+    if (m_tree_mujet->FindBranch("n_unfold_tr")) 
+      m_tree_mujet->Branch("n_unfold_tr", &m_mujet_unfold_tr_size);
+    if (m_tree_mujet->FindBranch("mujet_unfold_indmujet")) 
+      m_tree_mujet->Branch("mujet_unfold_indmujet", &m_mujet_unfold_indmujet); 
+    if (m_tree_mujet->FindBranch("mujet_unfold_tr_recopt")) 
+      m_tree_mujet->Branch("mujet_unfold_tr_recopt", &m_mujet_unfold_tr_recopt);
+    if (m_tree_mujet->FindBranch("mujet_unfold_tr_recoeta")) 
+      m_tree_mujet->Branch("mujet_unfold_tr_recoeta", &m_mujet_unfold_tr_recoeta);
+    if (m_tree_mujet->FindBranch("mujet_unfold_tr_genpt")) 
+      m_tree_mujet->Branch("mujet_unfold_tr_genpt", &m_mujet_unfold_tr_genpt);
+    if (m_tree_mujet->FindBranch("mujet_unfold_tr_geneta")) 
+      m_tree_mujet->Branch("mujet_unfold_tr_geneta", &m_mujet_unfold_tr_geneta);
+    if (m_tree_mujet->FindBranch("mujet_unfold_tr_dr")) 
+      m_tree_mujet->Branch("mujet_unfold_tr_dr", &m_mujet_unfold_tr_dr);
+    if (m_tree_mujet->FindBranch("mujet_unfold_mu_recopt")) 
+      m_tree_mujet->Branch("mujet_unfold_mu_recopt", &m_mujet_unfold_mu_recopt);
+    if (m_tree_mujet->FindBranch("mujet_unfold_mu_recoeta")) 
+      m_tree_mujet->Branch("mujet_unfold_mu_recoeta", &m_mujet_unfold_mu_recoeta);
+    if (m_tree_mujet->FindBranch("mujet_unfold_mu_genpt")) 
+      m_tree_mujet->Branch("mujet_unfold_mu_genpt", &m_mujet_unfold_mu_genpt);
+    if (m_tree_mujet->FindBranch("mujet_unfold_mu_geneta")) 
+      m_tree_mujet->Branch("mujet_unfold_mu_geneta", &m_mujet_unfold_mu_geneta);
+    if (m_tree_mujet->FindBranch("mujet_unfold_mu_dr")) 
+      m_tree_mujet->Branch("mujet_unfold_mu_dr", &m_mujet_unfold_mu_dr);
   }
 
   m_OK = true;
@@ -438,6 +476,10 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
   event.getByLabel(m_tag, jetHandle);
   pat::JetCollection p_jets = *jetHandle;
 
+  bool unfold = false;
+  edm::Handle<reco::GenParticleCollection> genParticles;
+  if (event.getByLabel("genParticles", genParticles)) unfold = true;
+
   reset();
   m_size = 0;
 
@@ -473,6 +515,7 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
   int nJpsi = 0; 
   int nMuJet = 0;
   int nTr = 0;
+  int nUnfoldTr = 0;
   int nD0 = 0;
 
   for (unsigned int i = 0; i < p_jets.size(); ++i)
@@ -500,6 +543,7 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
     SumVecP.SetPxPyPzE(0., 0., 0., 0.); 
     std::vector<reco::PFCandidate> myPFs; 
     std::vector<reco::PFCandidate> myKPis; 
+    std::vector<reco::PFCandidate> myPFs2Unfold; 
 
     // Reconstruct the J/psi
     //----------------------
@@ -520,7 +564,9 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
     for(unsigned int j = 0; j < npfs; ++j) {
       if (!PFpart[j]->trackRef()) continue;
 
-      if (PFpart[j]->pt() > m_trD0MinPt) {
+      if (PFpart[j]->pt() > m_trUnfoldMinPt)
+        myPFs2Unfold.push_back(*PFpart[j]);
+      if (PFpart[j]->pt() > m_trSumMinPt) {
         SumP += PFpart[j]->p();
         SumPt += PFpart[j]->pt();
         TLorentzVector VecP;
@@ -720,6 +766,39 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
     
     if (hasNonIsoMu) {
       ++nMuJet;
+
+      if (unfold) {
+        for (unsigned int j = 0; j < (unsigned int)myPFs2Unfold.size(); j++) {
+          ++nUnfoldTr;
+          m_mujet_unfold_indmujet[nUnfoldTr-1] = nMuJet-1;
+          TLorentzVector recoP, genP;
+          recoP.SetPxPyPzE(myPFs2Unfold[j].px(), myPFs2Unfold[j].py(), myPFs2Unfold[j].pz(), myPFs2Unfold[j].energy());
+          double dRmin = 200.;
+          for (unsigned int k = 0; k < (unsigned int)genParticles->size(); k++) {
+            if (((*genParticles)[k]).px() < 1e-6 && ((*genParticles)[k]).py() < 1e-6) continue;
+            TLorentzVector genP_int;
+            genP_int.SetPxPyPzE(((*genParticles)[k]).px(), ((*genParticles)[k]).py(), ((*genParticles)[k]).pz(), ((*genParticles)[k]).energy());
+            if (genP_int.DeltaR(recoP) < dRmin) {
+              dRmin = genP_int.DeltaR(recoP);
+              genP.SetPxPyPzE(((*genParticles)[k]).px(), ((*genParticles)[k]).py(), ((*genParticles)[k]).pz(), ((*genParticles)[k]).energy());
+            }
+          }
+          if (fabs(myPFs2Unfold[j].pdgId()) != 13 ) {
+            m_mujet_unfold_tr_recopt[nUnfoldTr-1] = recoP.Pt();
+            m_mujet_unfold_tr_recoeta[nUnfoldTr-1] = recoP.Eta();
+            m_mujet_unfold_tr_genpt[nUnfoldTr-1] = genP.Pt();
+            m_mujet_unfold_tr_geneta[nUnfoldTr-1] = genP.Eta();
+            m_mujet_unfold_tr_dr[nUnfoldTr-1] = dRmin;
+          }
+          else {
+            m_mujet_unfold_mu_recopt[nUnfoldTr-1] = recoP.Pt();
+            m_mujet_unfold_mu_recoeta[nUnfoldTr-1] = recoP.Eta();
+            m_mujet_unfold_mu_genpt[nUnfoldTr-1] = genP.Pt();
+            m_mujet_unfold_mu_geneta[nUnfoldTr-1] = genP.Eta();
+            m_mujet_unfold_mu_dr[nUnfoldTr-1] = dRmin;
+          }
+        }
+      }
 
       m_mujet_jet_btag_CSV[nMuJet-1] = p_jets.at(i).bDiscriminator("combinedSecondaryVertexBJetTags");  
       new((*m_mujet_jet_lorentzvector)[nMuJet-1]) TLorentzVector((p_jets.at(i)).px(),(p_jets.at(i)).py(),(p_jets.at(i)).pz(),(p_jets.at(i)).energy()); 
@@ -950,6 +1029,7 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
 
   m_mujet_size = nMuJet;
   m_mujet_tr_size = nTr;
+  m_mujet_unfold_tr_size = nUnfoldTr;
   m_mujet_d0_size = nD0;
 
   // end of mu tagged jet stuff
@@ -1015,6 +1095,7 @@ void KVFExtractor::reset()
 
   m_mujet_size = 0;
   m_mujet_tr_size = 0;
+  m_mujet_unfold_tr_size = 0;
   m_mujet_d0_size = 0;
 
   for (int i = 0; i < m_mujet_MAX; ++i) {

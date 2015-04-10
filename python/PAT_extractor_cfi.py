@@ -117,7 +117,8 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
    ),
    d0_KVF      = cms.PSet(
         nTrD0Max      = cms.untracked.uint32(3),
-        trD0MinPt     = cms.untracked.double(0.2),
+        trSumMinPt    = cms.untracked.double(0.5),
+        trUnfoldMinPt = cms.untracked.double(0.2),
    ),
 
    # Add PV information
