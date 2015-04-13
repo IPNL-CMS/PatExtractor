@@ -170,15 +170,38 @@ void printOut(const RefCountedKinematicTree& myTree)
 #endif
 
   // Set everything to 0
+  const auto& sfWorkingPoints = m_scaleFactorService->getMuonScaleFactorWorkingPoints();
 
   m_jpsi_jet_lorentzvector    = new TClonesArray("TLorentzVector");
+  m_jpsi_jet_scaleFactors.setWriteMode();
   m_jpsipf_lorentzvector      = new TClonesArray("TLorentzVector");
   m_jpsikvf_lorentzvector     = new TClonesArray("TLorentzVector");
   m_jpsikvf_mu1_lorentzvector = new TClonesArray("TLorentzVector");
+  for (auto& it: sfWorkingPoints) {
+      std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
+      m_jpsikvf_mu1_muon_scaleFactors[name] = ScaleFactorCollection();
+      m_jpsikvf_mu1_muon_scaleFactors[name].setWriteMode();
+  }
   m_jpsikvf_mu2_lorentzvector = new TClonesArray("TLorentzVector");
+  for (auto& it: sfWorkingPoints) {
+      std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
+      m_jpsikvf_mu2_muon_scaleFactors[name] = ScaleFactorCollection();
+      m_jpsikvf_mu2_muon_scaleFactors[name].setWriteMode();
+  }
 
   m_mujet_jet_lorentzvector           = new TClonesArray("TLorentzVector");
+  m_mujet_jet_scaleFactors.setWriteMode();
   m_mujet_nonisomuplus_lorentzvector  = new TClonesArray("TLorentzVector");
+  for (auto& it: sfWorkingPoints) {
+      std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
+      m_mujet_nonisomuplus_scaleFactors[name] = ScaleFactorCollection();
+      m_mujet_nonisomuplus_scaleFactors[name].setWriteMode();
+  }
+  for (auto& it: sfWorkingPoints) {
+      std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
+      m_mujet_nonisomuminus_scaleFactors[name] = ScaleFactorCollection();
+      m_mujet_nonisomuminus_scaleFactors[name].setWriteMode();
+  }
   m_mujet_nonisomuminus_lorentzvector = new TClonesArray("TLorentzVector");
   m_mujet_tr_lorentzvector            = new TClonesArray("TLorentzVector");
   m_mujet_d0pf_lorentzvector          = new TClonesArray("TLorentzVector");
@@ -195,13 +218,20 @@ void printOut(const RefCountedKinematicTree& myTree)
   m_tree_jpsi->Branch("n_jpsi", &m_jpsi_size, "n_jpsi/I");
   m_tree_jpsi->Branch("jpsi_indjet", &m_jpsi_indjet, "jpsi_indjet[n_jpsi]/I");
   m_tree_jpsi->Branch("jpsi_jet_btag_CSV", &m_jpsi_jet_btag_CSV, "jpsi_jet_btag_CSV[n_jpsi]/F");
+  m_tree_jpsi->Branch("jpsi_jet_4vector", "TClonesArray", &m_jpsi_jet_lorentzvector, 1000, 0);
+  m_tree_jpsi->Branch("jpsi_jet_scaleFactor", &m_jpsi_jet_scaleFactors.getBackingArray());
   m_tree_jpsi->Branch("jpsi_indpf1", &m_jpsi_indpf1, "jpsi_indpf1[n_jpsi]/I");
   m_tree_jpsi->Branch("jpsi_indpf2", &m_jpsi_indpf2, "jpsi_indpf2[n_jpsi]/I");
-  m_tree_jpsi->Branch("jpsi_jet_4vector", "TClonesArray", &m_jpsi_jet_lorentzvector, 1000, 0);
   m_tree_jpsi->Branch("jpsipf_4vector", "TClonesArray", &m_jpsipf_lorentzvector, 1000, 0);
   m_tree_jpsi->Branch("jpsi_4vector", "TClonesArray", &m_jpsikvf_lorentzvector, 1000, 0);
   m_tree_jpsi->Branch("jpsi_mu1_4vector", "TClonesArray", &m_jpsikvf_mu1_lorentzvector, 1000, 0);
+  for (auto& it: m_jpsikvf_mu1_muon_scaleFactors) {
+    m_tree_jpsi->Branch(("jpsi_mu1_"+it.first).c_str(), & it.second.getBackingArray());
+  }
   m_tree_jpsi->Branch("jpsi_mu2_4vector", "TClonesArray", &m_jpsikvf_mu2_lorentzvector, 1000, 0);
+  for (auto& it: m_jpsikvf_mu2_muon_scaleFactors) {
+    m_tree_jpsi->Branch(("jpsi_mu2_"+it.first).c_str(), & it.second.getBackingArray());
+  }
   m_tree_jpsi->Branch("jpsi_vx", &m_jpsikvf_vx,	"jpsikvf_vx[n_jpsi]/F");  
   m_tree_jpsi->Branch("jpsi_vy", &m_jpsikvf_vy,	"jpsikvf_vy[n_jpsi]/F");  
   m_tree_jpsi->Branch("jpsi_vz", &m_jpsikvf_vz,	"jpsikvf_vz[n_jpsi]/F");
@@ -217,10 +247,17 @@ void printOut(const RefCountedKinematicTree& myTree)
   m_tree_mujet->Branch("n_mujet", &m_mujet_size, "n_mujet/I");
   m_tree_mujet->Branch("mujet_jet_btag_CSV", &m_mujet_jet_btag_CSV, "mujet_jet_btag_CSV[n_mujet]/F"); 
   m_tree_mujet->Branch("mujet_jet_4vector", "TClonesArray", &m_mujet_jet_lorentzvector, 1000, 0); 
+  m_tree_mujet->Branch("mujet_jet_scaleFactor", &m_mujet_jet_scaleFactors.getBackingArray());
   m_tree_mujet->Branch("mujet_nonisomuplus_4vector", "TClonesArray", &m_mujet_nonisomuplus_lorentzvector, 1000, 0); 
   m_tree_mujet->Branch("mujet_nonisomuplus_pdgid", &m_mujet_nonisomuplus_pdgid, "mujet_nonisomuplus_pdgid[n_mujet]/I");
+  for (auto& it: m_mujet_nonisomuplus_scaleFactors) {
+    m_tree_mujet->Branch(("mujet_nonisomuplus_"+it.first).c_str(), & it.second.getBackingArray());
+  }
   m_tree_mujet->Branch("mujet_nonisomuminus_4vector", "TClonesArray", &m_mujet_nonisomuminus_lorentzvector, 1000, 0); 
   m_tree_mujet->Branch("mujet_nonisomuminus_pdgid", &m_mujet_nonisomuminus_pdgid, "mujet_nonisomuminus_pdgid[n_mujet]/I");
+  for (auto& it: m_mujet_nonisomuminus_scaleFactors) {
+    m_tree_mujet->Branch(("mujet_nonisomuminus_"+it.first).c_str(), & it.second.getBackingArray());
+  }
   m_tree_mujet->Branch("mujet_ntr", &m_mujet_ntr, "mujet_ntr[n_mujet]/I"); 
   m_tree_mujet->Branch("mujet_sump", &m_mujet_sump, "mujet_sump[n_mujet]/F"); 
   m_tree_mujet->Branch("mujet_sumpt", &m_mujet_sumpt, "mujet_sumpt[n_mujet]/F"); 
@@ -298,12 +335,14 @@ void KVFExtractor::beginJob() {
       m_tree_jpsi->Branch("jpsi_indjet", &m_jpsi_indjet);
     if (m_tree_jpsi->FindBranch("jpsi_jet_btag_CSV")) 
       m_tree_jpsi->Branch("jpsi_jet_btag_CSV", &m_jpsi_jet_btag_CSV);
+    if (m_tree_jpsi->FindBranch("jpsi_jet_4vector")) 
+      m_tree_jpsi->Branch("jpsi_jet_4vector", &m_jpsi_jet_lorentzvector);
+    if (m_tree_jpsi->FindBranch("jpsi_jet_scaleFactor"))
+      m_tree_jpsi->SetBranchAddress("jpsi_jet_scaleFactor", &m_jpsi_jet_scaleFactors.getBackingArray());
     if (m_tree_jpsi->FindBranch("jpsi_indpf1")) 
       m_tree_jpsi->Branch("jpsi_indpf1", &m_jpsi_indpf1);
     if (m_tree_jpsi->FindBranch("jpsi_indpf2")) 
       m_tree_jpsi->Branch("jpsi_indpf2", &m_jpsi_indpf2);
-    if (m_tree_jpsi->FindBranch("jpsi_jet_4vector")) 
-      m_tree_jpsi->Branch("jpsi_jet_4vector", &m_jpsi_jet_lorentzvector);
     if (m_tree_jpsi->FindBranch("jpsipf_4vector")) 
       m_tree_jpsi->Branch("jpsipf_4vector", &m_jpsipf_lorentzvector);
     if (m_tree_jpsi->FindBranch("jpsi_4vector")) 
@@ -348,14 +387,24 @@ void KVFExtractor::beginJob() {
       m_tree_mujet->Branch("mujet_jet_btag_CSV", &m_mujet_jet_btag_CSV);
     if (m_tree_mujet->FindBranch("mujet_jet_4vector")) 
       m_tree_mujet->Branch("mujet_jet_4vector", &m_mujet_jet_lorentzvector);
+    if (m_tree_mujet->FindBranch("mujet_jet_scaleFactor"))
+      m_tree_mujet->SetBranchAddress("mujet_jet_scaleFactor", &m_mujet_jet_scaleFactors.getBackingArray());
     if (m_tree_mujet->FindBranch("mujet_nonisomuplus_4vector")) 
       m_tree_mujet->Branch("mujet_nonisomuplus_4vector", &m_mujet_nonisomuplus_lorentzvector);
     if (m_tree_mujet->FindBranch("mujet_nonisomuplus_pdgid")) 
       m_tree_mujet->Branch("mujet_nonisomuplus_pdgid", &m_mujet_nonisomuplus_pdgid);
+    for (auto& it: m_mujet_nonisomuplus_scaleFactors) {
+      if (m_tree_mujet->FindBranch(("mujet_nonisomuplus_"+it.first).c_str()))
+        m_tree_mujet->Branch(("mujet_nonisomuplus_"+it.first).c_str(), & it.second.getBackingArray());
+    }
     if (m_tree_mujet->FindBranch("mujet_nonisomuminus_4vector")) 
       m_tree_mujet->Branch("mujet_nonisomuminus_4vector", &m_mujet_nonisomuminus_lorentzvector);
     if (m_tree_mujet->FindBranch("mujet_nonisomuminus_pdgid")) 
       m_tree_mujet->Branch("mujet_nonisomuminus_pdgid", &m_mujet_nonisomuminus_pdgid);
+    for (auto& it: m_mujet_nonisomuminus_scaleFactors) {
+      if (m_tree_mujet->FindBranch(("mujet_nonisomuminus_"+it.first).c_str()))
+        m_tree_mujet->Branch(("mujet_nonisomuminus_"+it.first).c_str(), & it.second.getBackingArray());
+    }
     if (m_tree_mujet->FindBranch("mujet_ntr")) 
       m_tree_mujet->Branch("mujet_ntr", &m_mujet_ntr);
     if (m_tree_mujet->FindBranch("mujet_sump")) 
@@ -545,6 +594,7 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
     std::vector<reco::PFCandidate> myKPis; 
     std::vector<reco::PFCandidate> myPFs2Unfold; 
 
+
     // Reconstruct the J/psi
     //----------------------
 
@@ -604,6 +654,17 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
           m_jpsi_indjet[nJpsi-1] = i;
           m_jpsi_jet_btag_CSV[nJpsi-1] = p_jets.at(i).bDiscriminator("combinedSecondaryVertexBJetTags");
           new((*m_jpsi_jet_lorentzvector)[nJpsi-1]) TLorentzVector((p_jets.at(i)).px(),(p_jets.at(i)).py(),(p_jets.at(i)).pz(),(p_jets.at(i)).energy());
+          if (m_isMC) {
+            int mcFlavor = abs(p_jets.at(i).partonFlavour());
+            ScaleFactorService::Flavor flavor = ScaleFactorService::B;
+            if (mcFlavor == 4) {
+              flavor = ScaleFactorService::C;
+            } else if ((mcFlavor <= 3) || (mcFlavor == 21)) {
+              // If mcFlavor == 0, assume it's a light jet
+              flavor = ScaleFactorService::LIGHT;
+            }
+            m_jpsi_jet_scaleFactors.push_back(m_scaleFactorService->getBTaggingScaleFactor(flavor, p_jets.at(i).et(), p_jets.at(i).eta()));
+          }
           // Fill tree info for links between Jpsi and PF particles
           m_jpsi_indpf1[nJpsi-1] = j;
           m_jpsi_indpf2[nJpsi-1] = k;
@@ -736,15 +797,29 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
               if (jpsi1_children.size() != 2) {
                 std::cout << " Warning Jpsi1 children size not equal to 2..." << std::endl;
               } else {
+                TLorentzVector p_mu;
                 // Order is : x,y,z,px,py,pz,m
                 AlgebraicVector7 par1 = jpsi1_children[0]->currentState().kinematicParameters().vector();
                 double e1 = jpsi1_children[0]->currentState().kinematicParameters().energy();
                 new((*m_jpsikvf_mu1_lorentzvector)[nJpsi-1]) TLorentzVector(par1(3),par1(4),par1(5),e1);
+                p_mu.SetPxPyPzE(par1(3),par1(4),par1(5),e1);
+                if (m_isMC) {
+                  for (auto& it: m_jpsikvf_mu1_muon_scaleFactors) {
+                    std::pair<ScaleFactorService::WorkingPoint, ScaleFactorService::WorkingPoint> workingPoints = ScaleFactorService::getWorkingPointFromName(it.first);
+                    it.second.push_back(m_scaleFactorService->getMuonScaleFactor(workingPoints.first, workingPoints.second, p_mu.Pt(), p_mu.Eta()));
+                  }
+                }
 
                 AlgebraicVector7 par2 = jpsi1_children[1]->currentState().kinematicParameters().vector();
                 double e2 = jpsi1_children[1]->currentState().kinematicParameters().energy();
                 new((*m_jpsikvf_mu2_lorentzvector)[nJpsi-1]) TLorentzVector(par2(3),par2(4),par2(5),e2);
-
+                p_mu.SetPxPyPzE(par2(3),par2(4),par2(5),e2);
+                if (m_isMC) {
+                  for (auto& it: m_jpsikvf_mu2_muon_scaleFactors) {
+                    std::pair<ScaleFactorService::WorkingPoint, ScaleFactorService::WorkingPoint> workingPoints = ScaleFactorService::getWorkingPointFromName(it.first);
+                    it.second.push_back(m_scaleFactorService->getMuonScaleFactor(workingPoints.first, workingPoints.second, p_mu.Pt(), p_mu.Eta()));
+                  }
+                }
               }
 
             } 
@@ -802,6 +877,18 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
 
       m_mujet_jet_btag_CSV[nMuJet-1] = p_jets.at(i).bDiscriminator("combinedSecondaryVertexBJetTags");  
       new((*m_mujet_jet_lorentzvector)[nMuJet-1]) TLorentzVector((p_jets.at(i)).px(),(p_jets.at(i)).py(),(p_jets.at(i)).pz(),(p_jets.at(i)).energy()); 
+      if (m_isMC) {
+        int mcFlavor = abs(p_jets.at(i).partonFlavour());
+        ScaleFactorService::Flavor flavor = ScaleFactorService::B;
+        if (mcFlavor == 4) {
+          flavor = ScaleFactorService::C;
+        } else if ((mcFlavor <= 3) || (mcFlavor == 21)) {
+          // If mcFlavor == 0, assume it's a light jet
+          flavor = ScaleFactorService::LIGHT;
+        }
+        m_mujet_jet_scaleFactors.push_back(m_scaleFactorService->getBTaggingScaleFactor(flavor, p_jets.at(i).et(), p_jets.at(i).eta()));
+      }
+
       m_mujet_ntr[nMuJet-1] = myPFs.size();
       m_mujet_sump[nMuJet-1] = SumP;
       m_mujet_sumpt[nMuJet-1] = SumPt;
@@ -810,10 +897,22 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
         if (myPFs[j].pdgId() == 13) {
           new((*m_mujet_nonisomuplus_lorentzvector)[nMuJet-1]) TLorentzVector(myPFs[j].px(),myPFs[j].py(),myPFs[j].pz(),myPFs[j].energy());
           m_mujet_nonisomuplus_pdgid[nMuJet-1] = myPFs[j].pdgId();
+          if (m_isMC) {
+            for (auto& it: m_mujet_nonisomuplus_scaleFactors) {
+              std::pair<ScaleFactorService::WorkingPoint, ScaleFactorService::WorkingPoint> workingPoints = ScaleFactorService::getWorkingPointFromName(it.first);
+              it.second.push_back(m_scaleFactorService->getMuonScaleFactor(workingPoints.first, workingPoints.second, myPFs[j].pt(), myPFs[j].eta()));
+            }
+          }
         }
         if (myPFs[j].pdgId() == -13) {
           new((*m_mujet_nonisomuminus_lorentzvector)[nMuJet-1]) TLorentzVector(myPFs[j].px(),myPFs[j].py(),myPFs[j].pz(),myPFs[j].energy());
           m_mujet_nonisomuminus_pdgid[nMuJet-1] = myPFs[j].pdgId();
+          if (m_isMC) {
+            for (auto& it: m_mujet_nonisomuminus_scaleFactors) {
+              std::pair<ScaleFactorService::WorkingPoint, ScaleFactorService::WorkingPoint> workingPoints = ScaleFactorService::getWorkingPointFromName(it.first);
+              it.second.push_back(m_scaleFactorService->getMuonScaleFactor(workingPoints.first, workingPoints.second, myPFs[j].pt(), myPFs[j].eta()));
+            }
+          }
         }
         if (m_mujet_nonisomuplus_pdgid[nMuJet-1] != 0 && m_mujet_nonisomuminus_pdgid[nMuJet-1] != 0) break;
       }
@@ -1057,10 +1156,18 @@ void KVFExtractor::reset()
 
   // Jpsi tree
   m_jpsi_jet_lorentzvector->Clear();
+  m_jpsi_jet_scaleFactors.clear();
   m_jpsipf_lorentzvector->Clear();
   m_jpsikvf_lorentzvector->Clear();
   m_jpsikvf_mu1_lorentzvector->Clear();
   m_jpsikvf_mu2_lorentzvector->Clear();
+
+  for (auto& it: m_jpsikvf_mu1_muon_scaleFactors) {
+    it.second.clear();
+  }
+  for (auto& it: m_jpsikvf_mu2_muon_scaleFactors) {
+    it.second.clear();
+  }
 
   m_jpsi_size = 0;
 
@@ -1085,6 +1192,7 @@ void KVFExtractor::reset()
   // mujet tree
 
   m_mujet_jet_lorentzvector->Clear();
+  m_mujet_jet_scaleFactors.clear();
   m_mujet_nonisomuplus_lorentzvector->Clear();
   m_mujet_nonisomuminus_lorentzvector->Clear();
   m_mujet_tr_lorentzvector->Clear(); 
@@ -1092,6 +1200,13 @@ void KVFExtractor::reset()
   m_mujet_d0kvf_lorentzvector->Clear();
   m_mujet_d0kvf_pion_lorentzvector->Clear();
   m_mujet_d0kvf_kaon_lorentzvector->Clear();
+
+  for (auto& it: m_mujet_nonisomuplus_scaleFactors) {
+    it.second.clear();
+  }
+  for (auto& it: m_mujet_nonisomuminus_scaleFactors) {
+    it.second.clear();
+  }
 
   m_mujet_size = 0;
   m_mujet_tr_size = 0;

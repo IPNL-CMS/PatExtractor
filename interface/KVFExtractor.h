@@ -26,6 +26,7 @@
 #include "../interface/BaseExtractor.h"
 #include "../interface/MCExtractor.h"
 #include <Extractors/PatExtractor/interface/ScaleFactor.h>
+#include <Extractors/PatExtractor/interface/ScaleFactorService.h>
 
 //Include std C++
 #include <iostream>
@@ -103,6 +104,7 @@ class KVFExtractor: public BaseExtractor<pat::Jet>
 
     void extractRawJets(pat::JetCollection& jets);
 
+
   private:
 
     double m_muJpsiMinPt;
@@ -137,13 +139,16 @@ class KVFExtractor: public BaseExtractor<pat::Jet>
     int           m_jpsi_size;
     int           m_jpsi_indjet[m_jpsi_MAX];
     float         m_jpsi_jet_btag_CSV[m_jpsi_MAX];
+    TClonesArray* m_jpsi_jet_lorentzvector;
+    ScaleFactorCollection m_jpsi_jet_scaleFactors;
     int           m_jpsi_indpf1[m_jpsi_MAX];
     int           m_jpsi_indpf2[m_jpsi_MAX];
-    TClonesArray* m_jpsi_jet_lorentzvector;
     TClonesArray* m_jpsipf_lorentzvector;
     TClonesArray* m_jpsikvf_lorentzvector;
     TClonesArray* m_jpsikvf_mu1_lorentzvector;
+    std::map<std::string, ScaleFactorCollection> m_jpsikvf_mu1_muon_scaleFactors;
     TClonesArray* m_jpsikvf_mu2_lorentzvector;
+    std::map<std::string, ScaleFactorCollection> m_jpsikvf_mu2_muon_scaleFactors;
     float         m_jpsikvf_vx[m_jpsi_MAX];
     float         m_jpsikvf_vy[m_jpsi_MAX];
     float         m_jpsikvf_vz[m_jpsi_MAX];
@@ -174,10 +179,13 @@ class KVFExtractor: public BaseExtractor<pat::Jet>
     int           m_mujet_d0_size;
     float         m_mujet_jet_btag_CSV[m_mujet_MAX];
     TClonesArray* m_mujet_jet_lorentzvector;
+    ScaleFactorCollection m_mujet_jet_scaleFactors;
     TClonesArray* m_mujet_nonisomuplus_lorentzvector;
     int           m_mujet_nonisomuplus_pdgid[m_mujet_MAX];
+    std::map<std::string, ScaleFactorCollection> m_mujet_nonisomuplus_scaleFactors;
     TClonesArray* m_mujet_nonisomuminus_lorentzvector;
     int           m_mujet_nonisomuminus_pdgid[m_mujet_MAX];
+    std::map<std::string, ScaleFactorCollection> m_mujet_nonisomuminus_scaleFactors;
     int           m_mujet_ntr[m_mujet_MAX];
     float         m_mujet_sump[m_mujet_MAX];
     float         m_mujet_sumpt[m_mujet_MAX];
