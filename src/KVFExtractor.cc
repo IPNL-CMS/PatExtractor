@@ -178,31 +178,31 @@ void printOut(const RefCountedKinematicTree& myTree)
   m_jpsikvf_lorentzvector     = new TClonesArray("TLorentzVector");
   m_jpsikvf_mu1_lorentzvector = new TClonesArray("TLorentzVector");
   for (auto& it: sfWorkingPoints) {
-      std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
-      m_jpsikvf_mu1_muon_scaleFactors[name] = ScaleFactorCollection();
-      m_jpsikvf_mu1_muon_scaleFactors[name].setWriteMode();
+    std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
+    m_jpsikvf_mu1_muon_scaleFactors[name] = ScaleFactorCollection();
+    m_jpsikvf_mu1_muon_scaleFactors[name].setWriteMode();
   }
   m_jpsikvf_mu2_lorentzvector = new TClonesArray("TLorentzVector");
   for (auto& it: sfWorkingPoints) {
-      std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
-      m_jpsikvf_mu2_muon_scaleFactors[name] = ScaleFactorCollection();
-      m_jpsikvf_mu2_muon_scaleFactors[name].setWriteMode();
+    std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
+    m_jpsikvf_mu2_muon_scaleFactors[name] = ScaleFactorCollection();
+    m_jpsikvf_mu2_muon_scaleFactors[name].setWriteMode();
   }
 
   m_mujet_jet_lorentzvector           = new TClonesArray("TLorentzVector");
   m_mujet_jet_scaleFactors.setWriteMode();
   m_mujet_nonisomuplus_lorentzvector  = new TClonesArray("TLorentzVector");
   for (auto& it: sfWorkingPoints) {
-      std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
-      m_mujet_nonisomuplus_scaleFactors[name] = ScaleFactorCollection();
-      m_mujet_nonisomuplus_scaleFactors[name].setWriteMode();
-  }
-  for (auto& it: sfWorkingPoints) {
-      std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
-      m_mujet_nonisomuminus_scaleFactors[name] = ScaleFactorCollection();
-      m_mujet_nonisomuminus_scaleFactors[name].setWriteMode();
+    std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
+    m_mujet_nonisomuplus_scaleFactors[name] = ScaleFactorCollection();
+    m_mujet_nonisomuplus_scaleFactors[name].setWriteMode();
   }
   m_mujet_nonisomuminus_lorentzvector = new TClonesArray("TLorentzVector");
+  for (auto& it: sfWorkingPoints) {
+    std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
+    m_mujet_nonisomuminus_scaleFactors[name] = ScaleFactorCollection();
+    m_mujet_nonisomuminus_scaleFactors[name].setWriteMode();
+  }
   m_mujet_tr_lorentzvector            = new TClonesArray("TLorentzVector");
   m_mujet_d0pf_lorentzvector          = new TClonesArray("TLorentzVector");
   m_mujet_d0kvf_lorentzvector         = new TClonesArray("TLorentzVector");
@@ -320,14 +320,26 @@ void KVFExtractor::beginJob() {
 
   m_tree_jpsi = dynamic_cast<TTree*>(a_file->Get(name_jpsi.c_str()));
   m_tree_mujet = dynamic_cast<TTree*>(a_file->Get("muTaggedJet_PF"));
-
+  const auto& sfWorkingPoints = m_scaleFactorService->getMuonScaleFactorWorkingPoints();
 
   if (m_tree_jpsi) {
 
-    m_jpsi_jet_lorentzvector = new TClonesArray("TLorentzVector");
-    m_jpsipf_lorentzvector = new TClonesArray("TLorentzVector");
+    m_jpsi_jet_lorentzvector    = new TClonesArray("TLorentzVector");
+    m_jpsi_jet_scaleFactors.setWriteMode();
+    m_jpsipf_lorentzvector      = new TClonesArray("TLorentzVector");
+    m_jpsikvf_lorentzvector     = new TClonesArray("TLorentzVector");
     m_jpsikvf_mu1_lorentzvector = new TClonesArray("TLorentzVector");
+    for (auto& it: sfWorkingPoints) {
+      std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
+      m_jpsikvf_mu1_muon_scaleFactors[name] = ScaleFactorCollection();
+      m_jpsikvf_mu1_muon_scaleFactors[name].setWriteMode();
+    }
     m_jpsikvf_mu2_lorentzvector = new TClonesArray("TLorentzVector");
+    for (auto& it: sfWorkingPoints) {
+      std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
+      m_jpsikvf_mu2_muon_scaleFactors[name] = ScaleFactorCollection();
+      m_jpsikvf_mu2_muon_scaleFactors[name].setWriteMode();
+    }
 
     if (m_tree_jpsi->FindBranch("n_jpsi")) 
       m_tree_jpsi->Branch("n_jpsi", &m_jpsi_size);
@@ -349,8 +361,16 @@ void KVFExtractor::beginJob() {
       m_tree_jpsi->Branch("jpsi_4vector", &m_jpsikvf_lorentzvector);
     if (m_tree_jpsi->FindBranch("jpsi_mu1_4vector")) 
       m_tree_jpsi->Branch("jpsi_mu1_4vector", &m_jpsikvf_mu1_lorentzvector);
+    for (auto& it: m_jpsikvf_mu1_muon_scaleFactors) {
+      if (m_tree_jpsi->FindBranch(("jpsi_mu1_"+it.first).c_str()))
+        m_tree_jpsi->Branch(("jpsi_mu1_"+it.first).c_str(), & it.second.getBackingArray());
+    }
     if (m_tree_jpsi->FindBranch("jpsi_mu2_4vector")) 
       m_tree_jpsi->Branch("jpsi_mu2_4vector", &m_jpsikvf_mu2_lorentzvector);
+    for (auto& it: m_jpsikvf_mu2_muon_scaleFactors) {
+      if (m_tree_jpsi->FindBranch(("jpsi_mu2_"+it.first).c_str()))
+        m_tree_jpsi->Branch(("jpsi_mu2_"+it.first).c_str(), & it.second.getBackingArray());
+    }
     if (m_tree_jpsi->FindBranch("jpsi_vx")) 
       m_tree_jpsi->Branch("jpsi_vx", &m_jpsikvf_vx);  
     if (m_tree_jpsi->FindBranch("jpsi_vy")) 
@@ -373,9 +393,20 @@ void KVFExtractor::beginJob() {
   if (m_tree_mujet) {
 
     m_mujet_jet_lorentzvector           = new TClonesArray("TLorentzVector");
+    m_mujet_jet_scaleFactors.setWriteMode();
     m_mujet_nonisomuplus_lorentzvector  = new TClonesArray("TLorentzVector");
+    for (auto& it: sfWorkingPoints) {
+      std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
+      m_mujet_nonisomuplus_scaleFactors[name] = ScaleFactorCollection();
+      m_mujet_nonisomuplus_scaleFactors[name].setWriteMode();
+    }
     m_mujet_nonisomuminus_lorentzvector = new TClonesArray("TLorentzVector");
-    m_mujet_tr_lorentzvector            = new TClonesArray("TLorentzVector"); 
+    for (auto& it: sfWorkingPoints) {
+      std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
+      m_mujet_nonisomuminus_scaleFactors[name] = ScaleFactorCollection();
+      m_mujet_nonisomuminus_scaleFactors[name].setWriteMode();
+    }
+    m_mujet_tr_lorentzvector            = new TClonesArray("TLorentzVector");
     m_mujet_d0pf_lorentzvector          = new TClonesArray("TLorentzVector");
     m_mujet_d0kvf_lorentzvector         = new TClonesArray("TLorentzVector");
     m_mujet_d0kvf_pion_lorentzvector    = new TClonesArray("TLorentzVector");
@@ -835,10 +866,10 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
     m_jpsi_size = nJpsi;
 
     // end of J/psi stuff
-    
+
     sort(myPFs.begin(), myPFs.end(), mSorterPFs);  
     sort(myKPis.begin(), myKPis.end(), mSorterPFs);  
-    
+
     if (hasNonIsoMu) {
       ++nMuJet;
 
@@ -893,8 +924,11 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
       m_mujet_sump[nMuJet-1] = SumP;
       m_mujet_sumpt[nMuJet-1] = SumPt;
       m_mujet_sumvecp[nMuJet-1] = (float)SumVecP.P(); 
+      bool nomuplus = true;
+      bool nomuminus = true;
       for (unsigned int j = 0; j < (unsigned int)myPFs.size(); j++) {
-        if (myPFs[j].pdgId() == 13) {
+        if (myPFs[j].pdgId() == 13 && nomuplus) {
+          nomuplus = false;
           new((*m_mujet_nonisomuplus_lorentzvector)[nMuJet-1]) TLorentzVector(myPFs[j].px(),myPFs[j].py(),myPFs[j].pz(),myPFs[j].energy());
           m_mujet_nonisomuplus_pdgid[nMuJet-1] = myPFs[j].pdgId();
           if (m_isMC) {
@@ -904,7 +938,8 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
             }
           }
         }
-        if (myPFs[j].pdgId() == -13) {
+        if (myPFs[j].pdgId() == -13 && nomuminus) {
+          nomuminus = false;
           new((*m_mujet_nonisomuminus_lorentzvector)[nMuJet-1]) TLorentzVector(myPFs[j].px(),myPFs[j].py(),myPFs[j].pz(),myPFs[j].energy());
           m_mujet_nonisomuminus_pdgid[nMuJet-1] = myPFs[j].pdgId();
           if (m_isMC) {
@@ -915,6 +950,22 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
           }
         }
         if (m_mujet_nonisomuplus_pdgid[nMuJet-1] != 0 && m_mujet_nonisomuminus_pdgid[nMuJet-1] != 0) break;
+      }
+      if (nomuplus) {
+        new((*m_mujet_nonisomuplus_lorentzvector)[nMuJet-1]) TLorentzVector(0.,0.,0.,0.);
+        if (m_isMC) {
+          for (auto& it: m_mujet_nonisomuplus_scaleFactors) {
+            it.second.push_back(ScaleFactor(0,0,0));
+          }
+        }
+      }
+      if (nomuminus) {
+        new((*m_mujet_nonisomuminus_lorentzvector)[nMuJet-1]) TLorentzVector(0.,0.,0.,0.);    
+        if (m_isMC) {
+          for (auto& it: m_mujet_nonisomuminus_scaleFactors) {
+            it.second.push_back(ScaleFactor(0,0,0));
+          }
+        }      
       }
       for (unsigned int j = 0; j < std::min((unsigned int)myPFs.size(), (unsigned int)m_tr_MAX); j++) {
         ++nTr;
@@ -1118,7 +1169,7 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
       } // end 1st PF loop
 
       m_mujet_nd0[nMuJet-1] = nd0;
-      
+
       // end of D0 stuff
 
     } // mu tagged jet  
@@ -1240,6 +1291,19 @@ void KVFExtractor::reset()
     m_mujet_d0kvf_L3D[i] = 0;  
     m_mujet_d0kvf_sigmaL3D[i] = 0;  
     m_mujet_d0kvf_L3DoverSigmaL3D[i] = 0;  
+  }
+  for (int i = 0; i < m_unfold_Tr_MAX; ++i) {
+    m_mujet_unfold_indmujet[i] = 0;
+    m_mujet_unfold_tr_recopt[i] = 0;
+    m_mujet_unfold_tr_recoeta[i] = 0;
+    m_mujet_unfold_tr_genpt[i] = 0;
+    m_mujet_unfold_tr_geneta[i] = 0;
+    m_mujet_unfold_tr_dr[i] = 0;
+    m_mujet_unfold_mu_recopt[i] = 0;
+    m_mujet_unfold_mu_recoeta[i] = 0;
+    m_mujet_unfold_mu_genpt[i] = 0;
+    m_mujet_unfold_mu_geneta[i] = 0;
+    m_mujet_unfold_mu_dr[i] = 0;
   }
 }
 
