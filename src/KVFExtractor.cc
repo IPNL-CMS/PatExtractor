@@ -33,6 +33,7 @@
 #include "RecoVertex/KinematicFit/interface/KinematicParticleFitter.h"
 #include "RecoVertex/KinematicFit/interface/MassKinematicConstraint.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
+#include "DataFormats/MuonReco/interface/MuonSelectors.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
 #define DEBUG false
@@ -113,6 +114,7 @@ void printOut(const RefCountedKinematicTree& myTree)
   m_muJpsiMinPt = jpsiConfig.getUntrackedParameter<double>("muJpsiMinPt");
   m_jpsiMassMin = jpsiConfig.getUntrackedParameter<double>("jpsiMassMin");
   m_jpsiMassMax = jpsiConfig.getUntrackedParameter<double>("jpsiMassMax");
+  m_vertexTag   = jpsiConfig.getUntrackedParameter<edm::InputTag>("vtxTag");
 
   const edm::ParameterSet& d0Config = config.getParameter<edm::ParameterSet>(name_d0);
 
@@ -556,6 +558,9 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
   event.getByLabel(m_tag, jetHandle);
   pat::JetCollection p_jets = *jetHandle;
 
+  edm::Handle<std::vector<reco::Vertex>>  pvHandle;
+  event.getByLabel(m_vertexTag, pvHandle);
+
   bool unfold = false;
   edm::Handle<reco::GenParticleCollection> genParticles;
   if (event.getByLabel("genParticles", genParticles)) unfold = true;
@@ -645,27 +650,50 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
     for(unsigned int j = 0; j < npfs; ++j) {
       if (!PFpart[j]->trackRef()) continue;
 
-      if (PFpart[j]->pt() > m_trUnfoldMinPt)
-        myPFs2Unfold.push_back(*PFpart[j]);
-      if (PFpart[j]->pt() > m_trSumMinPt) {
-        SumP += PFpart[j]->p();
-        SumPt += PFpart[j]->pt();
-        TLorentzVector VecP;
-        VecP.SetPxPyPzE(PFpart[j]->px(), PFpart[j]->py(), PFpart[j]->pz(), PFpart[j]->energy());
-        SumVecP = SumVecP + VecP;  
-        myPFs.push_back(*PFpart[j]);
-        if (abs(PFpart[j]->pdgId()) == 13) hasNonIsoMu = true;
-        else myKPis.push_back(*PFpart[j]);
+      if (PFpart[j]->trackRef()->quality(reco::Track::tight)) {
+        if (PFpart[j]->pt() > m_trUnfoldMinPt)
+          myPFs2Unfold.push_back(*PFpart[j]);
+        if (PFpart[j]->pt() > m_trSumMinPt) {
+          SumP += PFpart[j]->p();
+          SumPt += PFpart[j]->pt();
+          TLorentzVector VecP;
+          VecP.SetPxPyPzE(PFpart[j]->px(), PFpart[j]->py(), PFpart[j]->pz(), PFpart[j]->energy());
+          SumVecP = SumVecP + VecP;  
+          myPFs.push_back(*PFpart[j]);
+          if (abs(PFpart[j]->pdgId()) == 13) hasNonIsoMu = true;
+          else myKPis.push_back(*PFpart[j]);
+        }
       } // compute some useful variables for mu tagged jets
 
+      // Both PF particle should be a muon
+      /*
       if (abs(PFpart[j]->pdgId()) != 13) continue;
       if (PFpart[j]->pt() < m_muJpsiMinPt) continue;
+      */
+      // try BPH selection https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideMuonId#Soft_Muon
+      if (!PFpart[j]->muonRef()) continue;
+      if (!muon::isGoodMuon(*(PFpart[j]->muonRef()), muon::TMOneStationTight)) continue;
+      if (PFpart[j]->muonRef()->innerTrack()->hitPattern().trackerLayersWithMeasurement() <= 5) continue;
+      if (PFpart[j]->muonRef()->innerTrack()->hitPattern().pixelLayersWithMeasurement() <= 0) continue;
+      if (!PFpart[j]->muonRef()->innerTrack()->quality(reco::TrackBase::highPurity)) continue;
+      if (fabs(PFpart[j]->muonRef()->innerTrack()->dxy(pvHandle->at(0).position())) >= 0.3 || fabs(PFpart[j]->muonRef()->innerTrack()->dz(pvHandle->at(0).position())) >= 20.) continue;
 
       for(unsigned int k = j+1; k < npfs; ++k) {
 
-        // Both PF particle should be a muon and with OS
+        // Both PF particle should be a muon
+        /*
         if (abs(PFpart[k]->pdgId()) != 13) continue;
         if (PFpart[k]->pt() < m_muJpsiMinPt) continue;
+        */
+        // try BPH selection https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideMuonId#Soft_Muon
+        if (!PFpart[k]->muonRef()) continue;
+        if (!muon::isGoodMuon(*(PFpart[k]->muonRef()), muon::TMOneStationTight)) continue;
+        if (PFpart[k]->muonRef()->innerTrack()->hitPattern().trackerLayersWithMeasurement() <= 5) continue;
+        if (PFpart[k]->muonRef()->innerTrack()->hitPattern().pixelLayersWithMeasurement() <= 0) continue;
+        if (!PFpart[k]->muonRef()->innerTrack()->quality(reco::TrackBase::highPurity)) continue;
+        if (fabs(PFpart[k]->muonRef()->innerTrack()->dxy(pvHandle->at(0).position())) >= 0.3 || fabs(PFpart[k]->muonRef()->innerTrack()->dz(pvHandle->at(0).position())) >= 20.) continue;
+
+        // Both PF particle should be of OS
         if (!PFpart[k]->trackRef()) continue;
         if (PFpart[j]->charge() + PFpart[k]->charge() != 0) continue;
 
@@ -765,10 +793,7 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
               // Compute the distance between the PV and the Jpsi vertex :
               //----------------------------------------------------------
 
-              edm::Handle<reco::VertexCollection>  vtxHandle;
-              edm::InputTag tagVtx("offlinePrimaryVertices");
-              event.getByLabel(tagVtx, vtxHandle);
-              const reco::VertexCollection vtx = *(vtxHandle.product());
+              const reco::VertexCollection vtx = *(pvHandle.product());
 
               GlobalPoint svPos    = jpsi1_vertex->position();
               GlobalError svPosErr = jpsi1_vertex->error();
@@ -820,8 +845,8 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
               m_jpsikvf_L3DoverSigmaL3D[nJpsi-1] = m_jpsikvf_L3D[nJpsi-1]/m_jpsikvf_sigmaL3D[nJpsi-1];
               //std::cout << "(L/sigma)3D = " << m_jpsikvf_L3DoverSigmaL3D[nJpsi-1] << std::endl;    
 
-              if (!vtxHandle.isValid()) {
-                std::cout << "KVFExtractor::writeInfo(): J/psi vtxHandle is not valid..." << std::endl;
+              if (!pvHandle.isValid()) {
+                std::cout << "KVFExtractor::writeInfo(): pvHandle is not valid..." << std::endl;
               }
 
               vector< RefCountedKinematicParticle > jpsi1_children = vertexFitTree->finalStateParticles();
@@ -1052,7 +1077,7 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
           RefCountedKinematicTree vertexFitTree = fitter.fit(kpiParticles);
 
           if (!vertexFitTree->isValid()) {
-            std::cout <<"D0 vertexTree is invalid. Fit failed." << std::endl;
+            //std::cout <<"D0 vertexTree is invalid. Fit failed." << std::endl;
 
             // Need to fill empty quantities : OK for tables, but need to create empty TLorentzVector
             new((*m_mujet_d0kvf_lorentzvector)[nD0-1]) TLorentzVector(0.,0.,0.,0.);
@@ -1081,13 +1106,10 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
               m_mujet_d0kvf_vtxchi2[nD0-1] = d0_vertex->chiSquared();
               m_mujet_d0kvf_ndf[nD0-1] = d0_vertex->degreesOfFreedom();
 
-              // Compute the distance between the PV and the Jpsi vertex :
+              // Compute the distance between the PV and the D0 vertex :
               //----------------------------------------------------------
 
-              edm::Handle<reco::VertexCollection>  vtxHandle;
-              edm::InputTag tagVtx("offlinePrimaryVertices");
-              event.getByLabel(tagVtx, vtxHandle);
-              const reco::VertexCollection vtx = *(vtxHandle.product());
+              const reco::VertexCollection vtx = *(pvHandle.product());
 
               GlobalPoint svPos    = d0_vertex->position();
               GlobalError svPosErr = d0_vertex->error();
@@ -1139,8 +1161,8 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
               m_mujet_d0kvf_L3DoverSigmaL3D[nD0-1] = m_mujet_d0kvf_L3D[nD0-1]/m_mujet_d0kvf_sigmaL3D[nD0-1];
               //std::cout << "(L/sigma)3D = " << m_mujet_d0kvf_L3DoverSigmaL3D[nD0-1] << std::endl;    
 
-              if (!vtxHandle.isValid()) {
-                std::cout << "KVFExtractor::writeInfo(): vtxHandle for D0 is not valid..." << std::endl;
+              if (!pvHandle.isValid()) {
+                std::cout << "KVFExtractor::writeInfo(): pvHandle is not valid..." << std::endl;
               }
 
               vector<RefCountedKinematicParticle> d0_children = vertexFitTree->finalStateParticles();

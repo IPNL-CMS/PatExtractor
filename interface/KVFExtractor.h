@@ -132,6 +132,8 @@ class KVFExtractor: public BaseExtractor<pat::Jet>
 
     // Jpsi
 
+    edm::InputTag m_vertexTag;
+
     TTree* m_tree_jpsi;
 
     static const int 	m_jpsi_MAX  = 10;
