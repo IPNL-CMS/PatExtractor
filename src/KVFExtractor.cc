@@ -33,7 +33,7 @@
 #include "RecoVertex/KinematicFit/interface/KinematicParticleFitter.h"
 #include "RecoVertex/KinematicFit/interface/MassKinematicConstraint.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
-#include "DataFormats/MuonReco/interface/MuonSelectors.h"
+//#include "DataFormats/MuonReco/interface/MuonSelectors.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
 #define DEBUG false
@@ -666,32 +666,32 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
       } // compute some useful variables for mu tagged jets
 
       // Both PF particle should be a muon
-      /*
       if (abs(PFpart[j]->pdgId()) != 13) continue;
       if (PFpart[j]->pt() < m_muJpsiMinPt) continue;
-      */
       // try BPH selection https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideMuonId#Soft_Muon
+      /*
       if (!PFpart[j]->muonRef()) continue;
       if (!muon::isGoodMuon(*(PFpart[j]->muonRef()), muon::TMOneStationTight)) continue;
       if (PFpart[j]->muonRef()->innerTrack()->hitPattern().trackerLayersWithMeasurement() <= 5) continue;
       if (PFpart[j]->muonRef()->innerTrack()->hitPattern().pixelLayersWithMeasurement() <= 0) continue;
       if (!PFpart[j]->muonRef()->innerTrack()->quality(reco::TrackBase::highPurity)) continue;
       if (fabs(PFpart[j]->muonRef()->innerTrack()->dxy(pvHandle->at(0).position())) >= 0.3 || fabs(PFpart[j]->muonRef()->innerTrack()->dz(pvHandle->at(0).position())) >= 20.) continue;
+      */
 
       for(unsigned int k = j+1; k < npfs; ++k) {
 
         // Both PF particle should be a muon
-        /*
         if (abs(PFpart[k]->pdgId()) != 13) continue;
         if (PFpart[k]->pt() < m_muJpsiMinPt) continue;
-        */
         // try BPH selection https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideMuonId#Soft_Muon
+        /*
         if (!PFpart[k]->muonRef()) continue;
         if (!muon::isGoodMuon(*(PFpart[k]->muonRef()), muon::TMOneStationTight)) continue;
         if (PFpart[k]->muonRef()->innerTrack()->hitPattern().trackerLayersWithMeasurement() <= 5) continue;
         if (PFpart[k]->muonRef()->innerTrack()->hitPattern().pixelLayersWithMeasurement() <= 0) continue;
         if (!PFpart[k]->muonRef()->innerTrack()->quality(reco::TrackBase::highPurity)) continue;
         if (fabs(PFpart[k]->muonRef()->innerTrack()->dxy(pvHandle->at(0).position())) >= 0.3 || fabs(PFpart[k]->muonRef()->innerTrack()->dz(pvHandle->at(0).position())) >= 20.) continue;
+        */
 
         // Both PF particle should be of OS
         if (!PFpart[k]->trackRef()) continue;

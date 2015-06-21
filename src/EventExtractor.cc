@@ -23,6 +23,14 @@ EventExtractor::EventExtractor(const std::string& name)
 
   m_tree_event->Branch("generator_weight", &m_generator_weight, "generator_weight/F");
 
+  m_tree_event->Branch("pdf_x1", &m_pdf_x1, "pdf_x1/F");
+  m_tree_event->Branch("pdf_x2", &m_pdf_x2, "pdf_x2/F");
+  m_tree_event->Branch("pdf_id1", &m_pdf_id1, "pdf_id1/I");
+  m_tree_event->Branch("pdf_id2", &m_pdf_id2, "pdf_id2/I");
+  m_tree_event->Branch("pdf_xPDF1", &m_pdf_xPDF1, "pdf_xPDF1/F");
+  m_tree_event->Branch("pdf_xPDF2", &m_pdf_xPDF2, "pdf_xPDF2/F");
+  m_tree_event->Branch("pdf_scale", &m_pdf_scale, "pdf_scale/F");
+
   // Set everything to 0
 
   EventExtractor::reset();
@@ -67,6 +75,8 @@ EventExtractor::~EventExtractor()
 
 void EventExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor)
 {
+  reset();
+
   m_evtID             = (event.eventAuxiliary()).id().event();
   m_BCID              = (event.eventAuxiliary()).bunchCrossing();
   m_time              = (event.eventAuxiliary()).time().unixTime();
@@ -98,6 +108,15 @@ void EventExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& i
 
     if (generatorInfo.isValid()) {
       m_generator_weight = generatorInfo->weight();
+
+      m_pdf_scale = generatorInfo->pdf()->scalePDF;
+
+      m_pdf_id1 = generatorInfo->pdf()->id.first;
+      m_pdf_x1 = generatorInfo->pdf()->x.first;
+      m_pdf_xPDF1 = generatorInfo->pdf()->xPDF.first;
+      m_pdf_id2 = generatorInfo->pdf()->id.second;
+      m_pdf_x2 = generatorInfo->pdf()->x.second;
+      m_pdf_xPDF2 = generatorInfo->pdf()->xPDF.second;
     }
   }
 
@@ -126,6 +145,14 @@ void EventExtractor::reset()
   m_nPU               =  0;
   m_nTrueInteractions = 0;
   m_generator_weight  = 1;
+
+  m_pdf_x1 = -1;
+  m_pdf_x2 = -1;
+  m_pdf_xPDF1 = -1;
+  m_pdf_xPDF2 = -1;
+  m_pdf_id1 = -1;
+  m_pdf_id2 = -1;
+  m_pdf_scale = -1;
 }
 
 // Method print the event info

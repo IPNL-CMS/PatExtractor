@@ -68,6 +68,14 @@ class EventExtractor: public SuperBaseExtractor
   int   m_nPU;
   float m_nTrueInteractions;
   float m_generator_weight;
+
+  float m_pdf_x1;
+  float m_pdf_x2;
+  float m_pdf_xPDF1;
+  float m_pdf_xPDF2;
+  float m_pdf_id1;
+  float m_pdf_id2;
+  float m_pdf_scale;
 };
 
 #endif 
