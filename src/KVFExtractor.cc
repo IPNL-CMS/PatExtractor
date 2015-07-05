@@ -904,9 +904,10 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
           m_mujet_unfold_indmujet[nUnfoldTr-1] = nMuJet-1;
           TLorentzVector recoP, genP;
           recoP.SetPxPyPzE(myPFs2Unfold[j].px(), myPFs2Unfold[j].py(), myPFs2Unfold[j].pz(), myPFs2Unfold[j].energy());
+          genP.SetPxPyPzE(0.,0.,0.,0.);
           double dRmin = 200.;
           for (unsigned int k = 0; k < (unsigned int)genParticles->size(); k++) {
-            if (((*genParticles)[k]).px() < 1e-6 && ((*genParticles)[k]).py() < 1e-6) continue;
+            if (((*genParticles)[k]).px() < 1e-4 && ((*genParticles)[k]).py() < 1e-4) continue;
             TLorentzVector genP_int;
             genP_int.SetPxPyPzE(((*genParticles)[k]).px(), ((*genParticles)[k]).py(), ((*genParticles)[k]).pz(), ((*genParticles)[k]).energy());
             if (genP_int.DeltaR(recoP) < dRmin) {
