@@ -73,8 +73,8 @@ class EventExtractor: public SuperBaseExtractor
   float m_pdf_x2;
   float m_pdf_xPDF1;
   float m_pdf_xPDF2;
-  float m_pdf_id1;
-  float m_pdf_id2;
+  int m_pdf_id1;
+  int m_pdf_id2;
   float m_pdf_scale;
 };
 
