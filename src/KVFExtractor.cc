@@ -912,6 +912,27 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
             m_mujet_unfold_mu_dr[nUnfoldTr-1] = dRmin;
           }
         }
+      } else {
+        for (unsigned int j = 0; j < (unsigned int)myPFs2Unfold.size(); j++) {
+          ++nUnfoldTr;
+          m_mujet_unfold_indmujet[nUnfoldTr-1] = nMuJet-1;
+          TLorentzVector recoP;
+          recoP.SetPxPyPzE(myPFs2Unfold[j].px(), myPFs2Unfold[j].py(), myPFs2Unfold[j].pz(), myPFs2Unfold[j].energy());
+          if (fabs(myPFs2Unfold[j].pdgId()) != 13) {
+            m_mujet_unfold_tr_recopt[nUnfoldTr-1] = recoP.Pt();
+            m_mujet_unfold_tr_recoeta[nUnfoldTr-1] = recoP.Eta();
+            m_mujet_unfold_tr_genpt[nUnfoldTr-1] = 0.;
+            m_mujet_unfold_tr_geneta[nUnfoldTr-1] = 0.;
+            m_mujet_unfold_tr_dr[nUnfoldTr-1] = 200.;
+          }
+          else {
+            m_mujet_unfold_mu_recopt[nUnfoldTr-1] = recoP.Pt();
+            m_mujet_unfold_mu_recoeta[nUnfoldTr-1] = recoP.Eta();
+            m_mujet_unfold_mu_genpt[nUnfoldTr-1] = 0.;
+            m_mujet_unfold_mu_geneta[nUnfoldTr-1] = 0.;
+            m_mujet_unfold_mu_dr[nUnfoldTr-1] = 200.;
+          }
+        }
       }
 
       m_mujet_jet_btag_CSV[nMuJet-1] = p_jets.at(i).bDiscriminator("combinedSecondaryVertexBJetTags");  
