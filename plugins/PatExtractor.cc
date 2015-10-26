@@ -1,5 +1,7 @@
 #include "../interface/PatExtractor.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
+#include "TStyle.h"
+
 
 using namespace std;
 using namespace edm;
@@ -148,7 +150,9 @@ void PatExtractor::endJob() {
 
 void PatExtractor::fillInfo(const edm::Event *event, const edm::EventSetup& iSetup) 
 {
-  MCExtractor* mcExtractor = static_cast<MCExtractor*>(getExtractor("MC").get());
+  MCExtractor* mcExtractor = nullptr;
+  if (is_MC_)
+    mcExtractor = static_cast<MCExtractor*>(getExtractor("MC").get());
   for (auto& extractor: m_extractors) {
     try {
       extractor->writeInfo(*event, iSetup, mcExtractor);

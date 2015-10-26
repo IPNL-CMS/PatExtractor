@@ -165,7 +165,9 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
                         jes_uncertainties_file = cms.untracked.string(""),
                         doLooseJetID           = cms.untracked.bool(True),
                         useGlobalTagForJEC     = cms.untracked.bool(True),
+                        useType1Fix            = cms.untracked.bool(False),
                         jecPayload             = cms.untracked.string("Extractors/PatExtractor/data/jec_payloads.xml"), 
+                        jecPayload_L1ForType1Fix     = cms.untracked.string("Extractors/PatExtractor/data/jec_payloads_L1ForType1Fix.xml"),
                         jecJetAlgo             = cms.untracked.string("AK4PFchs"), 
 
                         redoMetPhiCorrection   = cms.untracked.bool(False),
@@ -178,12 +180,14 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
                     type = cms.string("photon_extractor"),
                     enable = cms.bool(False),
                     parameters = cms.PSet(
-                        input = cms.InputTag("selectedPatPhotons"),
-                        matched_electron = cms.InputTag("photonPFIsolation", "hasMatchedPromptElectron", "PAT"),
-                        charged_hadrons_iso = cms.InputTag("photonPFIsolation", "chargedHadronsIsolation", "PAT"),
-                        neutral_hadrons_iso = cms.InputTag("photonPFIsolation", "neutralHadronsIsolation", "PAT"),
-                        photons_iso = cms.InputTag("photonPFIsolation", "photonsIsolation", "PAT"),
-                        rho = cms.InputTag("kt6PFJets", "rho", "RECO")
+                        #input = cms.InputTag("selectedPatPhotonsPFlow"),
+                        input = cms.InputTag("slimmedPhotonsPFlow"),
+                        #rho = cms.InputTag("kt6PFJets", "rho", "RECO")
+                        rho = cms.InputTag("fixedGridRhoFastjetAll"),
+                        # ID decisions (common to all formats)
+                        phoLooseIdMap = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-PHYS14-PU20bx25-V2-standalone-loose"),
+                        phoMediumIdMap = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-PHYS14-PU20bx25-V2-standalone-medium"),
+                        phoTightIdMap = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-PHYS14-PU20bx25-V2-standalone-tight")
                         )
                     )
             ),
@@ -194,9 +198,10 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
    muon_scale_factors_looseeff_looseiso = loadMuonScaleFactor(os.path.join(rootPath, "MuonEfficiencies_ISO_Run_2012ReReco_53X.pkl"), os.path.join(rootPath, "MuonEfficiencies_Run2012ReReco_53X.pkl"), "Loose", "combRelIsoPF04dBeta<02_Loose"),
    muon_scale_factors = cms.vstring("muon_scale_factors_looseeff_looseiso", "muon_scale_factors_tighteff_looseiso", "muon_scale_factors_tighteff_tightiso"),
 
-   electron_scale_factors_tighteff_tightiso = loadElectronScaleFactor(os.path.join(rootPath, "Electron_scale_factors.json"), os.path.join(rootPath, "Electrons_ScaleFactors_Reco_8TeV.root"), "tight"),
-   electron_scale_factors_looseeff_tightiso = loadElectronScaleFactor(os.path.join(rootPath, "Electron_scale_factors.json"), os.path.join(rootPath, "Electrons_ScaleFactors_Reco_8TeV.root"), "loose"),
-   electron_scale_factors = cms.vstring("electron_scale_factors_tighteff_tightiso", "electron_scale_factors_looseeff_tightiso"),
+   #electron_scale_factors_tighteff_tightiso = loadElectronScaleFactor(os.path.join(rootPath, "Electron_scale_factors.json"), os.path.join(rootPath, "Electrons_ScaleFactors_Reco_8TeV.root"), "tight"),
+   #electron_scale_factors_looseeff_tightiso = loadElectronScaleFactor(os.path.join(rootPath, "Electron_scale_factors.json"), os.path.join(rootPath, "Electrons_ScaleFactors_Reco_8TeV.root"), "loose"),
+   #electron_scale_factors = cms.vstring("electron_scale_factors_tighteff_tightiso", "electron_scale_factors_looseeff_tightiso"),
+   electron_scale_factors = cms.vstring(),
 
    b_tagging_scale_factors_b_jets = cms.PSet(
            jet_type = cms.string("b"),

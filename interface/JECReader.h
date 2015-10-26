@@ -99,7 +99,9 @@ FactorizedJetCorrector* makeFactorizedJetCorrectorFromXML(const std::string& xml
 
     XMLCh* nameStr = XMLString::transcode("name");
     XMLCh* onlyOnDataStr = XMLString::transcode("onlyondata");
+    XMLCh* onlyOnMcStr = XMLString::transcode("onlyonmc");
     XMLCh* trueStr = XMLString::transcode("true");
+    XMLCh* localPrefixStr = XMLString::transcode("localPrefix");
 
     for (XMLSize_t i = 0; i < nodeCount; i++) {
       DOMNode * node = children->item(i);
@@ -113,10 +115,20 @@ FactorizedJetCorrector* makeFactorizedJetCorrectorFromXML(const std::string& xml
           const XMLCh* foo = element->getAttribute(onlyOnDataStr);
           onlyOnData = XMLString::equals(foo, trueStr);
         }
+        bool onlyOnMc = false;
+        if (element->hasAttribute(onlyOnMcStr)) {
+          const XMLCh* foo = element->getAttribute(onlyOnMcStr);
+          onlyOnMc = XMLString::equals(foo, trueStr);
+        }
+        std::string localPrefix = prefix.get();
+        if (element->hasAttribute(localPrefixStr)) {
+          localPrefix = XMLSimpleStr(element->getAttribute(localPrefixStr)).get();
+        }
 
-        std::string filename = path.get() + prefix.get() + "_" + mcDataText + "_" + name.get() + "_" + jetAlgo + ".txt";
+        std::string filename = path.get() + localPrefix + "_" + mcDataText + "_" + name.get() + "_" + jetAlgo + ".txt";
+        //std::string filename = path.get() + prefix.get() + "_" + mcDataText + "_" + name.get() + "_" + jetAlgo + ".txt";
         //std::string filename = path.get() + prefix.get() + "_" + name.get() + "_" + jetAlgo + ".txt";
-        if (!onlyOnData || (onlyOnData && !isMC)) {
+        if ((!onlyOnData || (onlyOnData && !isMC)) && (!onlyOnMc || (onlyOnMc && isMC))) {
           filename = edm::FileInPath(filename).fullPath();
           std::cout << "Using payload '" << filename << "'" << std::endl;
           correctors.push_back(JetCorrectorParameters(filename));
@@ -145,5 +157,6 @@ FactorizedJetCorrector* makeFactorizedJetCorrectorFromXML(const std::string& xml
   XMLPlatformUtils::Terminate();
   return NULL;
 }
+
 
 

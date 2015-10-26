@@ -26,7 +26,6 @@
 <use   name="TrackingTools/TransientTrack"/>
 <use   name="TrackingTools/Records"/>
 <use   name="RecoTracker/TransientTrackingRecHit"/>
-<use   name="rootcintex"/>
 <use   name="root"/>
 <use   name="DataFormats/PatCandidates"/>
 <use   name="PhysicsTools/PatAlgos"/>

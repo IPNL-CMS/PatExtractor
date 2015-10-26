@@ -10,7 +10,8 @@ HLTExtractor::HLTExtractor(const std::string& name, const edm::ParameterSet& con
   m_triggerPrescalesTag(config.getParameter<edm::InputTag>("prescales")),
   m_triggersXML(config.getUntrackedParameter<std::string>("triggers", ""))
 {
-  m_filterHLT = m_triggersXML.length() > 0;
+  //m_filterHLT = m_triggersXML.length() > 0;
+  m_filterHLT = false;
 
   // Set everything to 0
 

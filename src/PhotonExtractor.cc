@@ -3,11 +3,11 @@
 
 PhotonExtractor::PhotonExtractor(const std::string& name, const edm::ParameterSet& settings)
   : BaseExtractor(name, settings),
-  m_matchedPromptElectronTag(settings.getParameter<edm::InputTag>("matched_electron")),
-  m_chargedHadronsIsolationTag(settings.getParameter<edm::InputTag>("charged_hadrons_iso")),
-  m_neutralHadronsIsolationTag(settings.getParameter<edm::InputTag>("neutral_hadrons_iso")),
-  m_photonsIsolationTag(settings.getParameter<edm::InputTag>("photons_iso")),
-  m_rhoTag(settings.getParameter<edm::InputTag>("rho"))
+  m_photonTag(settings.getParameter<edm::InputTag>("input")),
+  m_rhoTag(settings.getParameter<edm::InputTag>("rho")),
+  m_phoLooseIdMapTag(settings.getParameter<edm::InputTag>("phoLooseIdMap")),
+  m_phoMediumIdMapTag(settings.getParameter<edm::InputTag>("phoMediumIdMap")),
+  m_phoTightIdMapTag(settings.getParameter<edm::InputTag>("phoTightIdMap"))
 {
   m_deltaR_cut = 0.2; // Maximum acceptable distance for MC matching
   
@@ -26,10 +26,9 @@ PhotonExtractor::PhotonExtractor(const std::string& name, const edm::ParameterSe
   m_tree_photon->Branch("photon_vx",  &m_pho_vx,   "photon_vx[n_photons]/F");  
   m_tree_photon->Branch("photon_vy",  &m_pho_vy,   "photon_vy[n_photons]/F");  
   m_tree_photon->Branch("photon_vz",  &m_pho_vz,   "photon_vz[n_photons]/F");
-  m_tree_photon->Branch("photon_hasPixelSeed",  &m_pho_hasPixelSeed, "photon_hasPixelSeed[n_photons]/O");
-  m_tree_photon->Branch("photon_hadTowOverEm",  &m_pho_hadTowOverEm,   "photon_hadTowOverEm[n_photons]/F");
-  m_tree_photon->Branch("photon_sigmaIetaIeta",  &m_pho_sigmaIetaIeta,   "photon_sigmaIetaIeta[n_photons]/F");
-  m_tree_photon->Branch("photon_hasMatchedPromptElectron",  &m_pho_hasMatchedPromptElectron,   "photon_hasMatchedPromptElectron[n_photons]/O");
+  m_tree_photon->Branch("photon_passLooseId",  &m_pho_passLooseId, "photon_passLooseId[n_photons]/O");
+  m_tree_photon->Branch("photon_passMediumId",  &m_pho_passMediumId, "photon_passMediumId[n_photons]/O");
+  m_tree_photon->Branch("photon_passTightId",  &m_pho_passTightId, "photon_passTightId[n_photons]/O");
   m_tree_photon->Branch("photon_chargedHadronsIsolation", &m_pho_chargedHadronsIsolation, "photon_chargedHadronsIsolation[n_photons]/F");
   m_tree_photon->Branch("photon_neutralHadronsIsolation",  &m_pho_neutralHadronsIsolation,   "photon_neutralHadronsIsolation[n_photons]/F");
   m_tree_photon->Branch("photon_photonIsolation",  &m_pho_photonIsolation,   "photon_photonIsolation[n_photons]/F");
@@ -65,10 +64,9 @@ PhotonExtractor::PhotonExtractor(const std::string& name, const edm::ParameterSe
   m_tree_photon->SetBranchAddress("photon_vx",  &m_pho_vx);
   m_tree_photon->SetBranchAddress("photon_vy",  &m_pho_vy);
   m_tree_photon->SetBranchAddress("photon_vz",  &m_pho_vz);
-  m_tree_photon->SetBranchAddress("photon_hasPixelSeed",  &m_pho_hasPixelSeed);
-  m_tree_photon->SetBranchAddress("photon_hadTowOverEm",  &m_pho_hadTowOverEm);
-  m_tree_photon->SetBranchAddress("photon_sigmaIetaIeta",  &m_pho_sigmaIetaIeta);
-  m_tree_photon->SetBranchAddress("photon_hasMatchedPromptElectron",  &m_pho_hasMatchedPromptElectron);
+  m_tree_photon->SetBranchAddress("photon_passLooseId",  &m_pho_passLooseId);
+  m_tree_photon->SetBranchAddress("photon_passMediumId",  &m_pho_passMediumId);
+  m_tree_photon->SetBranchAddress("photon_passTightId",  &m_pho_passTightId);
   m_tree_photon->SetBranchAddress("photon_chargedHadronsIsolation",  &m_pho_chargedHadronsIsolation);
   m_tree_photon->SetBranchAddress("photon_neutralHadronsIsolation",  &m_pho_neutralHadronsIsolation);
   m_tree_photon->SetBranchAddress("photon_photonIsolation",  &m_pho_photonIsolation);
@@ -83,11 +81,11 @@ PhotonExtractor::~PhotonExtractor()
 void PhotonExtractor::doConsumes(edm::ConsumesCollector&& collector) {
   BaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
 
+  m_token = collector.consumes<pat::PhotonCollection>(m_photonTag);
   m_rhoToken = collector.consumes<double>(m_rhoTag);
-  m_matchedPromptElectronToken = collector.consumes<edm::ValueMap<bool>>(m_matchedPromptElectronTag);
-  m_chargedHadronsIsolationToken = collector.consumes<edm::ValueMap<double>>(m_chargedHadronsIsolationTag);
-  m_neutralHadronsIsolationToken = collector.consumes<edm::ValueMap<double>>(m_neutralHadronsIsolationTag);
-  m_photonsIsolationToken = collector.consumes<edm::ValueMap<double>>(m_photonsIsolationTag);
+  m_phoLooseIdMapToken = collector.consumes<edm::ValueMap<bool> >(m_phoLooseIdMapTag);
+  m_phoMediumIdMapToken = collector.consumes<edm::ValueMap<bool> >(m_phoMediumIdMapTag);
+  m_phoTightIdMapToken = collector.consumes<edm::ValueMap<bool> >(m_phoTightIdMapTag);
 }
 
 enum class IsolationType {
@@ -101,53 +99,53 @@ float getEffectiveArea(float eta, IsolationType type) {
   switch (type) {
     case IsolationType::CHARGED_HADRONS:
       if (eta < 1.0)
-        return 0.012;
+        return 0.0234;
       else if (eta < 1.479)
-        return 0.010;
+        return 0.0189;
       else if (eta < 2.0)
-        return 0.014;
+        return 0.0171;
       else if (eta < 2.2)
-        return 0.012;
+        return 0.0129;
       else if (eta < 2.3)
-        return 0.016;
+        return 0.0110;
       else if (eta < 2.4)
-        return 0.020;
+        return 0.0074;
       else
-        return 0.012;
+        return 0.0035;
       break;
 
     case IsolationType::NEUTRAL_HADRONS:
       if (eta < 1.0)
-        return 0.030;
+        return 0.0053;
       else if (eta < 1.479)
-        return 0.057;
+        return 0.0103;
       else if (eta < 2.0)
-        return 0.039;
+        return 0.0057;
       else if (eta < 2.2)
-        return 0.015;
+        return 0.0070;
       else if (eta < 2.3)
-        return 0.024;
+        return 0.0152;
       else if (eta < 2.4)
-        return 0.039;
+        return 0.0232;
       else
-        return 0.072;
+        return 0.1709;
       break;
 
     case IsolationType::PHOTONS:
       if (eta < 1.0)
-        return 0.148;
+        return 0.078;
       else if (eta < 1.479)
-        return 0.130;
+        return 0.0629;
       else if (eta < 2.0)
-        return 0.112;
+        return 0.0264;
       else if (eta < 2.2)
-        return 0.216;
+        return 0.0462;
       else if (eta < 2.3)
-        return 0.262;
+        return 0.0740;
       else if (eta < 2.4)
-        return 0.260;
+        return 0.0924;
       else
-        return 0.266;
+        return 0.1484;
       break;
   }
 
@@ -173,6 +171,16 @@ void PhotonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
   event.getByToken(m_token, photonHandle);
   pat::PhotonCollection p_photons = *photonHandle;
 
+  // Get the photon ID data from the event stream.
+  // Note: this implies that the VID ID modules have been run upstream.
+  // If you need more info, check with the EGM group.
+  edm::Handle<edm::ValueMap<bool> > loose_id_decisions;
+  edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
+  edm::Handle<edm::ValueMap<bool> > tight_id_decisions;
+  event.getByToken(m_phoLooseIdMapToken, loose_id_decisions);
+  event.getByToken(m_phoMediumIdMapToken, medium_id_decisions);
+  event.getByToken(m_phoTightIdMapToken, tight_id_decisions);
+
   reset();
   m_size = 0;
 
@@ -181,6 +189,12 @@ void PhotonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
   {
     //std::cout<<"photon #"<<i<<std::endl;
     pat::PhotonRef photonRef(photonHandle, i);    
+
+    // Look up and save the ID decisions
+    m_pho_passLooseId[i] = (*loose_id_decisions)[photonRef];
+    m_pho_passMediumId[i] = (*medium_id_decisions)[photonRef];
+    m_pho_passTightId[i] = (*tight_id_decisions)[photonRef];
+
     PhotonExtractor::writeInfo(event, iSetup, p_photons.at(i), m_size, photonRef); 
 
     if (m_MC)
@@ -201,32 +215,21 @@ void PhotonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
   m_pho_vx[index]   = part.vx();
   m_pho_vy[index]   = part.vy();
   m_pho_vz[index]   = part.vz();
-  m_pho_hasPixelSeed[index] = part.hasPixelSeed();
-  m_pho_hadTowOverEm[index]  = photonRef->hadTowOverEm();
-  m_pho_sigmaIetaIeta[index] = photonRef->sigmaIetaIeta();
-  
+
   edm::Handle<double> rhos;
   event.getByToken(m_rhoToken, rhos);
   double rho = *rhos;
 
-  // Isolations are produced at PAT level by the P\u1e27otonPFIsolation producer
-  edm::Handle<edm::ValueMap<bool>> hasMatchedPromptElectronHandle;
-  event.getByToken(m_matchedPromptElectronToken, hasMatchedPromptElectronHandle);
-  m_pho_hasMatchedPromptElectron[index] = (*hasMatchedPromptElectronHandle)[photonRef];
+  // All of the above can be replaced with
+  const double chIso03 = part.chargedHadronIso();
+  const double nhIso03 = part.neutralHadronIso();
+  const double phIso03 = part.photonIso();
+
 
   // Now, isolations
-  edm::Handle<edm::ValueMap<double>> chargedHadronsIsolationHandle;
-  event.getByToken(m_chargedHadronsIsolationToken, chargedHadronsIsolationHandle);
-
-  edm::Handle<edm::ValueMap<double>> neutralHadronsIsolationHandle;
-  event.getByToken(m_neutralHadronsIsolationToken, neutralHadronsIsolationHandle);
-
-  edm::Handle<edm::ValueMap<double>> photonIsolationHandle;
-  event.getByToken(m_photonsIsolationToken, photonIsolationHandle);
-
-  m_pho_chargedHadronsIsolation[index] = getCorrectedPFIsolation((*chargedHadronsIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::CHARGED_HADRONS);
-  m_pho_neutralHadronsIsolation[index] = getCorrectedPFIsolation((*neutralHadronsIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::NEUTRAL_HADRONS);
-  m_pho_photonIsolation[index]         = getCorrectedPFIsolation((*photonIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::PHOTONS);
+  m_pho_chargedHadronsIsolation[index] = getCorrectedPFIsolation(chIso03, rho, photonRef->eta(), IsolationType::CHARGED_HADRONS);
+  m_pho_neutralHadronsIsolation[index] = getCorrectedPFIsolation(nhIso03, rho, photonRef->eta(), IsolationType::NEUTRAL_HADRONS);
+  m_pho_photonIsolation[index]         = getCorrectedPFIsolation(phIso03, rho, photonRef->eta(), IsolationType::PHOTONS);
 
 }
 
@@ -251,13 +254,12 @@ void PhotonExtractor::reset()
     m_pho_vx[i] = 0.;
     m_pho_vy[i] = 0.;
     m_pho_vz[i] = 0.;
-    m_pho_hasPixelSeed[i] = false;
-    m_pho_hadTowOverEm[i] = -1;
-    m_pho_sigmaIetaIeta[i] = -1;
-    m_pho_hasMatchedPromptElectron[i] = false;
     m_pho_chargedHadronsIsolation[i] = -1;
     m_pho_neutralHadronsIsolation[i] = -1;
     m_pho_photonIsolation[i] = -1;
+    m_pho_passLooseId[i] = false;
+    m_pho_passMediumId[i] = false;
+    m_pho_passTightId[i] = false;
     m_pho_MCIndex[i] = -1;
   }
   
@@ -270,3 +272,5 @@ void PhotonExtractor::fillTree()
 {
   m_tree_photon->Fill(); 
 }
+
+

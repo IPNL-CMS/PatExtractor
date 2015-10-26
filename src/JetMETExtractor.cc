@@ -28,6 +28,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
 
   mCorrectJets = config.getUntrackedParameter<bool>("redoJetCorrection", false);
   mUseGlobalTagForJEC = config.getUntrackedParameter<bool>("useGlobalTagForJEC", true);
+  mUseType1Fix = config.getUntrackedParameter<bool>("useType1Fix", false);
 
   if (!mUseGlobalTagForJEC) {
     mJecPayload =  config.getUntrackedParameter<std::string>("jecPayload");
@@ -40,7 +41,19 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
     }
   }
 
+  if (mUseType1Fix) {
+    mJecPayload_L1ForType1Fix =  config.getUntrackedParameter<std::string>("jecPayload_L1ForType1Fix");
+    mJecJetAlgo =  config.getUntrackedParameter<std::string>("jecJetAlgo");
+    if (mJecPayload_L1ForType1Fix.length() > 0) {
+      mJecPayload_L1ForType1Fix = edm::FileInPath(mJecPayload_L1ForType1Fix).fullPath();
+    } else {
+      std::cout << "WARNING! No JecPayload_L1ForType1Fix files found. Use the nominal Type I for MET correction" << std::endl;
+      mUseType1Fix = false;
+    }
+  }
+
   mTxtCorrector = nullptr;
+  mTxtCorrector_L1ForType1Fix = nullptr;
 
   if (mCorrectJets)
     mJetCorrectorLabel = config.getParameter<std::string>("jetCorrectorLabel");
@@ -111,7 +124,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
   m_tree_jet->Branch("jet_isPFJetLoose",  &m_jet_isPFJetLoose, "jet_isPFJetLoose[n_jets]/I");
 
 
-  m_tree_jet->Branch("jet_puJetFullDiscriminant", &m_jet_puJetFullDiscriminant, "jet_puJetFullDiscriminant[n_jets]/I");
+  m_tree_jet->Branch("jet_puJetFullDiscriminant", &m_jet_puJetFullDiscriminant, "jet_puJetFullDiscriminant[n_jets]/F");
   m_tree_jet->Branch("jet_puJetFullId", &m_jet_puJetFullId, "jet_puJetFullId[n_jets]/I");
   m_tree_jet->Branch("jet_puJetCutBasedId", &m_jet_puJetCutBasedId, "jet_puJetCutBasedId[n_jets]/I");
 
@@ -122,12 +135,15 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
   // 2015
   m_tree_jet->Branch("jet_btag_CSVInclusive", &m_jet_btag_CSVInclusive, "jet_btag_CSVInclusive[n_jets]/F");
 
+  m_tree_jet->Branch("jet_qgtag_likelihood", &m_jet_qgtag_likelihood, "jet_qgtag_likelihood[n_jets]/F");
+
   m_tree_jet->Branch("jet_mcParticleIndex",&m_jet_MCIndex,"jet_mcParticleIndex[n_jets]/I");
 
   m_tree_jet->Branch("jet_algo_parton_flavor", &m_jet_algo_parton_flavor, "jet_algo_parton_flavor[n_jets]/I");
   m_tree_jet->Branch("jet_physics_parton_pdgid", &m_jet_physics_parton_pdgid, "jet_physics_parton_pdgid[n_jets]/I");
 
   m_tree_jet->Branch("jet_scaleFactor", &m_scaleFactors.getBackingArray());
+  m_tree_jet->Branch("jet_uncertainty_correctionFactor", &m_jet_uncertainty_correctionFactor, "jet_uncertainty_correctionFactor[n_jets]/F");
 
   m_tree_met = NULL;
   m_tree_met = new TTree(metTreeName.c_str(), "PAT PF MET info");  
@@ -167,6 +183,10 @@ void JetMETExtractor::beginJob(bool isInAnalysisMode) {
   } else {
     std::cout << "Using global tag for JEC" << std::endl;
   }
+  if (mUseType1Fix) {
+    mTxtCorrector_L1ForType1Fix = makeFactorizedJetCorrectorFromXML(mJecPayload_L1ForType1Fix, mJecJetAlgo, m_isMC);
+    std::cout << "Using type 1 fix" << std::endl;
+  }
 }
 
 
@@ -204,6 +224,8 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
       m_tree_jet->SetBranchAddress("jet_vy",            &m_jet_vy);
     if (m_tree_jet->FindBranch("jet_vz")) 
       m_tree_jet->SetBranchAddress("jet_vz",            &m_jet_vz);
+    if (m_tree_jet->FindBranch("jet_uncertainty_correctionFactor"))
+      m_tree_jet->SetBranchAddress("jet_uncertainty_correctionFactor",            &m_jet_uncertainty_correctionFactor);
     if (m_tree_jet->FindBranch("jet_chmult")) 
       m_tree_jet->SetBranchAddress("jet_chmult",        &m_jet_chmult);
     if (m_tree_jet->FindBranch("jet_chmuEfrac")) 
@@ -234,6 +256,9 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
       m_tree_jet->SetBranchAddress("jet_btag_CSV",      &m_jet_btag_CSV);
     if (m_tree_jet->FindBranch("jet_btag_CSVInclusive")) 
       m_tree_jet->SetBranchAddress("jet_btag_CSVInclusive", &m_jet_btag_CSVInclusive);
+
+    if (m_tree_jet->FindBranch("jet_qgtag_likelihood"))
+      m_tree_jet->SetBranchAddress("jet_qgtag_likelihood",      &m_jet_qgtag_likelihood);
 
     if (m_tree_jet->FindBranch("jet_algo_parton_flavor"))
       m_tree_jet->SetBranchAddress("jet_algo_parton_flavor", &m_jet_algo_parton_flavor);
@@ -280,6 +305,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
 JetMETExtractor::~JetMETExtractor()
 {
   delete mTxtCorrector;
+  delete mTxtCorrector_L1ForType1Fix;
 }
 
 
@@ -349,7 +375,7 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
 
     if (rawMetHandle.isValid()) {
       const pat::MET& rawMet = rawMetHandle->back();
-      correctMETWithTypeI(rawMet, MET, p_jets);
+      correctMETWithTypeI(rawMet, MET, p_jets, event);
     }
   }
 
@@ -385,6 +411,12 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
       
     pat::JetRef jetRef(jetHandle, i);    
     JetMETExtractor::writeInfo(event, iSetup, p_jets.at(i), m_size, jetRef); 
+
+
+    // Retrieve QGTag info
+    float qgLikelihood = p_jets.at(i).userFloat("QGTaggerPFlow:qgLikelihood");
+    m_jet_qgtag_likelihood[i] = qgLikelihood;
+
 
     if (m_MC)
       doMCMatch(p_jets.at(i), event, m_MC, m_size);
@@ -469,9 +501,12 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
 
     // PU Jet ID from JetToolBox
     // https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetToolbox
-    m_jet_puJetFullDiscriminant[index] = part.hasUserFloat("pileupJetId:fullDiscriminant") ? part.userFloat("pileupJetId:fullDiscriminant") : -1;
-    m_jet_puJetFullId[index]           = part.hasUserInt("pileupJetId:fullId") ? part.userFloat("pileupJetId:fullId") : -1;
-    m_jet_puJetCutBasedId[index]       = part.hasUserInt("pileupJetId:cutbasedId") ? part.userFloat("pileupJetId:cutbasedId") : -1;
+    // for pattuples
+    //m_jet_puJetFullDiscriminant[index] = part.hasUserFloat("pileupJetIdEvaluatorPFlow:fullDiscriminant") ? part.userFloat("pileupJetIdEvaluatorPFlow:fullDiscriminant") : -2;
+    // for miniAOD
+    m_jet_puJetFullDiscriminant[index] = part.hasUserFloat("pileupJetId:fullDiscriminant") ? part.userFloat("pileupJetId:fullDiscriminant") : -2;
+    m_jet_puJetFullId[index]           = part.hasUserInt("pileupJetIdEvaluatorPFlow:fullId") ? part.userFloat("pileupJetIdEvaluatorPFlow:fullId") : -1;
+    m_jet_puJetCutBasedId[index]       = part.hasUserInt("pileupJetIdEvaluatorPFlow:cutbasedId") ? part.userFloat("pileupJetIdEvaluatorPFlow:cutbasedId") : -1;
 
     // 2012: See https://twiki.cern.ch/twiki/bin/viewauth/CMS/BTagPerformanceOP
     m_jet_btag_jetProb[index]      = part.bDiscriminator("jetProbabilityBJetTags");
@@ -480,6 +515,11 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
 
     // 2015
     m_jet_btag_CSVInclusive[index] = part.bDiscriminator("combinedInclusiveSecondaryVertexBJetTags");
+
+    if (part.hasUserFloat("uncertainty_correctionFactor"))
+      m_jet_uncertainty_correctionFactor[index] = part.userFloat("uncertainty_correctionFactor");
+    else
+      m_jet_uncertainty_correctionFactor[index] = 1.;
   }
 
   m_jet_algo_parton_flavor[index] = part.partonFlavour();
@@ -569,6 +609,8 @@ void JetMETExtractor::reset()
     m_jet_vy[i] = 0.;
     m_jet_vz[i] = 0.;
 
+    m_jet_uncertainty_correctionFactor[i] = 0.;
+
     m_jet_chmult[i] = 0;
     m_jet_chmuEfrac[i] = 0.;
     m_jet_chemEfrac[i] = 0.;
@@ -576,7 +618,7 @@ void JetMETExtractor::reset()
     m_jet_nemEfrac[i] = 0.;
     m_jet_nhadEfrac[i] = 0.;
     m_jet_isPFJetLoose[i] = 0.;
-    m_jet_puJetFullDiscriminant[i] = 0.;
+    m_jet_puJetFullDiscriminant[i] = -3.;
     m_jet_puJetFullId[i] = 0.;
     m_jet_puJetCutBasedId[i] = 0.;
     
@@ -785,7 +827,7 @@ void JetMETExtractor::correctJetsMETresolution(pat::JetCollection& jets, pat::ME
 }
     
 
-void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets) {
+void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets, const edm::Event& iEvent) {
   double deltaPx = 0., deltaPy = 0., deltaPt = 0.;
 #if DEBUG
     std::cout << "---" << std::endl;
@@ -794,22 +836,51 @@ void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met,
     std::cout << "PAT corrected MET et: " << met.et() << std::endl;
 #endif
 
+  edm::Handle<reco::VertexCollection>  vertexHandle;
+  iEvent.getByToken(m_primaryVerticesToken, vertexHandle);
+  reco::VertexCollection vertices = *vertexHandle;
+
+  edm::Handle<double> rhos;
+  iEvent.getByToken(m_rhoToken, rhos);
+  double rho = *rhos;
+
   // See https://indico.cern.ch/getFile.py/access?contribId=1&resId=0&materialId=slides&confId=174324 slide 4
   // and http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/CMSSW/JetMETCorrections/Type1MET/interface/PFJetMETcorrInputProducerT.h?revision=1.8&view=markup
   for (pat::JetCollection::const_iterator it = jets.begin(); it != jets.end(); ++it) {
-    const pat::Jet& jet = *it;
+
+    pat::Jet jet;
+    pat::Jet rawJet = *(it->userData<pat::Jet>("rawJet"));
+    pat::Jet L1Jet;
+    if (! mUseType1Fix) {
+      jet = *it;
+      L1Jet  = *(it->userData<pat::Jet>("L1Jet"));
+    } else {
+      jet = rawJet;
+      mTxtCorrector->setJetEta(jet.eta());
+      mTxtCorrector->setJetPt(jet.pt());
+      mTxtCorrector->setRho(rho);
+      mTxtCorrector->setJetA(rawJet.jetArea());
+      mTxtCorrector->setNPV(vertices.size());
+      jet.scaleEnergy(mTxtCorrector->getCorrection());
+
+      L1Jet = rawJet;
+      mTxtCorrector_L1ForType1Fix->setJetEta(L1Jet.eta());
+      mTxtCorrector_L1ForType1Fix->setJetPt(L1Jet.pt());
+      mTxtCorrector_L1ForType1Fix->setRho(rho);
+      mTxtCorrector_L1ForType1Fix->setJetA(rawJet.jetArea());
+      mTxtCorrector_L1ForType1Fix->setNPV(vertices.size());
+      L1Jet.scaleEnergy(mTxtCorrector_L1ForType1Fix->getCorrection());
+
+    }
 
     if (jet.pt() > 10) {
 
-      const pat::Jet* rawJet = jet.userData<pat::Jet>("rawJet");
-      const pat::Jet* L1Jet  = jet.userData<pat::Jet>("L1Jet");
-
-      double emEnergyFraction = rawJet->chargedEmEnergyFraction() + rawJet->neutralEmEnergyFraction();
+      double emEnergyFraction = rawJet.chargedEmEnergyFraction() + rawJet.neutralEmEnergyFraction();
       if (emEnergyFraction > 0.90)
         continue;
 
       //reco::Candidate::LorentzVector rawJetP4 = rawJet->p4();
-      reco::Candidate::LorentzVector L1JetP4  = L1Jet->p4();
+      reco::Candidate::LorentzVector L1JetP4  = L1Jet.p4();
 
       // Skip muons
       /*std::vector<reco::PFCandidatePtr> cands = rawJet->getPFConstituents();
@@ -922,6 +993,7 @@ void JetMETExtractor::doJESSystematics(pat::JetCollection& jets, pat::MET& met) 
     std::cout << "Pt before JES uncertainty: " << jet.pt() << std::endl;
 #endif
 
+    jet.addUserFloat("uncertainty_correctionFactor", scaleFactor);
     jet.scaleEnergy(scaleFactor);
 
 #if DEBUG

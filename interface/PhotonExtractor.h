@@ -76,31 +76,27 @@ class PhotonExtractor: public BaseExtractor<pat::Photon>
     
     TLorentzVector *getP4(int photidx) {return (TLorentzVector*)m_pho_lorentzvector->At(photidx);}
     
-    bool  hasPixelSeed(int phidx) const { return m_pho_hasPixelSeed[phidx]; }
-    
-    float getHadTowOverEm(int phidx) const { return m_pho_hadTowOverEm[phidx]; }
-    float getSigmaIetaIeta(int phidx) const { return m_pho_sigmaIetaIeta[phidx]; }
-    bool  hasMatchedPromptElectron(int phidx) const { return m_pho_hasMatchedPromptElectron[phidx]; }
-    float getChargedHadronsIsolation(int phidx) const { return m_pho_chargedHadronsIsolation[phidx]; }
-    float getNeutralHadronsIsolation(int phidx) const { return m_pho_neutralHadronsIsolation[phidx]; }
-    float getPhotonIsolation(int phidx) const { return m_pho_photonIsolation[phidx]; }
+    bool  passLooseId(int phidx) const { return m_pho_passLooseId[phidx]; }
+    bool  passMediumId(int phidx) const { return m_pho_passMediumId[phidx]; }
+    bool  passTightId(int phidx) const { return m_pho_passTightId[phidx]; }
     
     // Setters/Getters
 
   private:
 
     TTree* m_tree_photon;
-    edm::InputTag m_matchedPromptElectronTag;
-    edm::InputTag m_chargedHadronsIsolationTag;
-    edm::InputTag m_neutralHadronsIsolationTag;
-    edm::InputTag m_photonsIsolationTag;
+    edm::InputTag m_photonTag;
     edm::InputTag m_rhoTag;
+    edm::InputTag m_phoLooseIdMapTag;
+    edm::InputTag m_phoMediumIdMapTag;
+    edm::InputTag m_phoTightIdMapTag;
 
+    edm::EDGetTokenT<pat::PhotonCollection> m_token;
     edm::EDGetTokenT<double> m_rhoToken;
-    edm::EDGetTokenT<edm::ValueMap<bool>> m_matchedPromptElectronToken;
-    edm::EDGetTokenT<edm::ValueMap<double>> m_chargedHadronsIsolationToken;
-    edm::EDGetTokenT<edm::ValueMap<double>> m_neutralHadronsIsolationToken;
-    edm::EDGetTokenT<edm::ValueMap<double>> m_photonsIsolationToken;
+    // ID decision objects
+    edm::EDGetTokenT<edm::ValueMap<bool> > m_phoLooseIdMapToken;
+    edm::EDGetTokenT<edm::ValueMap<bool> > m_phoMediumIdMapToken;
+    edm::EDGetTokenT<edm::ValueMap<bool> > m_phoTightIdMapToken;
 
     static const int 	m_photons_MAX    = 100;
 
@@ -110,10 +106,9 @@ class PhotonExtractor: public BaseExtractor<pat::Photon>
     float       m_pho_vx[m_photons_MAX];
     float	m_pho_vy[m_photons_MAX];
     float	m_pho_vz[m_photons_MAX];
-    bool	m_pho_hasPixelSeed[m_photons_MAX];
-    float	m_pho_hadTowOverEm[m_photons_MAX];
-    float	m_pho_sigmaIetaIeta[m_photons_MAX];
-    bool	m_pho_hasMatchedPromptElectron[m_photons_MAX];
+    bool	m_pho_passLooseId[m_photons_MAX];
+    bool	m_pho_passMediumId[m_photons_MAX];
+    bool	m_pho_passTightId[m_photons_MAX];
     float	m_pho_chargedHadronsIsolation[m_photons_MAX];
     float	m_pho_neutralHadronsIsolation[m_photons_MAX];
     float	m_pho_photonIsolation[m_photons_MAX];

@@ -101,6 +101,9 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     //float getJetBTagProb_SSVHP(int jetidx) {return m_jet_btag_SSVHP[jetidx];}
     //float getJetBTagProb_TCHE(int jetidx) {return m_jet_btag_TCHE[jetidx];}
 
+    float getJetQGTagProb_MLP(int jetidx) const { return m_jet_qgtag_MLP[jetidx]; }
+    float getJetQGTagProb_Likelihood(int jetidx) const { return m_jet_qgtag_likelihood[jetidx]; }
+
     int getJetMCIndex(int jetidx) {return m_jet_MCIndex[jetidx];}
 
     /**
@@ -143,7 +146,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     int getPuJetCutBasedId(int muidx) const { return m_jet_puJetCutBasedId[muidx]; }
 
 
-    void correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets);
+    void correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets,  const edm::Event& iEvent);
     void correctJets(pat::JetCollection& jets, const edm::Event& iEvent, const edm::EventSetup& iSetup);
 
     double getResCorrFactor(const pat::Jet& jet);
@@ -184,8 +187,10 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
 
     bool mCorrectJets;
     bool mUseGlobalTagForJEC;
+    bool mUseType1Fix;
     bool mSaveUnclusteredParticles;
     std::string mJecPayload;
+    std::string mJecPayload_L1ForType1Fix;
     std::string mJecJetAlgo;
     bool mCorrectSysShiftMet;
     std::string mJetCorrectorLabel;
@@ -196,7 +201,8 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     int  mJERSign;
     int  mJESSign;
     
-    FactorizedJetCorrector* mTxtCorrector; 
+    FactorizedJetCorrector* mTxtCorrector;
+    FactorizedJetCorrector* mTxtCorrector_L1ForType1Fix;
 
     static const int 	m_jets_MAX       = 200;
 
@@ -213,15 +219,19 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     float	m_jet_chhadEfrac[m_jets_MAX];
     float	m_jet_nemEfrac[m_jets_MAX];
     float	m_jet_nhadEfrac[m_jets_MAX];
+    float   m_jet_uncertainty_correctionFactor[m_jets_MAX];
     int   m_jet_isPFJetLoose[m_jets_MAX];
 
     float	m_jet_btag_jetProb[m_jets_MAX];
     float	m_jet_btag_TCHP[m_jets_MAX];
     float	m_jet_btag_CSV[m_jets_MAX];
     float	m_jet_btag_CSVInclusive[m_jets_MAX];
+
+    float	m_jet_qgtag_likelihood[m_jets_MAX];
+    float	m_jet_qgtag_MLP[m_jets_MAX];
     
     //PuJetId
-    int    m_jet_puJetFullDiscriminant[m_jets_MAX];
+    float    m_jet_puJetFullDiscriminant[m_jets_MAX];
     int    m_jet_puJetFullId[m_jets_MAX];
     int    m_jet_puJetCutBasedId[m_jets_MAX];
     // is loose wp  : 4

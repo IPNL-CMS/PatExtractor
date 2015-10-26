@@ -9,10 +9,10 @@
 <!ATTLIST correction onlyondata (true|false) "false">
 ]>
 <payloads>
-  <corrections path="Extractors/PatExtractor/data/" prefix="Summer13_V4">
-    <correction name="L1FastJet" />
+  <corrections path="Extractors/PatExtractor/data/" prefix="Winter14_V5">
+    <correction name="L1FastJet" localPrefix="Winter14_V1" />
     <correction name="L2Relative" />
     <correction name="L3Absolute" />
-    <correction name="L2L3Residual_test" onlyondata="true" />
+    <correction name="L2L3Residual" onlyondata="true" localPrefix="Winter14_V6" />
   </corrections>
 </payloads>

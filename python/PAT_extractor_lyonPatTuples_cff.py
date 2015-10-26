@@ -5,6 +5,29 @@ from JetMETCorrections.Configuration.JetCorrectionServices_cff import *
 
 from Extractors.PatExtractor.PAT_extractor_cfi import *
 
+#from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
+## turn on VID producer, indicate data format  to be
+## DataFormat.AOD or DataFormat.MiniAOD, as appropriate
+
+## Set up input/output depending on the format
+## You can list here either AOD or miniAOD files, but not both types mixed
+##
+#useAOD = False
+
+#if useAOD == True :
+    #dataFormat = DataFormat.AOD
+#else :
+    #dataFormat = DataFormat.MiniAOD
+ 
+#switchOnVIDPhotonIdProducer(process, dataFormat)
+ 
+## define which IDs we want to produce
+#my_id_modules = ['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_PHYS14_PU20bx25_V2_cff']
+ 
+##add them to the VID producer
+#for idmod in my_id_modules:
+    #setupAllVIDIdsInModule(process,idmod,setupVIDPhotonSelection)
+
 # Customize input collection to use ones from miniAOD
 PATextraction.extractors.MC.parameters.input = cms.InputTag("prunedGenParticlesPFlow")
 
@@ -45,3 +68,5 @@ PATextraction.extractors.jetmet.parameters.rho = cms.InputTag("fixedGridRhoAll")
 
 PATextraction.extractors.photon.enable = False
 PATextraction.extractors.photon.parameters.input = cms.InputTag("slimmedPhotonsPFlow")
+
+#ExtractorSequence = cms.Sequence(egmPhotonsIDs + PATextraction)

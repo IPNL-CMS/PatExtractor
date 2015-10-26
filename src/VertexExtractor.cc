@@ -1,5 +1,5 @@
 #include "../interface/VertexExtractor.h"
-
+#include "TStyle.h"
 
 VertexExtractor::VertexExtractor(const std::string& name, const edm::ParameterSet& settings)
   : BaseExtractor(name, settings)
