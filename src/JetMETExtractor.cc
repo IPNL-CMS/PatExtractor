@@ -29,6 +29,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
   mCorrectJets = config.getUntrackedParameter<bool>("redoJetCorrection", false);
   mUseGlobalTagForJEC = config.getUntrackedParameter<bool>("useGlobalTagForJEC", true);
   mUseType1Fix = config.getUntrackedParameter<bool>("useType1Fix", false);
+  mUseGlobalTagForType1Fix = config.getUntrackedParameter<bool>("useGlobalTagForType1Fix", true);
 
   if (!mUseGlobalTagForJEC) {
     mJecPayload =  config.getUntrackedParameter<std::string>("jecPayload");
@@ -42,13 +43,15 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
   }
 
   if (mUseType1Fix) {
-    mJecPayload_L1ForType1Fix =  config.getUntrackedParameter<std::string>("jecPayload_L1ForType1Fix");
-    mJecJetAlgo =  config.getUntrackedParameter<std::string>("jecJetAlgo");
-    if (mJecPayload_L1ForType1Fix.length() > 0) {
-      mJecPayload_L1ForType1Fix = edm::FileInPath(mJecPayload_L1ForType1Fix).fullPath();
-    } else {
-      std::cout << "WARNING! No JecPayload_L1ForType1Fix files found. Use the nominal Type I for MET correction" << std::endl;
-      mUseType1Fix = false;
+    if (!mUseGlobalTagForType1Fix) {
+      mJecPayload_L1ForType1Fix =  config.getUntrackedParameter<std::string>("jecPayload_L1ForType1Fix");
+      mJecJetAlgo =  config.getUntrackedParameter<std::string>("jecJetAlgo");
+      if (mJecPayload_L1ForType1Fix.length() > 0) {
+        mJecPayload_L1ForType1Fix = edm::FileInPath(mJecPayload_L1ForType1Fix).fullPath();
+      } else {
+        std::cout << "WARNING! No JecPayload_L1ForType1Fix files found. Use the nominal Type I for MET correction" << std::endl;
+        mUseGlobalTagForType1Fix = true;
+      }
     }
   }
 
@@ -57,6 +60,8 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
 
   if (mCorrectJets)
     mJetCorrectorLabel = config.getParameter<std::string>("jetCorrectorLabel");
+  if (mUseType1Fix)
+    mJetCorrectorLabelForType1Fix = config.getParameter<std::string>("jetCorrectorLabelForType1Fix");
   mDoJER = config.getUntrackedParameter<bool>("doJER", true);
   mJERSign = 0;
   if (mDoJER) {
@@ -184,8 +189,13 @@ void JetMETExtractor::beginJob(bool isInAnalysisMode) {
     std::cout << "Using global tag for JEC" << std::endl;
   }
   if (mUseType1Fix) {
-    mTxtCorrector_L1ForType1Fix = makeFactorizedJetCorrectorFromXML(mJecPayload_L1ForType1Fix, mJecJetAlgo, m_isMC);
-    std::cout << "Using type 1 fix" << std::endl;
+    std::cout << "Do type 1 fix for MET" << std::endl;
+    if (!mUseGlobalTagForType1Fix) {
+      mTxtCorrector_L1ForType1Fix = makeFactorizedJetCorrectorFromXML(mJecPayload_L1ForType1Fix, mJecJetAlgo, m_isMC);
+      std::cout << "Using text files for type 1 fix" << std::endl;
+    } else {
+      std::cout << "Using global for type 1 fix" << std::endl;
+    }
   }
 }
 
@@ -375,7 +385,7 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
 
     if (rawMetHandle.isValid()) {
       const pat::MET& rawMet = rawMetHandle->back();
-      correctMETWithTypeI(rawMet, MET, p_jets, event);
+      correctMETWithTypeI(rawMet, MET, p_jets, event, iSetup);
     }
   }
 
@@ -827,7 +837,7 @@ void JetMETExtractor::correctJetsMETresolution(pat::JetCollection& jets, pat::ME
 }
     
 
-void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets, const edm::Event& iEvent) {
+void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets, const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   double deltaPx = 0., deltaPy = 0., deltaPt = 0.;
 #if DEBUG
     std::cout << "---" << std::endl;
@@ -856,20 +866,36 @@ void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met,
       L1Jet  = *(it->userData<pat::Jet>("L1Jet"));
     } else {
       jet = rawJet;
-      mTxtCorrector->setJetEta(jet.eta());
-      mTxtCorrector->setJetPt(jet.pt());
-      mTxtCorrector->setRho(rho);
-      mTxtCorrector->setJetA(rawJet.jetArea());
-      mTxtCorrector->setNPV(vertices.size());
-      jet.scaleEnergy(mTxtCorrector->getCorrection());
-
       L1Jet = rawJet;
-      mTxtCorrector_L1ForType1Fix->setJetEta(L1Jet.eta());
-      mTxtCorrector_L1ForType1Fix->setJetPt(L1Jet.pt());
-      mTxtCorrector_L1ForType1Fix->setRho(rho);
-      mTxtCorrector_L1ForType1Fix->setJetA(rawJet.jetArea());
-      mTxtCorrector_L1ForType1Fix->setNPV(vertices.size());
-      L1Jet.scaleEnergy(mTxtCorrector_L1ForType1Fix->getCorrection());
+
+      const JetCorrector* globalTagCorrector = nullptr;
+      const JetCorrector* globalTagCorrectorForType1Fix = nullptr;
+
+      double jet_corrections = 0.;
+      double L1Jet_corrections = 0.;
+      if (mUseGlobalTagForType1Fix) {
+        globalTagCorrector = JetCorrector::getJetCorrector(mJetCorrectorLabel, iSetup);
+        globalTagCorrectorForType1Fix = JetCorrector::getJetCorrector(mJetCorrectorLabelForType1Fix, iSetup);
+        jet_corrections = globalTagCorrector->correction(jet, iEvent, iSetup);
+        jet_corrections = globalTagCorrectorForType1Fix->correction(L1Jet, iEvent, iSetup);
+      } else {
+        mTxtCorrector->setJetEta(jet.eta());
+        mTxtCorrector->setJetPt(jet.pt());
+        mTxtCorrector->setRho(rho);
+        mTxtCorrector->setJetA(rawJet.jetArea());
+        mTxtCorrector->setNPV(vertices.size());
+        jet_corrections = mTxtCorrector->getCorrection();
+
+        mTxtCorrector_L1ForType1Fix->setJetEta(L1Jet.eta());
+        mTxtCorrector_L1ForType1Fix->setJetPt(L1Jet.pt());
+        mTxtCorrector_L1ForType1Fix->setRho(rho);
+        mTxtCorrector_L1ForType1Fix->setJetA(rawJet.jetArea());
+        mTxtCorrector_L1ForType1Fix->setNPV(vertices.size());
+        L1Jet_corrections = mTxtCorrector_L1ForType1Fix->getCorrection();
+      }
+
+      jet.scaleEnergy(jet_corrections);
+      L1Jet.scaleEnergy(L1Jet_corrections);
 
     }
 

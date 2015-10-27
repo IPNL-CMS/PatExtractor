@@ -146,7 +146,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     int getPuJetCutBasedId(int muidx) const { return m_jet_puJetCutBasedId[muidx]; }
 
 
-    void correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets,  const edm::Event& iEvent);
+    void correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets,  const edm::Event& iEvent, const edm::EventSetup& iSetup);
     void correctJets(pat::JetCollection& jets, const edm::Event& iEvent, const edm::EventSetup& iSetup);
 
     double getResCorrFactor(const pat::Jet& jet);
@@ -187,6 +187,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
 
     bool mCorrectJets;
     bool mUseGlobalTagForJEC;
+    bool mUseGlobalTagForType1Fix;
     bool mUseType1Fix;
     bool mSaveUnclusteredParticles;
     std::string mJecPayload;
@@ -194,6 +195,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     std::string mJecJetAlgo;
     bool mCorrectSysShiftMet;
     std::string mJetCorrectorLabel;
+    std::string mJetCorrectorLabelForType1Fix;
     GreaterByPt<pat::Jet> mSorter;
     bool mRedoTypeI;
     bool mDoJER;
