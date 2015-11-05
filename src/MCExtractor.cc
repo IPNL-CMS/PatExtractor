@@ -1,11 +1,14 @@
 #include "../interface/MCExtractor.h"
 
 
+using namespace std;
+
+
 MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& settings):
     SuperBaseExtractor(name, settings),
     m_genParticleTag(settings.getParameter<edm::InputTag>("input"))
 {
-    _doJpsi = settings.getParameter<bool>("do_jpsi");
+    m_doJpsi = settings.getParameter<bool>("do_jpsi");
     // Set everything to 0
 
     m_MC_lorentzvector = new TClonesArray("TLorentzVector");
@@ -34,7 +37,7 @@ MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& setti
     m_tree_MC->Branch("MC_eta", &m_MC_eta,  "MC_eta[n_MCs]/F");  
     m_tree_MC->Branch("MC_phi", &m_MC_phi,  "MC_phi[n_MCs]/F"); 
     
-    if (_doJpsi) {
+    if (m_doJpsi) {
         m_tree_MC->Branch("MC_JPsiFromTop",  &m_MC_JPsiFromTop,  "m_MC_JPsiFromTop[n_MCs]/B");  
         m_tree_MC->Branch("MC_JPsiFromAntiTop",  &m_MC_JPsiFromAntiTop,  "m_MC_JPsiFromAntiTop[n_MCs]/B");  
         m_tree_MC->Branch("MC_LeptonFromTop",  &m_MC_LeptonFromTop,  "m_MC_LeptonFromTop[n_MCs]/B");  
@@ -46,7 +49,7 @@ MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& setti
 MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& settings, TFile *srcFile):
     SuperBaseExtractor(name, settings, srcFile)
 {
-    _doJpsi = settings.getParameter<bool>("do_jpsi"); 
+    m_doJpsi = settings.getParameter<bool>("do_jpsi"); 
     std::cout << "MCExtractor object is retrieved" << std::endl;
 
     // Tree definition
@@ -97,7 +100,7 @@ MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& setti
     if (m_tree_MC->FindBranch("MC_phi")) 
     m_tree_MC->SetBranchAddress("MC_phi", &m_MC_phi);
 
-    if (_doJpsi)
+    if (m_doJpsi)
     {
         if (m_tree_MC->FindBranch("MC_JPsiFromTop")) 
           m_tree_MC->SetBranchAddress("MC_JPsiFromTop", &m_MC_JPsiFromTop);
@@ -115,169 +118,236 @@ void MCExtractor::doConsumes(edm::ConsumesCollector&& collector)
 {
     SuperBaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
     
-    m_genParticleToken = collector.consumes<edm::View<reco::Candidate>>(m_genParticleTag);
+    m_genParticleToken = collector.consumes<edm::View<reco::GenParticle>>(m_genParticleTag);
 }
 
 
-void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor)
+void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor*)
 {
-    edm::Handle<edm::View<reco::Candidate>> genParticlesHandle;
+    // Read the collection of pruned generator-level particles
+    edm::Handle<edm::View<reco::GenParticle>> genParticlesHandle;
     event.getByToken(m_genParticleToken, genParticlesHandle);
+    edm::View<reco::GenParticle> const &genParticles = *genParticlesHandle;
+    
+    
+    // (Absolute) PDG IDs of some particles to avoid using magic numbers in the code
+    static const int pdgIdE = 11, pdgIdMu = 13, pdgIdPhoton = 22, pdgIdTop = 6, pdgIdJpsi = 443;
+    
 
     MCExtractor::reset();
-
-    int   id = 0;
-    int   id_r = 0;
-    float px_r = 0.;
-    float py_r = 0.;
-    float pz_r = 0.;
-    int st    = 0;
-    int n_mot = 0;
-    //int n_dau = 0;
-
-    int ipart = 0;
-
-    const edm::View<reco::Candidate>& genParticles = *genParticlesHandle;
-    m_n_MCs = static_cast<int>(genParticles.size());
-
-    const reco::Candidate* mothertmp;
-    const reco::Candidate* motherleptontmp;
-
-    for(int i=0; i < m_n_MCs; ++i) 
+    
+    
+    // Loop over particles and choose a small subset to store. Save them in an intermediate
+    //collection instead of the output tree in order to setup properly parental relations
+    vector<reco::GenParticle const *> selectedParticles;
+    
+    for (auto const &p: genParticles)
     {
-        const reco::Candidate & p = genParticles[i];
-
-        id    = p.pdgId();
-        st    = p.status(); 
-        n_mot = p.numberOfMothers(); 
-        //n_dau = p.numberOfDaughters();
-
-        int iMo1 = -1;
-        int iMo2 = -1;
-
-        if (st == 3 || (st >= 21 && st <= 29) || ( _doJpsi && id == 443 && p.numberOfDaughters() == 2 && fabs(p.daughter(0)->pdgId()) ==  13 && fabs(p.daughter(1)->pdgId()) ==  13))
+        bool selected = false;
+        int const absPdgId = abs(p.pdgId());
+        
+        
+        // Particles from the final state of the matrix element (the definition is generator-
+        //dependent)
+        if (p.fromHardProcessBeforeFSR())
+            selected = true;
+        
+        // Electrons and muons which are either prompt or stem from decay of a J/psi
+        if (absPdgId == pdgIdE or absPdgId == pdgIdMu)
         {
-
-          // MC@NLO use different status code
-          // Status 3 are only assigned to proton, with Px = Py = Pt = 0.
-          // Remove then until proper support of MC@NLO
-          if (p.px() == 0 && p.py() == 0)
-            continue;
-
-          if (n_mot > 0)
-          {
-            id_r = (p.mother(0))->pdgId();
-            px_r = (p.mother(0))->px();
-            py_r = (p.mother(0))->py();
-            pz_r = (p.mother(0))->pz();
-
-            for(int j = 0; j < m_n_MCs; ++j) 
+            if (p.isPromptFinalState())
+                selected = true;
+            
+            if (m_doJpsi and p.numberOfMothers() > 0 and p.mother(0)->pdgId() == pdgIdJpsi)
+                selected = true;
+        }
+        
+        // Prompt photons
+        if (absPdgId == pdgIdPhoton and p.isPromptFinalState())
+            selected = true;
+        
+        // J/psi decaying into a pair of muons
+        if (m_doJpsi and absPdgId == pdgIdJpsi and p.numberOfDaughters() == 2 and
+         abs(p.daughter(0)->pdgId()) == pdgIdMu and abs(p.daughter(0)->pdgId()) == pdgIdMu)
+            selected = true;
+        
+        
+        if (selected)
+            selectedParticles.emplace_back(&p);
+    }
+    
+    
+    // Save basic information about selected particles in the output tree
+    m_n_MCs = selectedParticles.size();
+    
+    for (unsigned i = 0; i < selectedParticles.size(); ++i)
+    {
+        auto const &p = *selectedParticles.at(i);
+        
+        m_MC_type[i] = p.pdgId();
+        m_MC_status[i] = p.status();
+        new((*m_MC_lorentzvector)[i]) TLorentzVector(p.px(), p.py(), p.pz(), p.energy());
+        m_MC_vx[i] = p.vx();
+        m_MC_vy[i] = p.vy();
+        m_MC_vz[i] = p.vz();
+        
+        // Duplicates. Provided for backward compatibility only. Should be removed in future
+        m_MC_E[i] = p.energy();
+        m_MC_px[i] = p.px();
+        m_MC_py[i] = p.py();
+        m_MC_pz[i] = p.pz();
+        m_MC_eta[i] = p.eta();
+        m_MC_phi[i] = p.phi();
+    }
+    
+    
+    // For each selected particle, find its closest ancestor among other selected particles and
+    //store its position in the vector selectedParticles. Since the relative ordering of selected
+    //particles is same as in the original collection in AOD, ancestors of a particle are located
+    //closer to the beginning of the vector than the particle. This also means that the first
+    //particle in the vector has no stored ancestors
+    m_MC_imot1[0] = -1;
+    
+    for (unsigned iPart = selectedParticles.size() - 1; iPart > 0; --iPart)
+    {
+        reco::Candidate const *m = selectedParticles.at(iPart);
+        bool motherFound = false;
+        
+        
+        // Check the full inheritance line of the current particle
+        while (not motherFound)
+        {
+            // Move one step back in history if possible
+            if (m->numberOfMothers() == 0)
+                break;
+            
+            m = m->mother(0);
+            
+            
+            // Check if the current ancestor is stored in the vector
+            for (unsigned iMotherCand = iPart - 1; iMotherCand-- > 0; )
             {
-              const reco::Candidate &p2 = genParticles[j];
-
-              if (p2.pdgId() != id_r) continue;
-              if (fabs(p2.px()-px_r)>0.0001) continue;
-              if (fabs(p2.py()-py_r)>0.0001) continue;
-              if (fabs(p2.pz()-pz_r)>0.0001) continue;
-
-              iMo1=j;
-
-              break;
+                if (m == selectedParticles.at(iMotherCand))
+                {
+                    m_MC_imot1[iPart] = iMotherCand;
+                    motherFound = true;
+                    break;
+                }
             }
-
-            if (n_mot>1)
+        }
+        
+        
+        // None of the selected particles is an ancestor of the current particle
+        if (not motherFound)
+            m_MC_imot1[iPart] = -1;
+    }
+    
+    
+    // In the past, mothers were identified by their indices in the original collection in AOD.
+    //Consequently, these indices had to be stored for all selected particles. Now mother indices
+    //correspond to actual arrays saved in the output trees, but for the sake of backward
+    //compatibility identifying indices are kept. They should be removed in future
+    for (unsigned i = 0; i < selectedParticles.size(); ++i)
+        m_MC_index[i] = i;
+    
+    
+    // Fill several arrays specific for an analysis with J/psi. The same information can be obtained
+    //from stored ancestors. It is only saved for backward compatibility and should be removed in
+    //future
+    if (m_doJpsi)
+    {
+        // Set all flags to false by default
+        for (unsigned i = 0; i < unsigned(m_n_MCs); ++i)
+        {
+            m_MC_LeptonFromTop[i] = false;
+            m_MC_LeptonFromAntiTop[i] = false;
+            m_MC_JPsiFromTop[i] = false;
+            m_MC_JPsiFromAntiTop[i] = false;
+        }
+        
+        
+        // Loop over selected particles
+        for (unsigned i = 0; i < unsigned(m_n_MCs); ++i)
+        {
+            bool isLepton = false, isJpsi = false;
+            int const absPdgId = abs(m_MC_type[i]);
+            
+            
+            // Only consider leptons and J/psi
+            if (absPdgId == pdgIdE or absPdgId == pdgIdMu)
+                isLepton = true;
+            else if (absPdgId == pdgIdJpsi)
+                isJpsi = true;
+            else
+                continue;
+            
+            
+            // Check if the current particle originates from a top quark or antiquark
+            int ancestorIndex = i;
+            
+            while (true)
             {
-              id_r = (p.mother(1))->pdgId();
-              px_r = (p.mother(1))->px();
-              py_r = (p.mother(1))->py();
-              pz_r = (p.mother(1))->pz();
-
-              for(int j=0; j < m_n_MCs; ++j) 
-              {
-                const reco::Candidate &p2 = genParticles[j];
-
-                if (p2.pdgId() != id_r) continue;
-                if (fabs(p2.px()-px_r)>0.0001) continue;
-                if (fabs(p2.py()-py_r)>0.0001) continue;
-                if (fabs(p2.pz()-pz_r)>0.0001) continue;
-
-                iMo2=j;
-
-                break;
-              }
+                // Move one ancestor back if possible
+                ancestorIndex = m_MC_imot1[ancestorIndex];
+                
+                if (ancestorIndex == -1)
+                    break;
+                
+                
+                // Check if the ancestor is a top quark and update the flags accordingly
+                int ancestorPdgId = selectedParticles.at(ancestorIndex)->pdgId();
+                
+                if (abs(ancestorPdgId) == pdgIdTop)
+                {
+                    if (isLepton)
+                    {
+                        if (ancestorPdgId > 0)
+                            m_MC_LeptonFromTop[i] = true;
+                        else
+                            m_MC_LeptonFromAntiTop[i] = true;
+                    }
+                    else if (isJpsi)
+                    {
+                        if (ancestorPdgId > 0)
+                            m_MC_JPsiFromTop[i] = true;
+                        else
+                            m_MC_JPsiFromAntiTop[i] = true;
+                    }
+                    
+                    break;
+                }
             }
-          }
-
-          m_MC_imot1[ipart]      = iMo1;
-          m_MC_imot2[ipart]      = iMo2;
-          m_MC_index[ipart]      = i;
-          m_MC_status[ipart]     = st;
-          m_MC_type[ipart]       = id;
-          m_MC_E[ipart]          = p.energy();
-          m_MC_px[ipart]         = p.px();
-          m_MC_py[ipart]         = p.py();
-          m_MC_pz[ipart]         = p.pz();
-          m_MC_vx[ipart]         = p.vx();
-          m_MC_vy[ipart]         = p.vy();
-          m_MC_vz[ipart]         = p.vz();
-          m_MC_eta[ipart]        = p.eta();
-          m_MC_phi[ipart]        = p.phi();
-          new((*m_MC_lorentzvector)[ipart]) TLorentzVector(p.px(),p.py(),p.pz(),p.energy());
-
-          if (_doJpsi && id==443) {
-            mothertmp = & genParticles[i];
-            for (int ifrag=0; ifrag<10; ifrag++) {
-              if (mothertmp->mother() == 0) break;
-              mothertmp = mothertmp->mother();
-              if (fabs(mothertmp->pdgId())==92 || fabs(mothertmp->pdgId())==91) break;
-            }
-            for (int imb=0; imb<100; imb++) {
-              if (mothertmp->mother(imb) != 0 && fabs(mothertmp->mother(imb)->pdgId())==5) {
-                mothertmp = mothertmp->mother(imb);
-                break;
-              } 
-            }
-            if (fabs(mothertmp->pdgId()) == 5) {
-              for (int ib=0; ib<10; ib++) {
-                if (mothertmp->mother() !=0 && (fabs(mothertmp->mother()->pdgId())==5 || fabs(mothertmp->mother()->pdgId())==21)) mothertmp = mothertmp->mother();
-                else break;
-              }
-              if(mothertmp->mother() !=0) mothertmp = (reco::GenParticle*) mothertmp->mother();
-              if (mothertmp->pdgId()==6)  m_MC_JPsiFromTop[ipart] = true;
-              if (mothertmp->pdgId()==-6) m_MC_JPsiFromAntiTop[ipart] = true;
-            }	
-            //std::cout << "JPsiFromTop = " << m_MC_JPsiFromTop[ipart] << "JPsiFromAntiTop = " << m_MC_JPsiFromAntiTop[ipart] << std::endl;
-          }	
-          if (_doJpsi && (fabs(id)==11 || fabs(id) ==13)) {
-            motherleptontmp = &genParticles[i];
-            for (int i=0; i<10; i++) {
-              if (motherleptontmp->mother() == 0) break;
-              motherleptontmp = motherleptontmp->mother();
-              if (motherleptontmp->pdgId()==6) {
-                m_MC_LeptonFromTop[ipart] = true;
-                break;
-              }
-              if (motherleptontmp->pdgId()==-6) {
-                m_MC_LeptonFromAntiTop[ipart] = true;
-                break;
-              }
-            }
-            //std::cout << "LeptonFromTop = " << m_MC_LeptonFromTop[ipart] << "LeptonFromAntiTop = " << m_MC_LeptonFromAntiTop[ipart] << std::endl;
-            if (m_MC_LeptonFromTop[ipart]==false && m_MC_LeptonFromAntiTop[ipart]==false) std::cout << "cas suspect" << std::endl;
-          }
-
-
-          if (n_mot==0) m_MC_generation[ipart] = 0;
-
-          ++ipart;
         }
     }
-
-    m_n_MCs = ipart;
-
+    
+    
+    // ?!
     for(int i=1; i<6; ++i) 
         MCExtractor::constructGeneration(i, m_n_MCs);
-
+    
+    
+    // Debug print out
+    #if 0
+    cout << "\n\n=== New event ===\n";
+    
+    for (unsigned i = 0; i < unsigned(m_n_MCs); ++i)
+    {
+        cout << " #" << i << ": PDG ID: " << m_MC_type[i] << ", status: " << m_MC_status[i] << '\n';
+        
+        TLorentzVector const &p4 = *dynamic_cast<TLorentzVector *>(m_MC_lorentzvector->At(i));
+        cout << "  pt: " << p4.Pt();
+        
+        if (p4.Pt() > 0.)
+            cout << ", eta: " << p4.Eta() << ", phi: " << p4.Phi();
+        
+        cout << "\n  first mother: " << m_MC_imot1[i] << '\n';
+        cout << "  J/psi flags: " << m_MC_LeptonFromTop[i] << ", " << m_MC_LeptonFromAntiTop[i] <<
+         ", " << m_MC_JPsiFromTop[i] << ", " << m_MC_JPsiFromAntiTop[i] << endl;
+    }
+    #endif
+    
+    
+    // Finally, write the arrays in the output tree
     fillTree();
 }
 
@@ -310,7 +380,7 @@ void MCExtractor::reset()
         m_MC_eta[i] = 0.;
         m_MC_phi[i] = 0.; 
         
-        if (_doJpsi) {
+        if (m_doJpsi) {
             m_MC_JPsiFromTop[i] = false;
             m_MC_JPsiFromAntiTop[i] = false;
             m_MC_LeptonFromTop[i] = false;

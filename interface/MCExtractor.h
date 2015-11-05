@@ -45,9 +45,13 @@ public:
     /// Declares which data the extractor is going to read from an EDM event
     virtual void doConsumes(edm::ConsumesCollector&& collector) override;
     
-    /// Processes current event in the source EDM file
+    /**
+     * \brief Processes current event in the source EDM file
+     * 
+     * The last parameter is not used.
+     */
     virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup,
-     MCExtractor* mcExtractor) override;
+     MCExtractor*) override;
     
     /// Initialization to be performed for each event
     void reset();
@@ -75,31 +79,33 @@ private:
 private:
     TTree* m_tree_MC;
     edm::InputTag m_genParticleTag;
-    edm::EDGetTokenT<edm::View<reco::Candidate>> m_genParticleToken;
+    edm::EDGetTokenT<edm::View<reco::GenParticle>> m_genParticleToken;
+    bool m_doJpsi;
     
     static const Int_t m_MCs_MAX = 1000;
     
-    Int_t   m_n_MCs;
+    Int_t m_n_MCs;
+    
     TClonesArray *m_MC_lorentzvector;
-    Int_t   m_MC_index[m_MCs_MAX];
     Int_t   m_MC_status[m_MCs_MAX];
     Int_t   m_MC_type[m_MCs_MAX];
     Int_t   m_MC_imot1[m_MCs_MAX];
-    Int_t   m_MC_imot2[m_MCs_MAX];
     Int_t   m_MC_generation[m_MCs_MAX];
-    Float_t m_MC_E[m_MCs_MAX];
-    Float_t	m_MC_px[m_MCs_MAX];
-    Float_t	m_MC_py[m_MCs_MAX];
-    Float_t	m_MC_pz[m_MCs_MAX];
     Float_t	m_MC_vx[m_MCs_MAX];
     Float_t	m_MC_vy[m_MCs_MAX];
     Float_t	m_MC_vz[m_MCs_MAX];
+        
+    // Arrays below contain redundant information. They should be removed in future
+    Int_t   m_MC_index[m_MCs_MAX];
+    Int_t   m_MC_imot2[m_MCs_MAX];
+    Float_t m_MC_E[m_MCs_MAX];
+    Float_t m_MC_px[m_MCs_MAX];
+    Float_t m_MC_py[m_MCs_MAX];
+    Float_t m_MC_pz[m_MCs_MAX];
     Float_t	m_MC_eta[m_MCs_MAX];
     Float_t	m_MC_phi[m_MCs_MAX];
-    
-    Bool_t _doJpsi;
-    Bool_t m_MC_JPsiFromTop[m_MCs_MAX];
-    Bool_t m_MC_JPsiFromAntiTop[m_MCs_MAX];
     Bool_t m_MC_LeptonFromTop[m_MCs_MAX];
     Bool_t m_MC_LeptonFromAntiTop[m_MCs_MAX];
+    Bool_t m_MC_JPsiFromTop[m_MCs_MAX];
+    Bool_t m_MC_JPsiFromAntiTop[m_MCs_MAX];
 };
