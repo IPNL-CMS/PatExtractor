@@ -74,9 +74,6 @@ public:
     int getPatIndex(int index) const;
     
 private:
-    void constructGeneration(int gene, int npart);
-    
-private:
     TTree* m_tree_MC;
     edm::InputTag m_genParticleTag;
     edm::EDGetTokenT<edm::View<reco::GenParticle>> m_genParticleToken;
@@ -90,14 +87,12 @@ private:
     Int_t   m_MC_status[m_MCs_MAX];
     Int_t   m_MC_type[m_MCs_MAX];
     Int_t   m_MC_imot1[m_MCs_MAX];
-    Int_t   m_MC_generation[m_MCs_MAX];
     Float_t	m_MC_vx[m_MCs_MAX];
     Float_t	m_MC_vy[m_MCs_MAX];
     Float_t	m_MC_vz[m_MCs_MAX];
         
     // Arrays below contain redundant information. They should be removed in future
     Int_t   m_MC_index[m_MCs_MAX];
-    Int_t   m_MC_imot2[m_MCs_MAX];
     Float_t m_MC_E[m_MCs_MAX];
     Float_t m_MC_px[m_MCs_MAX];
     Float_t m_MC_py[m_MCs_MAX];

@@ -25,8 +25,6 @@ MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& setti
     m_tree_MC->Branch("MC_index",   &m_MC_index,    "MC_index[n_MCs]/I");  
     m_tree_MC->Branch("MC_type",    &m_MC_type,     "MC_type[n_MCs]/I");  
     m_tree_MC->Branch("MC_mot1",    &m_MC_imot1,    "MC_mot1[n_MCs]/I");  
-    m_tree_MC->Branch("MC_mot2",    &m_MC_imot2,    "MC_mot2[n_MCs]/I");  
-    m_tree_MC->Branch("MC_generation",   &m_MC_generation,    "MC_generation[n_MCs]/I");  
     m_tree_MC->Branch("MC_e",   &m_MC_E,    "MC_e[n_MCs]/F");  
     m_tree_MC->Branch("MC_px",  &m_MC_px,   "MC_px[n_MCs]/F");  
     m_tree_MC->Branch("MC_py",  &m_MC_py,   "MC_py[n_MCs]/F");  
@@ -77,10 +75,6 @@ MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& setti
     m_tree_MC->SetBranchAddress("MC_type",    &m_MC_type);
     if (m_tree_MC->FindBranch("MC_mot1")) 
     m_tree_MC->SetBranchAddress("MC_mot1",    &m_MC_imot1);
-    if (m_tree_MC->FindBranch("MC_mot2")) 
-    m_tree_MC->SetBranchAddress("MC_mot2",    &m_MC_imot2);
-    if (m_tree_MC->FindBranch("MC_generation")) 
-    m_tree_MC->SetBranchAddress("MC_generation",   &m_MC_generation);
     if (m_tree_MC->FindBranch("MC_e")) 
     m_tree_MC->SetBranchAddress("MC_e",   &m_MC_E);
     if (m_tree_MC->FindBranch("MC_px")) 
@@ -319,12 +313,7 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
         }
     }
     
-    
-    // ?!
-    for(int i=1; i<6; ++i) 
-        MCExtractor::constructGeneration(i, m_n_MCs);
-    
-    
+        
     // Debug print out
     #if 0
     cout << "\n\n=== New event ===\n";
@@ -367,8 +356,6 @@ void MCExtractor::reset()
         m_MC_status[i] = 0;
         m_MC_type[i] = 0;
         m_MC_imot1[i] = 0;
-        m_MC_imot2[i] = 0;
-        m_MC_generation[i] = -1;
         m_MC_E[i] = 0.;
         m_MC_px[i] = 0.;
         m_MC_py[i] = 0.;
@@ -394,27 +381,6 @@ void MCExtractor::reset()
 void MCExtractor::fillTree()
 {
   m_tree_MC->Fill(); 
-}
-
-
-void MCExtractor::constructGeneration(int gene, int npart)
-{
-    for(int i=0; i<npart; ++i) 
-    {
-        if (m_MC_generation[i]==gene-1)
-        {
-            int index = m_MC_index[i];
-
-            for(int j=0; j<npart; ++j) 
-            {
-                if (m_MC_imot1[j]==index)
-                    m_MC_generation[j]=gene;
-                
-                if (m_MC_imot2[j]==index)
-                    m_MC_generation[j]=gene;
-            }
-        }
-    }
 }
 
 
