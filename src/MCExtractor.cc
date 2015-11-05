@@ -12,7 +12,6 @@ MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& setti
     // Set everything to 0
 
     m_MC_lorentzvector = new TClonesArray("TLorentzVector");
-    reset();
 
     // Tree definition
 
@@ -128,9 +127,6 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
     static const int pdgIdE = 11, pdgIdMu = 13, pdgIdPhoton = 22, pdgIdTop = 6, pdgIdJpsi = 443;
     
 
-    MCExtractor::reset();
-    
-    
     // Loop over particles and choose a small subset to store. Save them in an intermediate
     //collection instead of the output tree in order to setup properly parental relations
     vector<reco::GenParticle const *> selectedParticles;
@@ -172,6 +168,7 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
     
     // Save basic information about selected particles in the output tree
     m_n_MCs = selectedParticles.size();
+    m_MC_lorentzvector->Clear();
     
     for (unsigned i = 0; i < selectedParticles.size(); ++i)
     {
@@ -343,38 +340,6 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
 void MCExtractor::getInfo(int ievt) 
 {
     m_tree_MC->GetEntry(ievt); 
-}
-
-
-void MCExtractor::reset()
-{
-    m_n_MCs = 0;
-
-    for (int i=0;i<m_MCs_MAX;++i) 
-    {
-        m_MC_index[i] = 0;
-        m_MC_status[i] = 0;
-        m_MC_type[i] = 0;
-        m_MC_imot1[i] = 0;
-        m_MC_E[i] = 0.;
-        m_MC_px[i] = 0.;
-        m_MC_py[i] = 0.;
-        m_MC_pz[i] = 0.;
-        m_MC_vx[i] = 0.;
-        m_MC_vy[i] = 0.;
-        m_MC_vz[i] = 0.;
-        m_MC_eta[i] = 0.;
-        m_MC_phi[i] = 0.; 
-        
-        if (m_doJpsi) {
-            m_MC_JPsiFromTop[i] = false;
-            m_MC_JPsiFromAntiTop[i] = false;
-            m_MC_LeptonFromTop[i] = false;
-            m_MC_LeptonFromAntiTop[i] = false;
-        }
-    }
-    
-    m_MC_lorentzvector->Clear();
 }
 
 

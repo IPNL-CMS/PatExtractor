@@ -53,9 +53,6 @@ public:
     virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup,
      MCExtractor*) override;
     
-    /// Initialization to be performed for each event
-    void reset();
-    
     /// Fills main tree with properties of particles
     void fillTree();
     
