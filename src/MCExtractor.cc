@@ -152,24 +152,23 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
         if (p.fromHardProcessBeforeFSR())
             selected = true;
         
-        // Electrons and muons which are either prompt or stem from decay of a J/psi
-        if (absPdgId == pdgIdE or absPdgId == pdgIdMu)
+        // Prompt electrons, muons, or photons
+        if (p.isPromptFinalState() and
+         (absPdgId == pdgIdE or absPdgId == pdgIdMu or absPdgId == pdgIdPhoton))
+            selected = true;
+        
+        if (m_doJpsi)
         {
-            if (p.isPromptFinalState())
+            // J/psi decaying into a pair of muons
+            if (absPdgId == pdgIdJpsi and p.numberOfDaughters() == 2 and
+             abs(p.daughter(0)->pdgId()) == pdgIdMu and abs(p.daughter(0)->pdgId()) == pdgIdMu)
                 selected = true;
             
-            if (m_doJpsi and p.numberOfMothers() > 0 and p.mother(0)->pdgId() == pdgIdJpsi)
+            // Muon from the decay of a J/psi
+            if (absPdgId == pdgIdMu and p.numberOfMothers() > 0 and
+             p.mother(0)->pdgId() == pdgIdJpsi)
                 selected = true;
         }
-        
-        // Prompt photons
-        if (absPdgId == pdgIdPhoton and p.isPromptFinalState())
-            selected = true;
-        
-        // J/psi decaying into a pair of muons
-        if (m_doJpsi and absPdgId == pdgIdJpsi and p.numberOfDaughters() == 2 and
-         abs(p.daughter(0)->pdgId()) == pdgIdMu and abs(p.daughter(0)->pdgId()) == pdgIdMu)
-            selected = true;
         
         
         if (selected)
