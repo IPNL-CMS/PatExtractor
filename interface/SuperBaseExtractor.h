@@ -23,12 +23,20 @@ class SuperBaseExtractor
     SuperBaseExtractor(const std::string& name, const edm::ParameterSet&): m_name(name), m_isMC(false), m_OK(false) {} 
     SuperBaseExtractor(const std::string& name, const edm::ParameterSet&, TFile *file): m_name(name), m_isMC(false), m_OK(false) {}
     virtual ~SuperBaseExtractor() {}
-
+    
+    /**
+     * \brief Declares which data an inheriting plugin is going to read from an EDM event
+     * 
+     * See documentation in [1].
+     * [1] https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_X/FWCore/Framework/interface/ConsumesCollector.h
+     */
     virtual void doConsumes(edm::ConsumesCollector&& collector) {
       m_superCalled = true;
     }
-
+    
+    /// Processes current event in the source EDM file
     virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor) = 0;
+    
     virtual void getInfo(int ievt) = 0;
 
     bool isOK() {
