@@ -5,16 +5,12 @@
 #include <FWCore/Framework/interface/Event.h>
 #include <FWCore/Framework/interface/ESHandle.h>
 #include <FWCore/Utilities/interface/InputTag.h>
-#include <DataFormats/Candidate/interface/CandidateFwd.h>
 #include <DataFormats/HepMCCandidate/interface/GenParticle.h>
 
-#include <TMath.h>
 #include <TTree.h>
 #include <TFile.h>
 #include <TLorentzVector.h>
 #include <TClonesArray.h>
-
-#include <iostream>
 
 
 /**
