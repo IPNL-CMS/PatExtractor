@@ -224,7 +224,7 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
             
             
             // Check if the current ancestor is stored in the vector
-            for (unsigned iMotherCand = iPart - 1; iMotherCand-- > 0; )
+            for (unsigned iMotherCand = iPart; iMotherCand-- > 0; )
             {
                 if (m == selectedParticles.at(iMotherCand))
                 {
