@@ -23,7 +23,6 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::Paramet
     m_scaleFactors[name].setWriteMode();
   };
 
-  setPF((m_tag.label()).find("PFlow"));
   reset();
 
   // Tree definition
@@ -219,13 +218,10 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
     m_ele_numberOfMissedInnerLayer[index] = part.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS);
   }
 
-  if (m_isPF)
-  {
-    m_ele_pfParticleIso[index]      = part.particleIso();
-    m_ele_pfChargedHadronIso[index] = part.chargedHadronIso();
-    m_ele_pfNeutralHadronIso[index] = part.neutralHadronIso();
-    m_ele_pfPhotonIso[index]        = part.photonIso();
-  }
+  m_ele_pfParticleIso[index]      = part.particleIso();
+  m_ele_pfChargedHadronIso[index] = part.chargedHadronIso();
+  m_ele_pfNeutralHadronIso[index] = part.neutralHadronIso();
+  m_ele_pfPhotonIso[index]        = part.photonIso();
 
   // See https://twiki.cern.ch/twiki/bin/viewauth/CMS/TWikiTopRefEventSel#Electrons
 

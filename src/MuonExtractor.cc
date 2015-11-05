@@ -9,8 +9,6 @@ MuonExtractor::MuonExtractor(const std::string& name, const edm::ParameterSet& s
 
   // Set everything to 0
  
-  setPF((m_tag.label()).find("PFlow")); 
-
   m_muo_lorentzvector = new TClonesArray("TLorentzVector");
 
   const auto& sfWorkingPoints = ScaleFactorService::getInstance().getMuonScaleFactorWorkingPoints();
@@ -256,16 +254,13 @@ void MuonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iS
   m_muo_ecalIso[index]         = part.ecalIso();
   m_muo_hcalIso[index]         = part.hcalIso();
   
-  if (m_isPF)
-  {
-    m_muo_pfParticleIso[index]      = part.particleIso();
-    m_muo_pfChargedHadronIso[index] = part.chargedHadronIso();
-    m_muo_pfNeutralHadronIso[index] = part.neutralHadronIso();
-    m_muo_pfPhotonIso[index]        = part.photonIso();
+  m_muo_pfParticleIso[index]      = part.particleIso();
+  m_muo_pfChargedHadronIso[index] = part.chargedHadronIso();
+  m_muo_pfNeutralHadronIso[index] = part.neutralHadronIso();
+  m_muo_pfPhotonIso[index]        = part.photonIso();
 
-    m_muo_relIsolation[index] = (part.chargedHadronIso() + part.neutralHadronIso() + part.photonIso()) / part.pt();
-    m_muo_deltaBetaCorrectedRelIsolation[index] = (part.chargedHadronIso() + std::max((part.neutralHadronIso() + part.photonIso()) - 0.5 * part.puChargedHadronIso(), 0.0)) / part.pt();
-  } 
+  m_muo_relIsolation[index] = (part.chargedHadronIso() + part.neutralHadronIso() + part.photonIso()) / part.pt();
+  m_muo_deltaBetaCorrectedRelIsolation[index] = (part.chargedHadronIso() + std::max((part.neutralHadronIso() + part.photonIso()) - 0.5 * part.puChargedHadronIso(), 0.0)) / part.pt();
 
   if (m_isMC) {
     for (auto& it: m_scaleFactors) {
