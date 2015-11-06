@@ -1,5 +1,7 @@
 #include "../interface/MCExtractor.h"
 
+#include <algorithm>
+
 
 using namespace std;
 
@@ -231,10 +233,10 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
     
     
     // Save basic information about selected particles in the output tree
-    m_n_MCs = selectedParticles.size();
+    m_n_MCs = std::min<unsigned>(selectedParticles.size(), m_MCs_MAX);
     m_MC_lorentzvector->Clear();
     
-    for (unsigned i = 0; i < selectedParticles.size(); ++i)
+    for (unsigned i = 0; i < unsigned(m_n_MCs); ++i)
     {
         auto const &p = *selectedParticles.at(i);
         
@@ -262,7 +264,7 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
     //particle in the vector has no stored ancestors
     m_MC_imot1[0] = -1;
     
-    for (unsigned iPart = selectedParticles.size() - 1; iPart > 0; --iPart)
+    for (unsigned iPart = unsigned(m_n_MCs) - 1; iPart > 0; --iPart)
     {
         reco::Candidate const *m = selectedParticles.at(iPart);
         bool motherFound = false;
@@ -301,7 +303,7 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
     //Consequently, these indices had to be stored for all selected particles. Now mother indices
     //correspond to actual arrays saved in the output trees, but for the sake of backward
     //compatibility identifying indices are kept. They should be removed in future
-    for (unsigned i = 0; i < selectedParticles.size(); ++i)
+    for (unsigned i = 0; i < unsigned(m_n_MCs); ++i)
         m_MC_index[i] = i;
     
     
