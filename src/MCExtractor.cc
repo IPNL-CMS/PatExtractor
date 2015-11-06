@@ -415,25 +415,25 @@ int MCExtractor::getSize() const
 }
 
 
-int MCExtractor::getType(int index)
+int MCExtractor::getType(int index) const
 {
     return m_MC_type[index];
 }
 
 
-int MCExtractor::getStatus(int index)
+int MCExtractor::getStatus(int index) const
 {
     return m_MC_status[index];
 }
 
 
-TLorentzVector* MCExtractor::getP4(int index)
+TLorentzVector* MCExtractor::getP4(int index) const
 {
     return static_cast<TLorentzVector*>((*m_MC_lorentzvector)[index]);
 }
 
 
-float MCExtractor::getMom1Index(int index)
+float MCExtractor::getMom1Index(int index) const
 {
     return m_MC_imot1[index];
 }
@@ -445,25 +445,25 @@ int MCExtractor::getPatIndex(int index) const
 }
 
 
-float MCExtractor::getPx(int index)
+float MCExtractor::getPx(int index) const
 {
     return m_MC_px[index];
 }
 
 
-float MCExtractor::getPy(int index)
+float MCExtractor::getPy(int index) const
 {
     return m_MC_py[index];
 }
 
 
-float MCExtractor::getPz(int index)
+float MCExtractor::getPz(int index) const
 {
     return m_MC_pz[index];
 }
 
 
-float MCExtractor::getE(int index)
+float MCExtractor::getE(int index) const
 {
     return m_MC_E[index];
 }

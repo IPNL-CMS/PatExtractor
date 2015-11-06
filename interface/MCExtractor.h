@@ -64,7 +64,7 @@ public:
     int getSize() const;
     
     /// Returns PDG ID of stored particle with the given index
-    int getType(int index);
+    int getType(int index) const;
     
     /**
      * \brief Return status code of stored particle with the given index
@@ -72,10 +72,10 @@ public:
      * You should avoid using explicit status codes in an analysis since they have no strict
      * physical meaning.
      */
-    int getStatus(int index);
+    int getStatus(int index) const;
     
     /// Returns four-momentum of stored particle with the given index
-    TLorentzVector* getP4(int index);
+    TLorentzVector* getP4(int index) const;
     
     /**
      * \brief Return index of the first stored ancestor of the particle with the given index
@@ -84,7 +84,7 @@ public:
      * getP4(getMom1Index(index)). If no ancestors of the particle have been stored, the method
      * returns -1.
      */
-    float getMom1Index(int index);
+    float getMom1Index(int index) const;
     
     /**
      * \depricated Index returned by the getMom1Index method can be used to access ancestor directly
@@ -96,28 +96,28 @@ public:
      * 
      * \depricated Access momentum with the getP4 method instead.
      */
-    float getPx(int index);
+    float getPx(int index) const;
     
     /**
      * \brief Returns y component of momentum of stored particle with the given index
      * 
      * \depricated Access momentum with the getP4 method instead.
      */
-    float getPy(int index);
+    float getPy(int index) const;
     
     /**
      * \brief Returns z component of momentum of stored particle with the given index
      * 
      * \depricated Access momentum with the getP4 method instead.
      */
-    float getPz(int index);
+    float getPz(int index) const;
     
     /**
      * \brief Returns energy of stored particle with the given index
      * 
      * \depricated Access energy with the getP4 method instead.
      */
-    float getE(int index);
+    float getE(int index) const;
     
 private:
     /// Name of collection of generator-level particles
