@@ -449,7 +449,7 @@ bool MCExtractor::getIsLastCopy(int index) const
 }
 
 
-TLorentzVector const &MCExtractor::getP4(int index) const
+TLorentzVector const &MCExtractor::p4(int index) const
 {
     return *dynamic_cast<TLorentzVector*>((*m_MC_lorentzvector)[index]);
 }
@@ -467,25 +467,31 @@ int MCExtractor::getPatIndex(int index) const
 }
 
 
+TLorentzVector const *MCExtractor::getP4(int index) const
+{
+    return dynamic_cast<TLorentzVector*>((*m_MC_lorentzvector)[index]);
+}
+
+
 float MCExtractor::getPx(int index) const
 {
-    return getP4(index).Px();
+    return p4(index).Px();
 }
 
 
 float MCExtractor::getPy(int index) const
 {
-    return getP4(index).Py();
+    return p4(index).Py();
 }
 
 
 float MCExtractor::getPz(int index) const
 {
-    return getP4(index).Pz();
+    return p4(index).Pz();
 }
 
 
 float MCExtractor::getE(int index) const
 {
-    return getP4(index).E();
+    return p4(index).E();
 }

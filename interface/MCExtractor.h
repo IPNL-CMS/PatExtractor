@@ -84,7 +84,7 @@ public:
     bool getIsLastCopy(int index) const;
     
     /// Returns four-momentum of stored particle with the given index
-    TLorentzVector const &getP4(int index) const;
+    TLorentzVector const &p4(int index) const;
     
     /**
      * \brief Return index of the first stored ancestor of the particle with the given index
@@ -99,6 +99,13 @@ public:
      * \depricated Index returned by the getMom1Index method can be used to access ancestor directly
      */
     int getPatIndex(int index) const __attribute__ ((deprecated));
+    
+    /**
+     * \brief Returns four-momentum of stored particle with the given index
+     * 
+     * \deprecated Use method p4, which returns a constant reference instead of a pointer.
+     */
+    TLorentzVector const *getP4(int index) const __attribute__ ((deprecated));
     
     /**
      * \brief Returns x component of momentum of stored particle with the given index
