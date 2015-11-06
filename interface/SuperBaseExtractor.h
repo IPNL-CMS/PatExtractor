@@ -19,7 +19,7 @@ class MCExtractor;
 
 class SuperBaseExtractor
 {
-  public:
+public:
     SuperBaseExtractor(const std::string& name, const edm::ParameterSet&): m_name(name), m_isMC(false), m_OK(false) {} 
     SuperBaseExtractor(const std::string& name, const edm::ParameterSet&, TFile *file): m_name(name), m_isMC(false), m_OK(false) {}
     virtual ~SuperBaseExtractor() {}
@@ -38,9 +38,21 @@ class SuperBaseExtractor
     virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, MCExtractor* mcExtractor) = 0;
     
     virtual void getInfo(int ievt) = 0;
-
-    bool isOK() {
-      return m_OK;
+    
+    /// Reports if the extractor has been created without errors and can be used as intended
+    bool isHealthy() const
+    {
+        return m_OK;
+    }
+    
+    /**
+     * \brief Proxy for isHealthy
+     * 
+     * \deprecated Use the isHealthy method instead
+     */
+    bool isOK() const __attribute__ ((deprecated))
+    {
+        return isHealthy();
     }
 
     void setIsMC(bool isMC) {
@@ -60,15 +72,23 @@ class SuperBaseExtractor
     std::string getName() const {
       return m_name;
     }
-
-  protected:
+    
+protected:
+    /// Specifies whether the extractor has been created without errors
+    void setHealthy(bool ok)
+    {
+        m_OK = ok;
+    }
+    
+protected:
     std::string m_name;
     bool m_isMC;
-    bool m_OK;
-
-  private:
+    
+private:
     bool m_superCalled = false;
     
+    /// Indicates if the extractor has been constructed without errors
+    bool m_OK;
 };
 
 typedef edmplugin::PluginFactory<SuperBaseExtractor* (const std::string&, const edm::ParameterSet&)> PatExtractorExtractorFactory;

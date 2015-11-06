@@ -6,8 +6,6 @@ EventExtractor::EventExtractor(const std::string& name, const edm::ParameterSet&
   m_generatorTag(parameters.getParameter<edm::InputTag>("generator"))
 {
   // Tree definition
-  m_OK = true;
-
   m_tree_event    = new TTree(name.c_str(), "Event info");  
   m_tree_event->SetAutoSave(0);
 
@@ -34,16 +32,18 @@ EventExtractor::EventExtractor(const std::string& name, const edm::ParameterSet&
   // Set everything to 0
 
   EventExtractor::reset();
+  
+  
+  // Mark that the extractor has been constructed properly
+  setHealthy(true);
 }
 
 EventExtractor::EventExtractor(const std::string& name, const edm::ParameterSet& settings, TFile *file):
   SuperBaseExtractor(name, settings, file)
 {
   // Tree definition
-
+  setHealthy(false);
   m_tree_event = dynamic_cast<TTree*>(file->Get(name.c_str()));
-
-  m_OK = false;
 
   if (!m_tree_event)
     std::cout << "Event tree not defined, this is bad" << std::endl;
@@ -65,7 +65,9 @@ EventExtractor::EventExtractor(const std::string& name, const edm::ParameterSet&
   if (m_tree_event->FindBranch("generator_weight"))
     m_tree_event->SetBranchAddress("generator_weight", &m_generator_weight);
 
-  m_OK = true;
+  
+  // Mark that the extractor has been constructed properly
+  setHealthy(true);
 }
 
 EventExtractor::~EventExtractor()

@@ -157,6 +157,10 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
   m_tree_met->Branch("sumEt", &m_met_sumEt, "sumEt/F");  
   m_tree_met->Branch("unclustered_particle_4vector","TClonesArray",&m_unclustered_particle_lorentzvector, 1000, 0);
   m_tree_met->Branch("genmet_4vector","TClonesArray",&m_genmet_lorentzvector, 1000, 0);
+  
+  
+  // Mark that the extractor has been constructed properly
+  setHealthy(true);
 }
 
 void JetMETExtractor::doConsumes(edm::ConsumesCollector&& collector) {
@@ -207,8 +211,6 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
   m_file = a_file;
 
   // Tree definition
-  m_OK = false;
-
   std::string jetsTreeName = config.getParameter<std::string>("tree_name_jets");
   std::string metTreeName = config.getParameter<std::string>("tree_name_met");
 
@@ -291,8 +293,6 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
     return;
   }
 
-  m_OK = true;
-
   m_met_lorentzvector = new TClonesArray("TLorentzVector");
   m_genmet_lorentzvector = new TClonesArray("TLorentzVector");
 
@@ -309,6 +309,10 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
 
   if (m_tree_met->FindBranch("genmet_4vector"))
     m_tree_met->SetBranchAddress("genmet_4vector",&m_genmet_lorentzvector);
+  
+  
+  // Mark that the extractor has been constructed properly
+  setHealthy(true);
 }
 
 

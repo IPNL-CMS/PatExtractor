@@ -24,8 +24,6 @@ MuonExtractor::MuonExtractor(const std::string& name, const edm::ParameterSet& s
 
   // Tree definition
 
-  m_OK = true;
-
   m_tree_muon         = new TTree(m_name.c_str(), "PAT PF muon info"); 
   m_tree_muon->SetAutoSave(0);
   m_tree_muon->Branch("n_muons",  &m_size,  "n_muons/i");  
@@ -69,6 +67,10 @@ MuonExtractor::MuonExtractor(const std::string& name, const edm::ParameterSet& s
   for (auto& it: m_scaleFactors) {
     m_tree_muon->Branch(it.first.c_str(), & it.second.getBackingArray());
   }
+  
+  
+  // Mark that the extractor has been constructed properly
+  setHealthy(true);
 }
 
 MuonExtractor::MuonExtractor(const std::string& name, const edm::ParameterSet& settings, TFile *a_file)
@@ -84,8 +86,7 @@ MuonExtractor::MuonExtractor(const std::string& name, const edm::ParameterSet& s
   }
 
   // Tree definition
-  m_OK = false;
-
+  setHealthy(false);
   m_tree_muon = dynamic_cast<TTree*>(a_file->Get(m_name.c_str()));
 
   if (!m_tree_muon)
@@ -93,8 +94,6 @@ MuonExtractor::MuonExtractor(const std::string& name, const edm::ParameterSet& s
     std::cout << "This tree doesn't exist!!!" << std::endl;
     return;
   }
-
-  m_OK = true;
 
   m_muo_lorentzvector = new TClonesArray("TLorentzVector");
 
@@ -182,6 +181,10 @@ MuonExtractor::MuonExtractor(const std::string& name, const edm::ParameterSet& s
     if (m_tree_muon->FindBranch(it.first.c_str()))
       m_tree_muon->SetBranchAddress(it.first.c_str(), & it.second.getBackingArray());
   }
+  
+  
+  // Mark that the extractor has been constructed properly
+  setHealthy(true);
 }
 
 MuonExtractor::~MuonExtractor()

@@ -22,7 +22,6 @@ HLTExtractor::HLTExtractor(const std::string& name, const edm::ParameterSet& con
 
   // Tree definition
 
-  m_OK = true;
   m_tree_HLT       = new TTree(name.c_str(), "HLT info");  
   m_tree_HLT->SetAutoSave(0);
   m_tree_HLT->Branch("n_paths",  &m_n_HLTs,"n_paths/I");       
@@ -43,6 +42,10 @@ HLTExtractor::HLTExtractor(const std::string& name, const edm::ParameterSet& con
   } else {
     std::cout << "\tNo triggers" << std::endl;
   }
+  
+  
+  // Mark that the extractor has been constructed properly
+  setHealthy(true);
 }
 
 HLTExtractor::HLTExtractor(const std::string& name, const edm::ParameterSet& config, TFile *a_file):
@@ -51,7 +54,7 @@ HLTExtractor::HLTExtractor(const std::string& name, const edm::ParameterSet& con
   std::cout << "HLTExtractor objet is retrieved" << std::endl;
 
   // Tree definition
-  m_OK = false;
+  setHealthy(false);
 
   m_tree_HLT = dynamic_cast<TTree*>(a_file->Get(name.c_str()));
 
@@ -61,7 +64,6 @@ HLTExtractor::HLTExtractor(const std::string& name, const edm::ParameterSet& con
     return;
   }
 
-  m_OK = true;
 
   // Branches definition
   m_HLT_vector = new std::vector<std::string>();
@@ -85,6 +87,10 @@ HLTExtractor::HLTExtractor(const std::string& name, const edm::ParameterSet& con
 
   if (m_tree_HLT->FindBranch("HLT_passed"))
     m_tree_HLT->SetBranchAddress("HLT_passed", &m_passed);
+  
+  
+  // Mark that the extractor has been constructed properly
+  setHealthy(true);
 }
 
 HLTExtractor::~HLTExtractor()

@@ -26,9 +26,6 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::Paramet
   reset();
 
   // Tree definition
-
-  m_OK = true;
-
   m_tree_electron     = new TTree(m_name.c_str(), "PAT PF electron info");  
   m_tree_electron->SetAutoSave(0);
   m_tree_electron->Branch("n_electrons",                       &m_size, "n_electrons/i");  
@@ -67,6 +64,10 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::Paramet
   for (auto& it: m_scaleFactors) {
     m_tree_electron->Branch(it.first.c_str(), & it.second.getBackingArray());
   }
+  
+  
+  // Mark that the extractor has been constructed properly
+  setHealthy(true);
 }
 
   ElectronExtractor::ElectronExtractor(const std::string& name, const edm::ParameterSet& settings, TFile* a_file)
@@ -81,8 +82,7 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::Paramet
   };
 
   // Tree definition
-  m_OK = false;
-
+  setHealthy(false);
   m_tree_electron = dynamic_cast<TTree*>(a_file->Get(m_name.c_str()));
 
   if (!m_tree_electron)
@@ -90,8 +90,6 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::Paramet
     std::cerr << "This tree doesn't exist!!!" << std::endl;
     return;  
   }
-
-  m_OK = true;
 
   m_ele_lorentzvector = new TClonesArray("TLorentzVector");
 
@@ -168,6 +166,10 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::Paramet
     if (m_tree_electron->FindBranch(it.first.c_str()))
       m_tree_electron->SetBranchAddress(it.first.c_str(), & it.second.getBackingArray());
   }
+  
+  
+  // Mark that the extractor has been constructed properly
+  setHealthy(true);
 }
 
 

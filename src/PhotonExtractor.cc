@@ -18,8 +18,6 @@ PhotonExtractor::PhotonExtractor(const std::string& name, const edm::ParameterSe
 
 
   // Tree definition
-
-  m_OK = true;
   m_tree_photon   = new TTree(name.c_str(), "PAT photon info");  
   m_tree_photon->Branch("n_photons",  &m_size, "n_photons/i");  
   m_tree_photon->Branch("photon_4vector","TClonesArray",&m_pho_lorentzvector, 1000, 0);    
@@ -33,6 +31,10 @@ PhotonExtractor::PhotonExtractor(const std::string& name, const edm::ParameterSe
   m_tree_photon->Branch("photon_neutralHadronsIsolation",  &m_pho_neutralHadronsIsolation,   "photon_neutralHadronsIsolation[n_photons]/F");
   m_tree_photon->Branch("photon_photonIsolation",  &m_pho_photonIsolation,   "photon_photonIsolation[n_photons]/F");
   m_tree_photon->Branch("photon_mcParticleIndex",&m_pho_MCIndex,"photon_mcParticleIndex[n_photons]/I");  
+  
+  
+  // Mark that the extractor has been constructed properly
+  setHealthy(true);
 }
 
 
@@ -42,8 +44,7 @@ PhotonExtractor::PhotonExtractor(const std::string& name, const edm::ParameterSe
   std::cout << "PhotonExtractor objet is retrieved" << std::endl;
 
   // Tree definition
-  m_OK = false;
-
+  setHealthy(false);
   m_tree_photon = dynamic_cast<TTree*>(a_file->Get(name.c_str()));
 
   if (!m_tree_photon)
@@ -51,8 +52,6 @@ PhotonExtractor::PhotonExtractor(const std::string& name, const edm::ParameterSe
     std::cout << "This tree doesn't exist!!!" << std::endl;
     return;
   } 
-
-  m_OK = true;
 
   m_pho_lorentzvector = new TClonesArray("TLorentzVector");
 
@@ -70,7 +69,11 @@ PhotonExtractor::PhotonExtractor(const std::string& name, const edm::ParameterSe
   m_tree_photon->SetBranchAddress("photon_chargedHadronsIsolation",  &m_pho_chargedHadronsIsolation);
   m_tree_photon->SetBranchAddress("photon_neutralHadronsIsolation",  &m_pho_neutralHadronsIsolation);
   m_tree_photon->SetBranchAddress("photon_photonIsolation",  &m_pho_photonIsolation);
-  m_tree_photon->SetBranchAddress("photon_mcParticleIndex",&m_pho_MCIndex);  
+  m_tree_photon->SetBranchAddress("photon_mcParticleIndex",&m_pho_MCIndex);
+  
+  
+  // Mark that the extractor has been constructed properly
+  setHealthy(true);
 }
 
 

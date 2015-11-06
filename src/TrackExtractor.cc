@@ -6,12 +6,10 @@ TrackExtractor::TrackExtractor(const std::string& name, const edm::ParameterSet&
 {
 
   // Set everything to 0
-  m_OK = false;
   reset();
 
   // Tree definition
 
-  m_OK = true;
   m_tree_track         = new TTree(name.c_str(), "General tracks info");     
   m_tree_track->Branch("n_tracks",  &m_size,  "n_tracks/i");  
   m_tree_track->Branch("track_px",  &m_trk_px,   "track_px[n_tracks]/F");  
@@ -26,6 +24,10 @@ TrackExtractor::TrackExtractor(const std::string& name, const edm::ParameterSet&
   m_tree_track->Branch("track_d0",        &m_trk_d0,        "track_d0[n_tracks]/F");
   m_tree_track->Branch("track_normChi2",  &m_trk_normChi2,  "track_normChi2[n_tracks]/F");
   m_tree_track->Branch("track_nValidHits",&m_trk_nValidHits,"track_nValidHits[n_tracks]/I");
+  
+  
+  // Mark that the extractor has been constructed properly
+  setHealthy(true);
 }
 
 TrackExtractor::TrackExtractor(const std::string& name, const edm::ParameterSet& settings, TFile *a_file)
@@ -34,8 +36,7 @@ TrackExtractor::TrackExtractor(const std::string& name, const edm::ParameterSet&
   std::cout << "TrackExtractor objet is retrieved" << std::endl;
 
   // Tree definition
-  m_OK = false;
-
+  setHealthy(false);
   m_tree_track = dynamic_cast<TTree*>(a_file->Get(m_name.c_str()));
 
   if (!m_tree_track)
@@ -43,8 +44,6 @@ TrackExtractor::TrackExtractor(const std::string& name, const edm::ParameterSet&
     std::cout << "This tree doesn't exist!!!" << std::endl;
     return;
   }
-
-  m_OK = true;
 
   m_tree_track->SetBranchAddress("n_tracks",  &m_size);
   m_tree_track->SetBranchAddress("track_px",  &m_trk_px);
@@ -59,7 +58,10 @@ TrackExtractor::TrackExtractor(const std::string& name, const edm::ParameterSet&
   m_tree_track->SetBranchAddress("track_d0",        &m_trk_d0);
   m_tree_track->SetBranchAddress("track_normChi2",  &m_trk_normChi2);
   m_tree_track->SetBranchAddress("track_nValidHits",&m_trk_nValidHits);
-
+  
+  
+  // Mark that the extractor has been constructed properly
+  setHealthy(true);
 }
 
 TrackExtractor::~TrackExtractor()

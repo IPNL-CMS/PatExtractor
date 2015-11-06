@@ -171,7 +171,7 @@ void PatExtractor::fillInfo(const edm::Event *event, const edm::EventSetup& iSet
 void PatExtractor::getInfo(int ievent) 
 {
   for (auto& extractor: m_extractors) {
-    if (extractor->isOK())
+    if (extractor->isHealthy())
       extractor->getInfo(ievent);
   }
 }

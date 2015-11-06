@@ -51,7 +51,8 @@ MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& setti
     }
     
     
-    m_OK = true;
+    // Mark that the extractor has been constructed properly
+    setHealthy(true);
 }
 
 
@@ -63,7 +64,7 @@ MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& setti
     std::cout << "MCExtractor object is retrieved" << std::endl;
     
     // Read the tree from the source file
-    m_OK = false;
+    setHealthy(false);
     
     m_tree_MC = dynamic_cast<TTree*>(srcFile->Get(name.c_str()));
     
@@ -72,8 +73,6 @@ MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& setti
         std::cerr << "Tree \"" << name << "\" does not exist." << std::endl;
         return;
     }
-    
-    m_OK = true;
     
     
     m_MC_lorentzvector = new TClonesArray("TLorentzVector");
@@ -169,6 +168,10 @@ MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& setti
         m_MC_JPsiFromTop[i] = false;
         m_MC_JPsiFromAntiTop[i] = false;
     }
+    
+    
+    // Mark that the extractor has been constructed properly
+    setHealthy(true);
 }
 
 

@@ -108,7 +108,6 @@ void printout(const RefCountedKinematicTree& myTree)
 
   // Tree definition
 
-  m_OK = true;
   m_tree_pfpart         = new TTree(name.c_str(), "PF particles info");     
   m_tree_pfpart->Branch("n_pf",      &m_pf_size,   "n_pf/I");  
   m_tree_pfpart->Branch("pf_4vector","TClonesArray",&m_pf_lorentzvector, 1000, 0);
@@ -147,7 +146,11 @@ void printout(const RefCountedKinematicTree& myTree)
   m_tree_pfpart->Branch("jpsi_ndf",	   &m_jpsiraw_ndf,	"jpsiraw_ndf[n_jpsi]/F");  
   m_tree_pfpart->Branch("jpsi_L3D",	   &m_jpsiraw_L3D,	"jpsiraw_L3D[n_jpsi]/F");  
   m_tree_pfpart->Branch("jpsi_sigmaL3D", &m_jpsiraw_sigmaL3D, "jpsiraw_sigmaL3D[n_jpsi]/F");  
-  m_tree_pfpart->Branch("jpsi_L3DoverSigmaL3D", &m_jpsiraw_L3DoverSigmaL3D, "jpsiraw_L3DoverSigmaL3D[n_jpsi]/F");  
+  m_tree_pfpart->Branch("jpsi_L3DoverSigmaL3D", &m_jpsiraw_L3DoverSigmaL3D, "jpsiraw_L3DoverSigmaL3D[n_jpsi]/F");
+  
+  
+  // Mark that the extractor has been constructed properly
+  setHealthy(true);  
 }
 
   PFpartExtractor::PFpartExtractor(const std::string& name, const edm::ParameterSet& settings, TFile *a_file):
@@ -156,8 +159,7 @@ void printout(const RefCountedKinematicTree& myTree)
   std::cout << "PFpartExtractor objet is retrieved" << std::endl;
 
   // Tree definition
-  m_OK = false;
-
+  setHealthy(false);
   m_tree_pfpart = dynamic_cast<TTree*>(a_file->Get(m_name.c_str()));
 
   if (!m_tree_pfpart)
@@ -165,8 +167,6 @@ void printout(const RefCountedKinematicTree& myTree)
     std::cout << "This tree doesn't exist!!!" << std::endl;
     return;
   }
-
-  m_OK = true;
 
   m_pf_lorentzvector = new TClonesArray("TLorentzVector");
 
@@ -179,7 +179,10 @@ void printout(const RefCountedKinematicTree& myTree)
   m_tree_pfpart->SetBranchAddress("pf_pdgid",  &m_pf_pdgid);
 
   // Need to do the same for the Jpsi tree
-
+  
+  
+  // Mark that the extractor has been constructed properly
+  setHealthy(true);
 }
 
 PFpartExtractor::~PFpartExtractor()

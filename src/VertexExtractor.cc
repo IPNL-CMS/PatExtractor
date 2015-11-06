@@ -8,8 +8,6 @@ VertexExtractor::VertexExtractor(const std::string& name, const edm::ParameterSe
   reset();
 
   // Tree definition
-
-  m_OK = true;
   m_tree_vtx      = new TTree(m_name.c_str(), "RECO PV info") ;
   m_tree_vtx->Branch("n_vertices",      &m_size,   "n_vertices/i");  
   m_tree_vtx->Branch("vertex_vx",       &m_vtx_vx,       "vertex_vx[n_vertices]/F");  
@@ -19,6 +17,10 @@ VertexExtractor::VertexExtractor(const std::string& name, const edm::ParameterSe
   m_tree_vtx->Branch("vertex_ndof",     &m_vtx_ndof,     "vertex_ndof[n_vertices]/F"); 
   m_tree_vtx->Branch("vertex_normChi2", &m_vtx_normChi2, "vertex_normChi2[n_vertices]/F");
   m_tree_vtx->Branch("vertex_ntracks",  &m_vtx_ntracks,  "vertex_ntracks[n_vertices]/I");
+  
+  
+  // Mark that the extractor has been constructed properly
+  setHealthy(true);
 }
 
 
@@ -29,8 +31,7 @@ VertexExtractor::VertexExtractor(const std::string& name, const edm::ParameterSe
   m_file = a_file;
 
   // Tree definition
-  m_OK = false;
-
+  setHealthy(false);
   m_tree_vtx = dynamic_cast<TTree*>(a_file->Get(m_name.c_str()));
 
   if (!m_tree_vtx)
@@ -38,8 +39,6 @@ VertexExtractor::VertexExtractor(const std::string& name, const edm::ParameterSe
     std::cout << "This tree doesn't exist!!!" << std::endl;
     return;
   }
-
-  m_OK = true;
 
   m_tree_vtx->SetBranchAddress("n_vertices",       &m_size);
   m_tree_vtx->SetBranchAddress("vertex_vx",        &m_vtx_vx);
@@ -49,6 +48,10 @@ VertexExtractor::VertexExtractor(const std::string& name, const edm::ParameterSe
   m_tree_vtx->SetBranchAddress("vertex_ndof",      &m_vtx_ndof);
   m_tree_vtx->SetBranchAddress("vertex_normChi2",  &m_vtx_normChi2);
   m_tree_vtx->SetBranchAddress("vertex_ntracks",   &m_vtx_ntracks);
+  
+  
+  // Mark that the extractor has been constructed properly
+  setHealthy(true);
 }
 
 VertexExtractor::~VertexExtractor()
