@@ -136,13 +136,13 @@ class BaseExtractor: public SuperBaseExtractor
         if (gen->pdgId() != mcExtractor->getType(i))
           continue;
 
-        if (fabs(gen->px() - mcExtractor->getPx(i)) > 0.0001)
+        if (fabs(gen->px() - mcExtractor->getP4(i).Px()) > 0.0001)
           continue;
 
-        if (fabs(gen->py() - mcExtractor->getPy(i)) > 0.0001)
+        if (fabs(gen->py() - mcExtractor->getP4(i).Py()) > 0.0001)
           continue;
 
-        if (fabs(gen->pz() - mcExtractor->getPz(i)) > 0.0001)
+        if (fabs(gen->pz() - mcExtractor->getP4(i).Pz()) > 0.0001)
           continue;
 
         setGenParticleIndex(i, index);
@@ -173,8 +173,8 @@ class BaseExtractor: public SuperBaseExtractor
         }
 
         // Compute dR and dP, and check limits
-        TLorentzVector mcp4; // = mcExtractor->getP4(i);
-        mcp4.SetPxPyPzE(mcExtractor->getPx(i), mcExtractor->getPy(i), mcExtractor->getPz(i), mcExtractor->getE(i));
+        TLorentzVector mcp4(mcExtractor->getP4(i));
+        
         if (mcp4.Pt() < 1e-4) {
           // ROOT will crash when computing eta for such low Pt
           continue;
@@ -197,7 +197,8 @@ class BaseExtractor: public SuperBaseExtractor
       setGenParticleIndex(mcIndex, index);
       if (false) {
         std::cout << "\tType: " << mcExtractor->getType(mcIndex) << std::endl;
-        std::cout << "\tP: " << mcExtractor->getPx(mcIndex) << " " << mcExtractor->getPy(mcIndex) << " " << mcExtractor->getPz(mcIndex) << std::endl;
+        std::cout << "\tP: " << mcExtractor->getP4(mcIndex).Px() << " " <<
+         mcExtractor->getP4(mcIndex).Py() << " " << mcExtractor->getP4(mcIndex).Pz() << std::endl;
       }
     }
 
