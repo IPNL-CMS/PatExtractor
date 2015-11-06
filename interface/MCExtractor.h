@@ -17,7 +17,9 @@
  * \class MCExtractor
  * \brief Stores information about generator-level particles
  * 
- * 
+ * Stores properties of generator-level particles from the final state of the hard interaction
+ * before modelling of FSR, as well as prompt electrons, muons, and photons. If configured
+ * specially, stores also J/psi decaying to a pair of muons and these muons.
  */
 class MCExtractor: public SuperBaseExtractor
 {
@@ -37,6 +39,9 @@ public:
      */
     MCExtractor(const std::string& name, const edm::ParameterSet& settings, TFile* srcFile);
     
+    /// Destructor
+    ~MCExtractor();
+    
 public:
     /// Declares which data the extractor is going to read from an EDM event
     virtual void doConsumes(edm::ConsumesCollector&& collector) override;
@@ -55,34 +60,107 @@ public:
     /// Reads a new event from the source file
     void getInfo(int ievt);
     
+    /// Returns the number of stored particles
     int getSize() const;
-    int getStatus(int index);
+    
+    /// Returns PDG ID of stored particle with the given index
     int getType(int index);
-    float getPx(int index);
-    float getPy(int index);
-    float getPz(int index);
-    float getE(int index);
-    float getMom1Index(int index);
+    
+    /**
+     * \brief Return status code of stored particle with the given index
+     * 
+     * You should avoid using explicit status codes in an analysis since they have no strict
+     * physical meaning.
+     */
+    int getStatus(int index);
+    
+    /// Returns four-momentum of stored particle with the given index
     TLorentzVector* getP4(int index);
+    
+    /**
+     * \brief Return index of the first stored ancestor of the particle with the given index
+     * 
+     * The returned index can be used to access the ancestor directly, e.g. obtain its momentum with
+     * getP4(getMom1Index(index)). If no ancestors of the particle have been stored, the method
+     * returns -1.
+     */
+    float getMom1Index(int index);
+    
+    /**
+     * \depricated Index returned by the getMom1Index method can be used to access ancestor directly
+     */
     int getPatIndex(int index) const;
     
+    /**
+     * \brief Returns x component of momentum of stored particle with the given index
+     * 
+     * \depricated Access momentum with the getP4 method instead.
+     */
+    float getPx(int index);
+    
+    /**
+     * \brief Returns y component of momentum of stored particle with the given index
+     * 
+     * \depricated Access momentum with the getP4 method instead.
+     */
+    float getPy(int index);
+    
+    /**
+     * \brief Returns z component of momentum of stored particle with the given index
+     * 
+     * \depricated Access momentum with the getP4 method instead.
+     */
+    float getPz(int index);
+    
+    /**
+     * \brief Returns energy of stored particle with the given index
+     * 
+     * \depricated Access energy with the getP4 method instead.
+     */
+    float getE(int index);
+    
 private:
-    TTree* m_tree_MC;
+    /// Name of collection of generator-level particles
     edm::InputTag m_genParticleTag;
+    
+    /// Token to read the collection of generator-level particles
     edm::EDGetTokenT<edm::View<reco::GenParticle>> m_genParticleToken;
+    
+    /// Flag controlling if the extractor stores information related to J/psi
     bool m_doJpsi;
     
-    static const Int_t m_MCs_MAX = 1000;
+    /**
+     * \brief Output tree
+     * 
+     * Created by the extractor but not owned by it.
+     */
+    TTree* m_tree_MC;
     
+    /// Maximal number of particles that can be stored
+    static const Int_t m_MCs_MAX = 100;
+    
+    /// Number of particles in the current event
     Int_t m_n_MCs;
     
+    /// PDG ID of stored particles
+    Int_t m_MC_type[m_MCs_MAX];
+    
+    /// Status codes of stored particles
+    Int_t m_MC_status[m_MCs_MAX];
+    
+    /**
+     * \brief Four-momenta of stored particles
+     * 
+     * The object is owned by the extractor.
+     */
     TClonesArray *m_MC_lorentzvector;
-    Int_t   m_MC_status[m_MCs_MAX];
-    Int_t   m_MC_type[m_MCs_MAX];
-    Int_t   m_MC_imot1[m_MCs_MAX];
-    Float_t	m_MC_vx[m_MCs_MAX];
-    Float_t	m_MC_vy[m_MCs_MAX];
-    Float_t	m_MC_vz[m_MCs_MAX];
+    
+    /// Index of stored ancestors of stored particles
+    Int_t m_MC_imot1[m_MCs_MAX];
+    
+    /// Coordinates of vertices of stored particles
+    Float_t	m_MC_vx[m_MCs_MAX], m_MC_vy[m_MCs_MAX],	m_MC_vz[m_MCs_MAX];
+    
         
     // Arrays below contain redundant information. They should be removed in future
     Int_t   m_MC_index[m_MCs_MAX];

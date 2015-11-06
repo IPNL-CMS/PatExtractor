@@ -6,104 +6,164 @@ using namespace std;
 
 MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& settings):
     SuperBaseExtractor(name, settings),
-    m_genParticleTag(settings.getParameter<edm::InputTag>("input"))
+    m_genParticleTag(settings.getParameter<edm::InputTag>("input")),
+    m_doJpsi(settings.getParameter<bool>("do_jpsi"))
 {
-    m_doJpsi = settings.getParameter<bool>("do_jpsi");
-    // Set everything to 0
-
-    m_MC_lorentzvector = new TClonesArray("TLorentzVector");
-
-    // Tree definition
-
-    m_OK = true;
-
+    // Create the output tree. Apparently, at this point it is not associated yet with the output
+    //file
     m_tree_MC = new TTree(name.c_str(), "PAT MC info");  
     m_tree_MC->SetAutoSave(0);
-    m_tree_MC->Branch("MC_4vector","TClonesArray",&m_MC_lorentzvector, 1000, 0);
-    m_tree_MC->Branch("n_MCs",  &m_n_MCs,"n_MCs/I");  
-    m_tree_MC->Branch("MC_index",   &m_MC_index,    "MC_index[n_MCs]/I");  
-    m_tree_MC->Branch("MC_type",    &m_MC_type,     "MC_type[n_MCs]/I");  
-    m_tree_MC->Branch("MC_mot1",    &m_MC_imot1,    "MC_mot1[n_MCs]/I");  
-    m_tree_MC->Branch("MC_e",   &m_MC_E,    "MC_e[n_MCs]/F");  
-    m_tree_MC->Branch("MC_px",  &m_MC_px,   "MC_px[n_MCs]/F");  
-    m_tree_MC->Branch("MC_py",  &m_MC_py,   "MC_py[n_MCs]/F");  
-    m_tree_MC->Branch("MC_pz",  &m_MC_pz,   "MC_pz[n_MCs]/F");  
-    m_tree_MC->Branch("MC_vx",  &m_MC_vx,   "MC_vx[n_MCs]/F");  
-    m_tree_MC->Branch("MC_vy",  &m_MC_vy,   "MC_vy[n_MCs]/F");  
-    m_tree_MC->Branch("MC_vz",  &m_MC_vz,   "MC_vz[n_MCs]/F");
-    m_tree_MC->Branch("MC_eta", &m_MC_eta,  "MC_eta[n_MCs]/F");  
-    m_tree_MC->Branch("MC_phi", &m_MC_phi,  "MC_phi[n_MCs]/F"); 
     
-    if (m_doJpsi) {
-        m_tree_MC->Branch("MC_JPsiFromTop",  &m_MC_JPsiFromTop,  "m_MC_JPsiFromTop[n_MCs]/B");  
-        m_tree_MC->Branch("MC_JPsiFromAntiTop",  &m_MC_JPsiFromAntiTop,  "m_MC_JPsiFromAntiTop[n_MCs]/B");  
-        m_tree_MC->Branch("MC_LeptonFromTop",  &m_MC_LeptonFromTop,  "m_MC_LeptonFromTop[n_MCs]/B");  
-        m_tree_MC->Branch("MC_LeptonFromAntiTop",  &m_MC_LeptonFromAntiTop,  "m_MC_LeptonFromAntiTop[n_MCs]/B");
+    
+    m_MC_lorentzvector = new TClonesArray("TLorentzVector");
+    
+    
+    // Set up branches
+    m_tree_MC->Branch("n_MCs", &m_n_MCs, "n_MCs/I");
+    m_tree_MC->Branch("MC_type", &m_MC_type, "MC_type[n_MCs]/I");
+    m_tree_MC->Branch("MC_4vector", "TClonesArray", &m_MC_lorentzvector, 1000, 0);
+    m_tree_MC->Branch("MC_mot1", &m_MC_imot1, "MC_mot1[n_MCs]/I");
+    m_tree_MC->Branch("MC_vx", &m_MC_vx, "MC_vx[n_MCs]/F");
+    m_tree_MC->Branch("MC_vy", &m_MC_vy, "MC_vy[n_MCs]/F");
+    m_tree_MC->Branch("MC_vz", &m_MC_vz, "MC_vz[n_MCs]/F");
+    
+    
+    // Below are redundant branches, which should be dropped eventually
+    m_tree_MC->Branch("MC_index",   &m_MC_index,    "MC_index[n_MCs]/I");
+    m_tree_MC->Branch("MC_e",   &m_MC_E,    "MC_e[n_MCs]/F");
+    m_tree_MC->Branch("MC_px",  &m_MC_px,   "MC_px[n_MCs]/F");
+    m_tree_MC->Branch("MC_py",  &m_MC_py,   "MC_py[n_MCs]/F");
+    m_tree_MC->Branch("MC_pz",  &m_MC_pz,   "MC_pz[n_MCs]/F");
+    m_tree_MC->Branch("MC_eta", &m_MC_eta,  "MC_eta[n_MCs]/F");
+    m_tree_MC->Branch("MC_phi", &m_MC_phi,  "MC_phi[n_MCs]/F");
+    
+    if (m_doJpsi)
+    {
+        m_tree_MC->Branch("MC_LeptonFromTop", &m_MC_LeptonFromTop, "m_MC_LeptonFromTop[n_MCs]/B");  
+        m_tree_MC->Branch("MC_LeptonFromAntiTop", &m_MC_LeptonFromAntiTop,
+         "m_MC_LeptonFromAntiTop[n_MCs]/B");
+        m_tree_MC->Branch("MC_JPsiFromTop", &m_MC_JPsiFromTop, "m_MC_JPsiFromTop[n_MCs]/B");  
+        m_tree_MC->Branch("MC_JPsiFromAntiTop", &m_MC_JPsiFromAntiTop,
+         "m_MC_JPsiFromAntiTop[n_MCs]/B");  
+    }
+    
+    
+    m_OK = true;
+}
+
+
+MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& settings,
+ TFile *srcFile):
+    SuperBaseExtractor(name, settings, srcFile),
+    m_doJpsi(settings.getParameter<bool>("do_jpsi"))
+{
+    std::cout << "MCExtractor object is retrieved" << std::endl;
+    
+    // Read the tree from the source file
+    m_OK = false;
+    
+    m_tree_MC = dynamic_cast<TTree*>(srcFile->Get(name.c_str()));
+    
+    if (not m_tree_MC)
+    {
+        std::cerr << "Tree \"" << name << "\" does not exist." << std::endl;
+        return;
+    }
+    
+    m_OK = true;
+    
+    
+    m_MC_lorentzvector = new TClonesArray("TLorentzVector");
+    
+    
+    // Set up mandatory branches
+    m_tree_MC->SetBranchAddress("n_MCs", &m_n_MCs);
+    m_tree_MC->SetBranchAddress("MC_type", &m_MC_type);
+    m_tree_MC->SetBranchAddress("MC_4vector", &m_MC_lorentzvector);
+    
+    
+    // Set up optional branches
+    TBranch *b;
+    
+    if ((b = m_tree_MC->FindBranch("MC_mot1")))
+        b->SetAddress(&m_MC_imot1);
+
+    if ((b = m_tree_MC->FindBranch("MC_vx")))
+        b->SetAddress(&m_MC_vx);
+
+    if ((b = m_tree_MC->FindBranch("MC_vy")))
+        b->SetAddress(&m_MC_vy);
+
+    if ((b = m_tree_MC->FindBranch("MC_vz")))
+        b->SetAddress(&m_MC_vz);
+    
+    
+    // Set up redundant branches, which should be dropped eventually
+    if ((b = m_tree_MC->FindBranch("MC_index")))
+        b->SetAddress(&m_MC_index);
+
+    if ((b = m_tree_MC->FindBranch("MC_e")))
+        b->SetAddress(&m_MC_E);
+
+    if ((b = m_tree_MC->FindBranch("MC_px")))
+        b->SetAddress(&m_MC_px);
+
+    if ((b = m_tree_MC->FindBranch("MC_py")))
+        b->SetAddress(&m_MC_py);
+
+    if ((b = m_tree_MC->FindBranch("MC_pz")))
+        b->SetAddress(&m_MC_pz);
+
+    if ((b = m_tree_MC->FindBranch("MC_eta")))
+        b->SetAddress(&m_MC_eta);
+
+    if ((b = m_tree_MC->FindBranch("MC_phi")))
+        b->SetAddress(&m_MC_phi);
+
+    if (m_doJpsi)
+    {
+        if ((b = m_tree_MC->FindBranch("MC_JPsiFromTop")))
+            b->SetAddress(&m_MC_JPsiFromTop);
+      
+        if ((b = m_tree_MC->FindBranch("MC_JPsiFromAntiTop")))
+            b->SetAddress(&m_MC_JPsiFromAntiTop);
+      
+        if ((b = m_tree_MC->FindBranch("MC_LeptonFromTop")))
+            b->SetAddress(&m_MC_LeptonFromTop);
+      
+        if ((b = m_tree_MC->FindBranch("MC_LeptonFromAntiTop")))
+            b->SetAddress(&m_MC_LeptonFromAntiTop);
+    }
+    
+    
+    // Since some branches are optional and might not be available, fill the corresponding arrays
+    //with defaults
+    for (unsigned i = 0; i < unsigned(m_n_MCs); ++i)
+    {
+        m_MC_imot1[i] = -1;
+        m_MC_vx[i] = 0.f;
+        m_MC_vy[i] = 0.f;
+        m_MC_vz[i] = 0.f;
+        
+        // Redundant arrays
+        m_MC_index[i] = i;  // see a comment on this array in the writeInfo method
+        m_MC_E[i] = 0.f;
+        m_MC_px[i] = 0.f;
+        m_MC_py[i] = 0.f;
+        m_MC_pz[i] = 0.f;
+        m_MC_eta[i] = 0.f;
+        m_MC_phi[i] = 0.f;
+        m_MC_LeptonFromTop[i] = false;
+        m_MC_LeptonFromAntiTop[i] = false;
+        m_MC_JPsiFromTop[i] = false;
+        m_MC_JPsiFromAntiTop[i] = false;
     }
 }
 
 
-MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& settings, TFile *srcFile):
-    SuperBaseExtractor(name, settings, srcFile)
+MCExtractor::~MCExtractor()
 {
-    m_doJpsi = settings.getParameter<bool>("do_jpsi"); 
-    std::cout << "MCExtractor object is retrieved" << std::endl;
-
-    // Tree definition
-    m_OK = false;
-
-    m_tree_MC = dynamic_cast<TTree*>(srcFile->Get(name.c_str()));
-
-    if (!m_tree_MC)
-    {
-        std::cout << "This tree doesn't exist!!!" << std::endl;
-        return;
-    }
-
-    m_OK = true;
-
-    m_MC_lorentzvector = new TClonesArray("TLorentzVector");
-
-    if (m_tree_MC->FindBranch("n_MCs")) 
-    m_tree_MC->SetBranchAddress("n_MCs",  &m_n_MCs);
-    if (m_tree_MC->FindBranch("MC_4vector")) 
-    m_tree_MC->SetBranchAddress("MC_4vector",&m_MC_lorentzvector);
-    if (m_tree_MC->FindBranch("MC_index")) 
-    m_tree_MC->SetBranchAddress("MC_index",   &m_MC_index);
-    if (m_tree_MC->FindBranch("MC_type")) 
-    m_tree_MC->SetBranchAddress("MC_type",    &m_MC_type);
-    if (m_tree_MC->FindBranch("MC_mot1")) 
-    m_tree_MC->SetBranchAddress("MC_mot1",    &m_MC_imot1);
-    if (m_tree_MC->FindBranch("MC_e")) 
-    m_tree_MC->SetBranchAddress("MC_e",   &m_MC_E);
-    if (m_tree_MC->FindBranch("MC_px")) 
-    m_tree_MC->SetBranchAddress("MC_px",  &m_MC_px);
-    if (m_tree_MC->FindBranch("MC_py")) 
-    m_tree_MC->SetBranchAddress("MC_py",  &m_MC_py);
-    if (m_tree_MC->FindBranch("MC_pz")) 
-    m_tree_MC->SetBranchAddress("MC_pz",  &m_MC_pz);
-    if (m_tree_MC->FindBranch("MC_vx")) 
-    m_tree_MC->SetBranchAddress("MC_vx",  &m_MC_vx);
-    if (m_tree_MC->FindBranch("MC_vy")) 
-    m_tree_MC->SetBranchAddress("MC_vy",  &m_MC_vy);
-    if (m_tree_MC->FindBranch("MC_vz")) 
-    m_tree_MC->SetBranchAddress("MC_vz",  &m_MC_vz);
-    if (m_tree_MC->FindBranch("MC_eta")) 
-    m_tree_MC->SetBranchAddress("MC_eta", &m_MC_eta);
-    if (m_tree_MC->FindBranch("MC_phi")) 
-    m_tree_MC->SetBranchAddress("MC_phi", &m_MC_phi);
-
-    if (m_doJpsi)
-    {
-        if (m_tree_MC->FindBranch("MC_JPsiFromTop")) 
-          m_tree_MC->SetBranchAddress("MC_JPsiFromTop", &m_MC_JPsiFromTop);
-        if (m_tree_MC->FindBranch("MC_JPsiFromAntiTop")) 
-          m_tree_MC->SetBranchAddress("MC_JPsiFromAntiTop", &m_MC_JPsiFromAntiTop);
-        if (m_tree_MC->FindBranch("MC_LeptonFromTop")) 
-          m_tree_MC->SetBranchAddress("MC_LeptonFromTop", &m_MC_LeptonFromTop);
-        if (m_tree_MC->FindBranch("MC_LeptonFromAntiTop")) 
-          m_tree_MC->SetBranchAddress("MC_LeptonFromAntiTop", &m_MC_LeptonFromAntiTop);
-    }
+    delete m_MC_lorentzvector;
 }
 
 
@@ -355,15 +415,33 @@ int MCExtractor::getSize() const
 }
 
 
+int MCExtractor::getType(int index)
+{
+    return m_MC_type[index];
+}
+
+
 int MCExtractor::getStatus(int index)
 {
     return m_MC_status[index];
 }
 
 
-int MCExtractor::getType(int index)
+TLorentzVector* MCExtractor::getP4(int index)
 {
-    return m_MC_type[index];
+    return static_cast<TLorentzVector*>((*m_MC_lorentzvector)[index]);
+}
+
+
+float MCExtractor::getMom1Index(int index)
+{
+    return m_MC_imot1[index];
+}
+
+
+int MCExtractor::getPatIndex(int index) const
+{
+    return m_MC_index[index];
 }
 
 
@@ -388,22 +466,4 @@ float MCExtractor::getPz(int index)
 float MCExtractor::getE(int index)
 {
     return m_MC_E[index];
-}
-
-
-float MCExtractor::getMom1Index(int index)
-{
-    return m_MC_imot1[index];
-}
-
-
-TLorentzVector* MCExtractor::getP4(int index)
-{
-    return static_cast<TLorentzVector*>((*m_MC_lorentzvector)[index]);
-}
-
-
-int MCExtractor::getPatIndex(int index) const
-{
-    return m_MC_index[index];
 }
