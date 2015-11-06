@@ -42,12 +42,12 @@ MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& setti
     
     if (m_doJpsi)
     {
-        m_tree_MC->Branch("MC_LeptonFromTop", &m_MC_LeptonFromTop, "m_MC_LeptonFromTop[n_MCs]/B");  
+        m_tree_MC->Branch("MC_LeptonFromTop", &m_MC_LeptonFromTop, "m_MC_LeptonFromTop[n_MCs]/O");  
         m_tree_MC->Branch("MC_LeptonFromAntiTop", &m_MC_LeptonFromAntiTop,
-         "m_MC_LeptonFromAntiTop[n_MCs]/B");
-        m_tree_MC->Branch("MC_JPsiFromTop", &m_MC_JPsiFromTop, "m_MC_JPsiFromTop[n_MCs]/B");  
+         "m_MC_LeptonFromAntiTop[n_MCs]/O");
+        m_tree_MC->Branch("MC_JPsiFromTop", &m_MC_JPsiFromTop, "m_MC_JPsiFromTop[n_MCs]/O");  
         m_tree_MC->Branch("MC_JPsiFromAntiTop", &m_MC_JPsiFromAntiTop,
-         "m_MC_JPsiFromAntiTop[n_MCs]/B");  
+         "m_MC_JPsiFromAntiTop[n_MCs]/O");  
     }
     
     
