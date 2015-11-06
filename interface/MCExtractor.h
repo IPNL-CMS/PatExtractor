@@ -89,35 +89,35 @@ public:
     /**
      * \depricated Index returned by the getMom1Index method can be used to access ancestor directly
      */
-    int getPatIndex(int index) const;
+    int getPatIndex(int index) const __attribute__ ((deprecated));
     
     /**
      * \brief Returns x component of momentum of stored particle with the given index
      * 
      * \depricated Access momentum with the getP4 method instead.
      */
-    float getPx(int index) const;
+    float getPx(int index) const __attribute__ ((deprecated));
     
     /**
      * \brief Returns y component of momentum of stored particle with the given index
      * 
      * \depricated Access momentum with the getP4 method instead.
      */
-    float getPy(int index) const;
+    float getPy(int index) const __attribute__ ((deprecated));
     
     /**
      * \brief Returns z component of momentum of stored particle with the given index
      * 
      * \depricated Access momentum with the getP4 method instead.
      */
-    float getPz(int index) const;
+    float getPz(int index) const __attribute__ ((deprecated));
     
     /**
      * \brief Returns energy of stored particle with the given index
      * 
      * \depricated Access energy with the getP4 method instead.
      */
-    float getE(int index) const;
+    float getE(int index) const __attribute__ ((deprecated));
     
 private:
     /// Name of collection of generator-level particles
