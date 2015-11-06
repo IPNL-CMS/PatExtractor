@@ -85,6 +85,9 @@ MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& setti
     // Set up optional branches
     TBranch *b;
     
+    if ((b = m_tree_MC->FindBranch("MC_status")))
+        b->SetAddress(&m_MC_status);
+    
     if ((b = m_tree_MC->FindBranch("MC_mot1")))
         b->SetAddress(&m_MC_imot1);
 
@@ -140,6 +143,7 @@ MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& setti
     //with defaults
     for (unsigned i = 0; i < unsigned(m_n_MCs); ++i)
     {
+        m_MC_status[i] = 0;
         m_MC_imot1[i] = -1;
         m_MC_vx[i] = 0.f;
         m_MC_vy[i] = 0.f;
