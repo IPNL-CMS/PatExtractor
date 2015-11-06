@@ -433,7 +433,7 @@ TLorentzVector* MCExtractor::getP4(int index) const
 }
 
 
-float MCExtractor::getMom1Index(int index) const
+int MCExtractor::getMom1Index(int index) const
 {
     return m_MC_imot1[index];
 }

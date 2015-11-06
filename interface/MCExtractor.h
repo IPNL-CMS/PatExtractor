@@ -84,7 +84,7 @@ public:
      * getP4(getMom1Index(index)). If no ancestors of the particle have been stored, the method
      * returns -1.
      */
-    float getMom1Index(int index) const;
+    int getMom1Index(int index) const;
     
     /**
      * \depricated Index returned by the getMom1Index method can be used to access ancestor directly
@@ -163,7 +163,7 @@ private:
     
         
     // Arrays below contain redundant information. They should be removed in future
-    Int_t   m_MC_index[m_MCs_MAX];
+    Int_t m_MC_index[m_MCs_MAX];
     Float_t m_MC_E[m_MCs_MAX];
     Float_t m_MC_px[m_MCs_MAX];
     Float_t m_MC_py[m_MCs_MAX];
