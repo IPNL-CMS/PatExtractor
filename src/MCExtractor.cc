@@ -429,7 +429,7 @@ int MCExtractor::getStatus(int index) const
 
 TLorentzVector* MCExtractor::getP4(int index) const
 {
-    return static_cast<TLorentzVector*>((*m_MC_lorentzvector)[index]);
+    return dynamic_cast<TLorentzVector*>((*m_MC_lorentzvector)[index]);
 }
 
 
