@@ -447,23 +447,23 @@ int MCExtractor::getPatIndex(int index) const
 
 float MCExtractor::getPx(int index) const
 {
-    return m_MC_px[index];
+    return getP4(index).Px();
 }
 
 
 float MCExtractor::getPy(int index) const
 {
-    return m_MC_py[index];
+    return getP4(index).Py();
 }
 
 
 float MCExtractor::getPz(int index) const
 {
-    return m_MC_pz[index];
+    return getP4(index).Pz();
 }
 
 
 float MCExtractor::getE(int index) const
 {
-    return m_MC_E[index];
+    return getP4(index).E();
 }
