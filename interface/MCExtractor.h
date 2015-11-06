@@ -74,6 +74,15 @@ public:
      */
     int getStatus(int index) const;
     
+    /**
+     * \brief Indicates whether the particle with the given index has no particles with the same
+     * PDG ID among its daughers
+     * 
+     * Typically means that this particle has the final momentum, with all contributions from
+     * radiation already included.
+     */
+    bool getIsLastCopy(int index) const;
+    
     /// Returns four-momentum of stored particle with the given index
     TLorentzVector const &getP4(int index) const;
     
@@ -147,6 +156,9 @@ private:
     
     /// Status codes of stored particles
     Int_t m_MC_status[m_MCs_MAX];
+    
+    /// Flags indicating if stored particles have no descendants with the same PDG ID
+    Bool_t m_MC_isLastCopy[m_MCs_MAX];
     
     /**
      * \brief Four-momenta of stored particles
