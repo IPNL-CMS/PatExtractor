@@ -75,7 +75,7 @@ public:
     int getStatus(int index) const;
     
     /// Returns four-momentum of stored particle with the given index
-    TLorentzVector* getP4(int index) const;
+    TLorentzVector const &getP4(int index) const;
     
     /**
      * \brief Return index of the first stored ancestor of the particle with the given index
