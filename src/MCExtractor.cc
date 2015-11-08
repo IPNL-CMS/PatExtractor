@@ -146,7 +146,7 @@ MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& setti
     
     // Since some branches are optional and might not be available, fill the corresponding arrays
     //with defaults
-    for (unsigned i = 0; i < unsigned(m_n_MCs); ++i)
+    for (unsigned i = 0; i < unsigned(m_MCs_MAX); ++i)
     {
         m_MC_status[i] = 0;
         m_MC_isLastCopy[i] = false;
