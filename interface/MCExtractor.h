@@ -12,14 +12,18 @@
 #include <TLorentzVector.h>
 #include <TClonesArray.h>
 
+#include <set>
+
 
 /**
  * \class MCExtractor
  * \brief Stores information about generator-level particles
  * 
- * Stores properties of generator-level particles from the final state of the hard interaction
- * before modelling of FSR, as well as prompt electrons, muons, and photons. If configured
- * specially, stores also J/psi decaying to a pair of muons and these muons.
+ * Stores properties of selected generator-level particles:
+ *  * particles in the final state of the hard interaction before modelling of FSR,
+ *  * prompt electrons, muons, and photons,
+ *  * direct quark decay products of certain resonances.
+ * If configured specially, also stores J/psi decaying into a pair of muons, as well as these muons.
  */
 class MCExtractor: public SuperBaseExtractor
 {
@@ -144,6 +148,14 @@ private:
     
     /// Flag controlling if the extractor stores information related to J/psi
     bool m_doJpsi;
+    
+    /**
+     * \brief Immediate quark daughters of these resonances are always stored
+     * 
+     * The resonances themselves as well as prompt charged leptons and phtons from their decay
+     * should be stored according to generic conditions, so no need to ask for this specifically.
+     */
+    static const std::set<int> importantResonances;
     
     /**
      * \brief Output tree

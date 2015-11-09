@@ -6,6 +6,9 @@
 using namespace std;
 
 
+set<int> const MCExtractor::importantResonances{6, 23, 24, 25};
+
+
 MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& settings):
     SuperBaseExtractor(name, settings),
     m_genParticleTag(settings.getParameter<edm::InputTag>("input")),
@@ -220,6 +223,12 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
         if (p.isPromptFinalState() and
          (absPdgId == pdgIdE or absPdgId == pdgIdMu or absPdgId == pdgIdPhoton))
             selected = true;
+        
+        // Quarks (except for top quarks) if they are immediate daughters of a resonance
+        if (absPdgId < pdgIdTop and p.numberOfMothers() > 0 and
+         importantResonances.find(abs(p.mother(0)->pdgId())) != importantResonances.end())
+            selected = true;
+        
         
         if (m_doJpsi)
         {
