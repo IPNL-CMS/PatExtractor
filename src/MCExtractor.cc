@@ -368,9 +368,16 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
                     break;
                 
                 
-                // Check if the ancestor is a top quark and update the flags accordingly
-                int ancestorPdgId = selectedParticles.at(ancestorIndex)->pdgId();
+                int const ancestorPdgId = selectedParticles.at(ancestorIndex)->pdgId();
                 
+                
+                // There are some leptons stemming from J/psi (as direct daughters). Do not fill any
+                //flags for them
+                if (isLepton and ancestorPdgId == pdgIdJpsi)
+                    break;
+                
+                
+                // Check if the ancestor is a top quark and update the flags accordingly
                 if (abs(ancestorPdgId) == pdgIdTop)
                 {
                     if (isLepton)
