@@ -26,6 +26,8 @@ MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& setti
     // Set up branches
     m_tree_MC->Branch("n_MCs", &m_n_MCs, "n_MCs/I");
     m_tree_MC->Branch("MC_type", &m_MC_type, "MC_type[n_MCs]/I");
+    m_tree_MC->Branch("MC_isPromptFinalState", &m_MC_isPromptFinalState,
+     "MC_isPromptFinalState[n_MCs]/O");
     m_tree_MC->Branch("MC_isLastCopy", &m_MC_isLastCopy, "MC_isLastCopy[n_MCs]/O");
     m_tree_MC->Branch("MC_4vector", "TClonesArray", &m_MC_lorentzvector, 1000, 0);
     m_tree_MC->Branch("MC_mot1", &m_MC_imot1, "MC_mot1[n_MCs]/I");
@@ -93,6 +95,9 @@ MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& setti
     if ((b = m_tree_MC->FindBranch("MC_status")))
         b->SetAddress(&m_MC_status);
     
+    if ((b = m_tree_MC->FindBranch("MC_isPromptFinalState")))
+        b->SetAddress(&m_MC_isPromptFinalState);
+    
     if ((b = m_tree_MC->FindBranch("MC_isLastCopy")))
         b->SetAddress(&m_MC_isLastCopy);
     
@@ -152,6 +157,7 @@ MCExtractor::MCExtractor(const std::string& name, const edm::ParameterSet& setti
     for (unsigned i = 0; i < unsigned(m_MCs_MAX); ++i)
     {
         m_MC_status[i] = 0;
+        m_MC_isPromptFinalState[i] = false;
         m_MC_isLastCopy[i] = false;
         m_MC_imot1[i] = -1;
         m_MC_vx[i] = 0.f;
@@ -259,6 +265,7 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
         
         m_MC_type[i] = p.pdgId();
         m_MC_status[i] = p.status();
+        m_MC_isPromptFinalState[i] = p.isPromptFinalState();
         m_MC_isLastCopy[i] = p.isLastCopy();
         new((*m_MC_lorentzvector)[i]) TLorentzVector(p.px(), p.py(), p.pz(), p.energy());
         m_MC_vx[i] = p.vx();
@@ -456,6 +463,12 @@ int MCExtractor::getType(int index) const
 int MCExtractor::getStatus(int index) const
 {
     return m_MC_status[index];
+}
+
+
+bool MCExtractor::getIsPromptFinalState(int index) const
+{
+    return m_MC_isPromptFinalState[index];
 }
 
 

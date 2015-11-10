@@ -79,6 +79,14 @@ public:
     int getStatus(int index) const;
     
     /**
+     * \brief Indicates whether the particle with the given index is prompt and final
+     * 
+     * Technically, it means that the particle does not come from a decay of a hadron or a tau
+     * lepton and has status 1.
+     */
+    bool getIsPromptFinalState(int index) const;
+    
+    /**
      * \brief Indicates whether the particle with the given index has no particles with the same
      * PDG ID among its daughers
      * 
@@ -175,6 +183,9 @@ private:
     
     /// Status codes of stored particles
     Int_t m_MC_status[m_MCs_MAX];
+    
+    /// Flags indicating if stored particles are prompt and contribute to the final state
+    Bool_t m_MC_isPromptFinalState[m_MCs_MAX];
     
     /// Flags indicating if stored particles have no descendants with the same PDG ID
     Bool_t m_MC_isLastCopy[m_MCs_MAX];
