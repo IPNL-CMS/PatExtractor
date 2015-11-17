@@ -31,6 +31,8 @@
 #include "TLorentzVector.h"
 #include "TClonesArray.h"
 
+#include "../interface/MuScleFitCorrector.h"
+
 class MuonExtractor: public BaseExtractor<pat::Muon>
 {
 
@@ -39,6 +41,7 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
     MuonExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, const edm::InputTag& tag, const edm::InputTag& vertexTag, bool doTree);
     MuonExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, TFile *a_file);
     virtual ~MuonExtractor();
+    virtual void beginJob();
 
     virtual void writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::Muon& object, int index);
 
@@ -71,6 +74,26 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
       p4.SetPxPyPzE(object.px(), object.py(), object.pz(), object.energy());
 
       return p4;
+    }
+
+    virtual double getLesUp(double eta) {
+      // from AN2014_170_v2, table 8, DATA-MC column
+      double lesUnc = 1.;
+      if (fabs(eta) < 1.5)
+        lesUnc += 0.05/100.;
+      else if (fabs(eta) < 2.4)
+        lesUnc += 0.10/100.;
+      return lesUnc;
+    }
+
+    virtual double getLesDown(double eta) {
+      // from AN2014_170_v2, table 8, DATA-MC column
+      double lesUnc = 1.;
+      if (fabs(eta) < 1.5)
+        lesUnc -= 0.05/100.;
+      else if (fabs(eta) < 2.4)
+        lesUnc -= 0.10/100.;
+      return lesUnc;
     }
 
     // Setters/Getters
@@ -133,7 +156,13 @@ class MuonExtractor: public BaseExtractor<pat::Muon>
 
     float m_deltaR_cut;
 
+    std::string fitParametersFile;
+    MuScleFitCorrector* corrector;
+
     TClonesArray* m_muo_lorentzvector;
+    TClonesArray* m_muo_lesup_lorentzvector;
+    TClonesArray* m_muo_lesdown_lorentzvector;
+    TClonesArray* m_muo_raw_lorentzvector;
     float	m_muo_vx[m_muons_MAX];
     float	m_muo_vy[m_muons_MAX];
     float	m_muo_vz[m_muons_MAX];

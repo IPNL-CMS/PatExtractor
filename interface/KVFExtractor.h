@@ -37,6 +37,8 @@
 #include "TLorentzVector.h"
 #include "TClonesArray.h"
 
+#include "../interface/MuScleFitCorrector.h"
+
 class JetCorrectionUncertainty;
 
 class KVFExtractor: public BaseExtractor<pat::Jet>
@@ -88,6 +90,26 @@ class KVFExtractor: public BaseExtractor<pat::Jet>
       return p4;
     }
 
+    virtual double getLesUp(double eta) {
+      // from AN2014_170_v2, table 8, DATA-MC column
+      double lesUnc = 1.;
+      if (fabs(eta) < 1.5)
+        lesUnc += 0.05/100.;
+      else if (fabs(eta) < 2.4) 
+        lesUnc += 0.10/100.;
+      return lesUnc;
+    }
+
+    virtual double getLesDown(double eta) {
+      // from AN2014_170_v2, table 8, DATA-MC column
+      double lesUnc = 1.;
+      if (fabs(eta) < 1.5)
+        lesUnc -= 0.05/100.;
+      else if (fabs(eta) < 2.4) 
+        lesUnc -= 0.10/100.;
+      return lesUnc;
+    }
+
 
     // Jet ID
     bool isPFJetLoose(const pat::Jet& jet);
@@ -137,6 +159,9 @@ class KVFExtractor: public BaseExtractor<pat::Jet>
     TTree* m_tree_jpsi;
 
     static const int 	m_jpsi_MAX  = 10;
+
+    std::string fitParametersFile;
+    MuScleFitCorrector* corrector;
     
     int           m_jpsi_size;
     int           m_jpsi_indjet[m_jpsi_MAX];
@@ -146,10 +171,32 @@ class KVFExtractor: public BaseExtractor<pat::Jet>
     int           m_jpsi_indpf1[m_jpsi_MAX];
     int           m_jpsi_indpf2[m_jpsi_MAX];
     TClonesArray* m_jpsipf_lorentzvector;
+    TClonesArray* m_jpsipf_lesup_lorentzvector;
+    TClonesArray* m_jpsipf_lesdown_lorentzvector;
+    TClonesArray* m_jpsipf_raw_lorentzvector;
+    TClonesArray* m_jpsipf_mu1_lorentzvector;
+    TClonesArray* m_jpsipf_mu1_lesup_lorentzvector;
+    TClonesArray* m_jpsipf_mu1_lesdown_lorentzvector;
+    TClonesArray* m_jpsipf_mu1_raw_lorentzvector;
+    TClonesArray* m_jpsipf_mu2_lorentzvector;
+    TClonesArray* m_jpsipf_mu2_lesup_lorentzvector;
+    TClonesArray* m_jpsipf_mu2_lesdown_lorentzvector;
+    TClonesArray* m_jpsipf_mu2_raw_lorentzvector;
     TClonesArray* m_jpsikvf_lorentzvector;
+    TClonesArray* m_jpsikvf_lesup_lorentzvector;
+    TClonesArray* m_jpsikvf_lesdown_lorentzvector;
+    TClonesArray* m_jpsikvf_raw_lorentzvector;
     TClonesArray* m_jpsikvf_mu1_lorentzvector;
+    TClonesArray* m_jpsikvf_mu1_lesup_lorentzvector;
+    TClonesArray* m_jpsikvf_mu1_lesdown_lorentzvector;
+    TClonesArray* m_jpsikvf_mu1_raw_lorentzvector;
+    int           m_jpsikvf_mu1_pdgid[m_jpsi_MAX];
     std::map<std::string, ScaleFactorCollection> m_jpsikvf_mu1_muon_scaleFactors;
     TClonesArray* m_jpsikvf_mu2_lorentzvector;
+    TClonesArray* m_jpsikvf_mu2_lesup_lorentzvector;
+    TClonesArray* m_jpsikvf_mu2_lesdown_lorentzvector;
+    TClonesArray* m_jpsikvf_mu2_raw_lorentzvector;
+    int           m_jpsikvf_mu2_pdgid[m_jpsi_MAX];
     std::map<std::string, ScaleFactorCollection> m_jpsikvf_mu2_muon_scaleFactors;
     float         m_jpsikvf_vx[m_jpsi_MAX];
     float         m_jpsikvf_vy[m_jpsi_MAX];

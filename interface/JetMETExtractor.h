@@ -191,6 +191,25 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     TClonesArray* m_genjet_lorentzvector;
     TClonesArray* m_rawjet_lorentzvector;
 
+    static const int 	m_unfold_tr_MAX = 500;
+    static const int  m_unfold_Tr_MAX = m_unfold_tr_MAX*m_jets_MAX;
+    int   m_jet_unfold_tr_size;
+    int   m_jet_unfold_indjet[m_unfold_Tr_MAX]; 
+    TClonesArray* m_jet_unfold_tr_reco_lorentzvector;
+    TClonesArray* m_jet_unfold_tr_gen_lorentzvector;
+    float m_jet_unfold_tr_recopt[m_unfold_Tr_MAX];
+    float m_jet_unfold_tr_recoeta[m_unfold_Tr_MAX];
+    float m_jet_unfold_tr_genpt[m_unfold_Tr_MAX];
+    float m_jet_unfold_tr_geneta[m_unfold_Tr_MAX];
+    float m_jet_unfold_tr_dr[m_unfold_Tr_MAX];
+    TClonesArray* m_jet_unfold_mu_reco_lorentzvector;
+    TClonesArray* m_jet_unfold_mu_gen_lorentzvector;
+    float m_jet_unfold_mu_recopt[m_unfold_Tr_MAX];
+    float m_jet_unfold_mu_recoeta[m_unfold_Tr_MAX];
+    float m_jet_unfold_mu_genpt[m_unfold_Tr_MAX];
+    float m_jet_unfold_mu_geneta[m_unfold_Tr_MAX];
+    float m_jet_unfold_mu_dr[m_unfold_Tr_MAX];
+
     float	m_jet_vx[m_jets_MAX];
     float	m_jet_vy[m_jets_MAX];
     float	m_jet_vz[m_jets_MAX];

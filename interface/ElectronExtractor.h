@@ -71,6 +71,42 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
       return p4;
     }
 
+    virtual double getLesUp(double pt, double eta) {
+      // from https://github.com/stiegerb/TopMassSecVtx/blob/master/src/MacroUtils.cc#L9-L25
+      double lesUnc = 1.;
+      double par0(-2.27e-02), par1(-7.01e-02), par2(-3.71e-04);
+      if (fabs(eta) > 0.8 && fabs(eta) < 1.5) {
+        par0 = -2.92e-02;
+        par1 = -6.59e-02;
+        par2 = -7.22e-04;
+      }
+      else if(fabs(eta)>1.5) {
+        par0 = -2.27e-02;
+        par1 = -7.01e-02;
+        par2 = -3.71e-04;
+      }
+      lesUnc += fabs(par0 * TMath::Exp(par1 * pt) + par2);
+      return lesUnc;
+    }
+
+    virtual double getLesDown(double pt, double eta) {
+      // from https://github.com/stiegerb/TopMassSecVtx/blob/master/src/MacroUtils.cc#L9-L25
+      double lesUnc = 1.;
+      double par0(-2.27e-02), par1(-7.01e-02), par2(-3.71e-04);
+      if (fabs(eta) > 0.8 && fabs(eta) < 1.5) {
+        par0 = -2.92e-02;
+        par1 = -6.59e-02;
+        par2 = -7.22e-04;
+      }
+      else if(fabs(eta)>1.5) {
+        par0 = -2.27e-02;
+        par1 = -7.01e-02;
+        par2 = -3.71e-04;
+      }
+      lesUnc -= fabs(par0 * TMath::Exp(par1 * pt) + par2);
+      return lesUnc;
+    }
+
     TLorentzVector *getEleLorentzVector(int eidx) {return (TLorentzVector*)m_ele_lorentzvector->At(eidx);}
     float getEledB(int eidx) {return m_ele_dB[eidx];}
     float getElepfChargedHadronIso(int eidx) {return m_ele_pfChargedHadronIso[eidx];}
@@ -132,6 +168,8 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
     float m_deltaR_cut;
 
     TClonesArray* m_ele_lorentzvector;
+    TClonesArray* m_ele_lesup_lorentzvector;
+    TClonesArray* m_ele_lesdown_lorentzvector;
     float	m_ele_vx[m_electrons_MAX];
     float	m_ele_vy[m_electrons_MAX];
     float	m_ele_vz[m_electrons_MAX];

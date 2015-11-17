@@ -13,6 +13,9 @@ MuonExtractor::MuonExtractor(const std::string& name, std::shared_ptr<ScaleFacto
   setPF((tag.label()).find("PFlow")); 
 
   m_muo_lorentzvector = new TClonesArray("TLorentzVector");
+  m_muo_lesup_lorentzvector = new TClonesArray("TLorentzVector");
+  m_muo_lesdown_lorentzvector = new TClonesArray("TLorentzVector");
+  m_muo_raw_lorentzvector = new TClonesArray("TLorentzVector");
 
   const auto& sfWorkingPoints = m_scaleFactorService->getMuonScaleFactorWorkingPoints();
   for (auto& it: sfWorkingPoints) {
@@ -35,6 +38,9 @@ MuonExtractor::MuonExtractor(const std::string& name, std::shared_ptr<ScaleFacto
     m_tree_muon         = new TTree(m_name.c_str(), "PAT PF muon info"); 
     m_tree_muon->Branch("n_muons",  &m_size,  "n_muons/i");  
     m_tree_muon->Branch("muon_4vector","TClonesArray",&m_muo_lorentzvector, 1000, 0);
+    m_tree_muon->Branch("muon_lesup_4vector","TClonesArray",&m_muo_lesup_lorentzvector, 1000, 0);
+    m_tree_muon->Branch("muon_lesdown_4vector","TClonesArray",&m_muo_lesdown_lorentzvector, 1000, 0);
+    m_tree_muon->Branch("muon_raw_4vector","TClonesArray",&m_muo_raw_lorentzvector, 1000, 0);
     m_tree_muon->Branch("muon_vx",  &m_muo_vx,   "muon_vx[n_muons]/F");  
     m_tree_muon->Branch("muon_vy",  &m_muo_vy,   "muon_vy[n_muons]/F");  
     m_tree_muon->Branch("muon_vz",  &m_muo_vz,   "muon_vz[n_muons]/F");  
@@ -74,6 +80,17 @@ MuonExtractor::MuonExtractor(const std::string& name, std::shared_ptr<ScaleFacto
   }
 }
 
+void MuonExtractor::beginJob() {
+  if (m_isMC)
+    fitParametersFile = "Extractors/PatExtractor/data/MuScleFitCorrector_v4_3/MuScleFit_2012_MC_53X_smearReReco.txt";
+  else  
+    fitParametersFile = "Extractors/PatExtractor/data/MuScleFitCorrector_v4_3/MuScleFit_2012ABC_DATA_53X.txt";
+    //corrector_ = "/gridgroup/cms/bouvier/CMSSW_5_3_27/src/Extractors/PatExtractor/data/MuScleFitCorrector_v4_3/MuScleFit_2012D_DATA_ReReco_53X.txt";
+  fitParametersFile = edm::FileInPath(fitParametersFile).fullPath();
+  corrector = new MuScleFitCorrector(fitParametersFile);
+}
+
+
 MuonExtractor::MuonExtractor(const std::string& name, std::shared_ptr<ScaleFactorService> sf, TFile *a_file)
   :  BaseExtractor(name, sf), m_muo_lorentzvector(nullptr)
 {
@@ -94,6 +111,9 @@ MuonExtractor::MuonExtractor(const std::string& name, std::shared_ptr<ScaleFacto
   m_OK = true;
 
   m_muo_lorentzvector = new TClonesArray("TLorentzVector");
+  m_muo_lesup_lorentzvector = new TClonesArray("TLorentzVector");
+  m_muo_lesdown_lorentzvector = new TClonesArray("TLorentzVector");
+  m_muo_raw_lorentzvector = new TClonesArray("TLorentzVector");
 
   // Branches definition
 
@@ -101,6 +121,12 @@ MuonExtractor::MuonExtractor(const std::string& name, std::shared_ptr<ScaleFacto
     m_tree_muon->SetBranchAddress("n_muons",  &m_size);
   if (m_tree_muon->FindBranch("muon_4vector"))
     m_tree_muon->SetBranchAddress("muon_4vector",&m_muo_lorentzvector);
+  if (m_tree_muon->FindBranch("muon_lesup_4vector"))
+    m_tree_muon->SetBranchAddress("muon_lesup_4vector",&m_muo_lesup_lorentzvector);
+  if (m_tree_muon->FindBranch("muon_lesdown_4vector"))
+    m_tree_muon->SetBranchAddress("muon_lesdown_4vector",&m_muo_lesdown_lorentzvector);
+  if (m_tree_muon->FindBranch("muon_raw_4vector"))
+    m_tree_muon->SetBranchAddress("muon_raw_4vector",&m_muo_raw_lorentzvector);
   if (m_tree_muon->FindBranch("muon_vx"))
     m_tree_muon->SetBranchAddress("muon_vx",  &m_muo_vx);
   if (m_tree_muon->FindBranch("muon_vy"))
@@ -178,6 +204,9 @@ MuonExtractor::MuonExtractor(const std::string& name, std::shared_ptr<ScaleFacto
 MuonExtractor::~MuonExtractor()
 {
   delete m_muo_lorentzvector;
+  delete m_muo_lesup_lorentzvector;
+  delete m_muo_lesdown_lorentzvector;
+  delete m_muo_raw_lorentzvector;
 }
 
 //
@@ -196,7 +225,22 @@ void MuonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iS
   edm::Handle<std::vector<reco::Vertex>> pvHandle;
   event.getByLabel(m_vertexTag, pvHandle);
 
-  new((*m_muo_lorentzvector)[index]) TLorentzVector(part.px(),part.py(),part.pz(),part.energy());
+  new((*m_muo_raw_lorentzvector)[index]) TLorentzVector(part.px(),part.py(),part.pz(),part.energy());
+  TLorentzVector p_mu(part.px(), part.py(), part.pz(), part.energy());
+  // MuScleFitCorrections with smearing for MC
+  if (part.charge() < 0)
+    corrector->applyPtCorrection(p_mu, -1);
+  else
+    corrector->applyPtCorrection(p_mu, 1);
+  if (m_isMC) {
+    if (part.charge() < 0)
+      corrector->applyPtSmearing(p_mu, -1, false);
+    else
+      corrector->applyPtSmearing(p_mu, 1, false);
+  }
+  new((*m_muo_lorentzvector)[index]) TLorentzVector(p_mu.Px(),p_mu.Py(),p_mu.Pz(),p_mu.E());
+  new((*m_muo_lesup_lorentzvector)[index]) TLorentzVector(getLesUp(p_mu.Eta())*p_mu.Px(),getLesUp(p_mu.Eta())*p_mu.Py(),p_mu.Pz(),p_mu.E());
+  new((*m_muo_lesdown_lorentzvector)[index]) TLorentzVector(getLesDown(p_mu.Eta())*p_mu.Px(),getLesDown(p_mu.Eta())*p_mu.Py(),p_mu.Pz(),p_mu.E());
   m_muo_vx[index]                             = part.vx();
   m_muo_vy[index]                             = part.vy();
   m_muo_vz[index]                             = part.vz();
@@ -302,6 +346,9 @@ void MuonExtractor::reset()
     m_muo_deltaBetaCorrectedRelIsolation[i] = -1;
   }
   m_muo_lorentzvector->Clear();
+  m_muo_lesup_lorentzvector->Clear();
+  m_muo_lesdown_lorentzvector->Clear();
+  m_muo_raw_lorentzvector->Clear();
 }
 
 

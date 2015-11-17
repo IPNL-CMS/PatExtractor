@@ -112,8 +112,10 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
    doKVF         = cms.untracked.bool(False), 
    jpsi_KVF      = cms.PSet(
         muJpsiMinPt   = cms.untracked.double(4.),
-        jpsiMassMin   = cms.untracked.double(2.8),
-        jpsiMassMax   = cms.untracked.double(3.4),
+        #jpsiMassMin   = cms.untracked.double(2.8),
+        #jpsiMassMax   = cms.untracked.double(3.4),
+        jpsiMassMin   = cms.untracked.double(2.),
+        jpsiMassMax   = cms.untracked.double(5.),
         vtxTag        = cms.untracked.InputTag( "offlinePrimaryVertices" ),
    ),
    d0_KVF      = cms.PSet(

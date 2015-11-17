@@ -57,6 +57,10 @@ class MCExtractor: public SuperBaseExtractor
 
   int getPatIndex(int index) const { return m_MC_index[index]; }
 
+  bool isNeutrinoPdgId(int id) {
+    return (abs(id) == 12 || abs(id) == 14 || abs(id) == 16);
+  }
+
  private:
   
   TTree* m_tree_MC;
@@ -88,7 +92,9 @@ class MCExtractor: public SuperBaseExtractor
   bool m_MC_LeptonFromAntiTop[m_MCs_MAX];
   TClonesArray *m_MC_JPsi_lorentzvector;
   TClonesArray *m_MC_Bhad_lorentzvector;
-  int   m_MC_Bhad_id[m_MCs_MAX];
+  int  m_MC_Bhad_id[m_MCs_MAX];
+  bool m_MC_BhadWithNuDaughter[m_MCs_MAX];
+  bool m_MC_BhadWithoutNuDaughter[m_MCs_MAX];
   TClonesArray *m_MC_Bquark_lorentzvector;
   
   bool _doD0;

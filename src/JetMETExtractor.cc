@@ -84,6 +84,10 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   m_jet_lorentzvector = new TClonesArray("TLorentzVector");
   m_genjet_lorentzvector = new TClonesArray("TLorentzVector");
   m_rawjet_lorentzvector = new TClonesArray("TLorentzVector");
+  m_jet_unfold_tr_reco_lorentzvector = new TClonesArray("TLorentzVector");
+  m_jet_unfold_tr_gen_lorentzvector = new TClonesArray("TLorentzVector");
+  m_jet_unfold_mu_reco_lorentzvector = new TClonesArray("TLorentzVector");
+  m_jet_unfold_mu_gen_lorentzvector = new TClonesArray("TLorentzVector");
   m_met_lorentzvector = new TClonesArray("TLorentzVector");
   m_unclustered_particle_lorentzvector = new TClonesArray("TLorentzVector");
   m_scaleFactors.setWriteMode();
@@ -127,6 +131,23 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
 
   m_tree_jet->Branch("jet_scaleFactor", &m_scaleFactors.getBackingArray());
 
+  m_tree_jet->Branch("n_unfold_tr", &m_jet_unfold_tr_size, "n_unfold_tr/I");
+  m_tree_jet->Branch("jet_unfold_indjet", &m_jet_unfold_indjet, "jet_unfold_indjet[n_unfold_tr]/I"); 
+  m_tree_jet->Branch("jet_unfold_tr_reco_4vector","TClonesArray", &m_jet_unfold_tr_reco_lorentzvector, 5000, 0);
+  m_tree_jet->Branch("jet_unfold_tr_gen_4vector","TClonesArray",  &m_jet_unfold_tr_gen_lorentzvector, 5000, 0);
+  m_tree_jet->Branch("jet_unfold_tr_recopt", &m_jet_unfold_tr_recopt, "jet_unfold_tr_recopt[n_unfold_tr]/F");
+  m_tree_jet->Branch("jet_unfold_tr_recoeta", &m_jet_unfold_tr_recoeta, "jet_unfold_tr_recoeta[n_unfold_tr]/F");
+  m_tree_jet->Branch("jet_unfold_tr_genpt", &m_jet_unfold_tr_genpt, "jet_unfold_tr_genpt[n_unfold_tr]/F");
+  m_tree_jet->Branch("jet_unfold_tr_geneta", &m_jet_unfold_tr_geneta, "jet_unfold_tr_geneta[n_unfold_tr]/F");
+  m_tree_jet->Branch("jet_unfold_tr_dr", &m_jet_unfold_tr_dr, "jet_unfold_tr_dr[n_unfold_tr]/F");
+  m_tree_jet->Branch("jet_unfold_mu_reco_4vector","TClonesArray", &m_jet_unfold_mu_reco_lorentzvector, 5000, 0);
+  m_tree_jet->Branch("jet_unfold_mu_gen_4vector","TClonesArray",  &m_jet_unfold_mu_gen_lorentzvector, 5000, 0);
+  m_tree_jet->Branch("jet_unfold_mu_recopt", &m_jet_unfold_mu_recopt, "jet_unfold_mu_recopt[n_unfold_tr]/F");
+  m_tree_jet->Branch("jet_unfold_mu_recoeta", &m_jet_unfold_mu_recoeta, "jet_unfold_mu_recoeta[n_unfold_tr]/F");
+  m_tree_jet->Branch("jet_unfold_mu_genpt", &m_jet_unfold_mu_genpt, "jet_unfold_mu_genpt[n_unfold_tr]/F");
+  m_tree_jet->Branch("jet_unfold_mu_geneta", &m_jet_unfold_mu_geneta, "jet_unfold_mu_geneta[n_unfold_tr]/F");
+  m_tree_jet->Branch("jet_unfold_mu_dr", &m_jet_unfold_mu_dr, "jet_unfold_mu_dr[n_unfold_tr]/F");
+
   m_tree_met = NULL;
   m_tree_met = new TTree(met_name.c_str(), "PAT PF MET info");  
   m_tree_met->Branch("met_4vector","TClonesArray",&m_met_lorentzvector, 1000, 0);
@@ -161,6 +182,10 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
     m_jet_lorentzvector = new TClonesArray("TLorentzVector");
     m_genjet_lorentzvector = new TClonesArray("TLorentzVector");
     m_rawjet_lorentzvector = new TClonesArray("TLorentzVector");
+    m_jet_unfold_tr_reco_lorentzvector = new TClonesArray("TLorentzVector");
+    m_jet_unfold_tr_gen_lorentzvector = new TClonesArray("TLorentzVector");
+    m_jet_unfold_mu_reco_lorentzvector = new TClonesArray("TLorentzVector");
+    m_jet_unfold_mu_gen_lorentzvector = new TClonesArray("TLorentzVector");
 
     if (m_tree_jet->FindBranch("n_jets")) 
       m_tree_jet->SetBranchAddress("n_jets",            &m_size);
@@ -221,6 +246,39 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
 
     if (m_tree_jet->FindBranch("jet_scaleFactor"))
       m_tree_jet->SetBranchAddress("jet_scaleFactor", &m_scaleFactors.getBackingArray());
+
+    if (m_tree_jet->FindBranch("n_unfold_tr")) 
+      m_tree_jet->Branch("n_unfold_tr", &m_jet_unfold_tr_size);
+    if (m_tree_jet->FindBranch("jet_unfold_indjet")) 
+      m_tree_jet->Branch("jet_unfold_indjet", &m_jet_unfold_indjet); 
+    if (m_tree_jet->FindBranch("jet_unfold_tr_reco_4vector")) 
+      m_tree_jet->Branch("jet_unfold_tr_reco_4vector", &m_jet_unfold_tr_reco_lorentzvector);
+    if (m_tree_jet->FindBranch("jet_unfold_tr_gen_4vector")) 
+      m_tree_jet->Branch("jet_unfold_tr_gen_4vector", &m_jet_unfold_tr_gen_lorentzvector);
+    if (m_tree_jet->FindBranch("jet_unfold_tr_recopt")) 
+      m_tree_jet->Branch("jet_unfold_tr_recopt", &m_jet_unfold_tr_recopt);
+    if (m_tree_jet->FindBranch("jet_unfold_tr_recoeta")) 
+      m_tree_jet->Branch("jet_unfold_tr_recoeta", &m_jet_unfold_tr_recoeta);
+    if (m_tree_jet->FindBranch("jet_unfold_tr_genpt")) 
+      m_tree_jet->Branch("jet_unfold_tr_genpt", &m_jet_unfold_tr_genpt);
+    if (m_tree_jet->FindBranch("jet_unfold_tr_geneta")) 
+      m_tree_jet->Branch("jet_unfold_tr_geneta", &m_jet_unfold_tr_geneta);
+    if (m_tree_jet->FindBranch("jet_unfold_tr_dr")) 
+      m_tree_jet->Branch("jet_unfold_tr_dr", &m_jet_unfold_tr_dr);
+    if (m_tree_jet->FindBranch("jet_unfold_mu_reco_4vector")) 
+      m_tree_jet->Branch("jet_unfold_mu_reco_4vector", &m_jet_unfold_mu_reco_lorentzvector);
+    if (m_tree_jet->FindBranch("jet_unfold_mu_gen_4vector")) 
+      m_tree_jet->Branch("jet_unfold_mu_gen_4vector", &m_jet_unfold_mu_gen_lorentzvector);
+    if (m_tree_jet->FindBranch("jet_unfold_mu_recopt")) 
+      m_tree_jet->Branch("jet_unfold_mu_recopt", &m_jet_unfold_mu_recopt);
+    if (m_tree_jet->FindBranch("jet_unfold_mu_recoeta")) 
+      m_tree_jet->Branch("jet_unfold_mu_recoeta", &m_jet_unfold_mu_recoeta);
+    if (m_tree_jet->FindBranch("jet_unfold_mu_genpt")) 
+      m_tree_jet->Branch("jet_unfold_mu_genpt", &m_jet_unfold_mu_genpt);
+    if (m_tree_jet->FindBranch("jet_unfold_mu_geneta")) 
+      m_tree_jet->Branch("jet_unfold_mu_geneta", &m_jet_unfold_mu_geneta);
+    if (m_tree_jet->FindBranch("jet_unfold_mu_dr")) 
+      m_tree_jet->Branch("jet_unfold_mu_dr", &m_jet_unfold_mu_dr);
   }
 
   m_tree_met = dynamic_cast<TTree*>(a_file->Get(met_name.c_str()));
@@ -371,6 +429,7 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
     doJESSystematics(p_jets, MET);
 
 
+  m_jet_unfold_tr_size = 0;
   for (unsigned int i = 0; i < p_jets.size(); ++i)
   {
     const pat::Jet& rawJet = *(p_jets.at(i).userData<pat::Jet>("rawJet"));
@@ -502,6 +561,95 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
 
     m_scaleFactors.push_back(m_scaleFactorService->getBTaggingScaleFactor(flavor, part.et(), part.eta()));
   }
+
+  edm::Handle<reco::GenParticleCollection> genParticles;
+  if (m_isMC)
+    event.getByLabel("genParticles", genParticles);
+  const std::vector<reco::PFCandidatePtr>& PFpart = part.getPFConstituents();
+  for(unsigned int j = 0; j < PFpart.size(); ++j) {
+    if (!PFpart[j]->trackRef()) continue;
+
+    if (!PFpart[j]->trackRef()->quality(reco::Track::tight)) continue;
+    if (PFpart[j]->pt() < 0.2) continue;
+    if (m_isMC) {
+      m_jet_unfold_indjet[m_jet_unfold_tr_size] = index-1;
+      TLorentzVector recoP, genP;
+      recoP.SetPxPyPzE(PFpart[j]->px(), PFpart[j]->py(), PFpart[j]->pz(), PFpart[j]->energy());
+      genP.SetPxPyPzE(0.,0.,0.,0.);
+      double dRmin = 200.;
+      int iGen = 0;
+      for (unsigned int k = 0; k < (unsigned int)genParticles->size(); k++) {
+        if (((*genParticles)[k]).px() < 1e-4 && ((*genParticles)[k]).py() < 1e-4) continue;
+        TLorentzVector genP_int;
+        genP_int.SetPxPyPzE(((*genParticles)[k]).px(), ((*genParticles)[k]).py(), ((*genParticles)[k]).pz(), ((*genParticles)[k]).energy());
+        if (genP_int.DeltaR(recoP) < dRmin) {
+          dRmin = genP_int.DeltaR(recoP);
+          genP.SetPxPyPzE(((*genParticles)[k]).px(), ((*genParticles)[k]).py(), ((*genParticles)[k]).pz(), ((*genParticles)[k]).energy());
+          iGen = k;
+        }
+      }
+      if (fabs(PFpart[j]->pdgId()) != 13) {
+        new((*m_jet_unfold_tr_reco_lorentzvector)[m_jet_unfold_tr_size]) TLorentzVector(PFpart[j]->px(), PFpart[j]->py(), PFpart[j]->pz(), PFpart[j]->energy());
+        new((*m_jet_unfold_tr_gen_lorentzvector)[m_jet_unfold_tr_size]) TLorentzVector(((*genParticles)[iGen]).px(), ((*genParticles)[iGen]).py(), ((*genParticles)[iGen]).pz(), ((*genParticles)[iGen]).energy());
+        new((*m_jet_unfold_mu_reco_lorentzvector)[m_jet_unfold_tr_size]) TLorentzVector(0., 0., 0., 0.);
+        new((*m_jet_unfold_mu_gen_lorentzvector)[m_jet_unfold_tr_size]) TLorentzVector(0., 0., 0., 0.);
+        m_jet_unfold_tr_recopt[m_jet_unfold_tr_size] = recoP.Pt();
+        m_jet_unfold_tr_recoeta[m_jet_unfold_tr_size] = recoP.Eta();
+        if (fabs(genP.Pt()) > 1e-6) {
+          m_jet_unfold_tr_genpt[m_jet_unfold_tr_size] = genP.Pt();
+          m_jet_unfold_tr_geneta[m_jet_unfold_tr_size] = genP.Eta();
+        } else {
+          m_jet_unfold_tr_genpt[m_jet_unfold_tr_size] = 0.;
+          m_jet_unfold_tr_geneta[m_jet_unfold_tr_size] = 0.;
+        }
+        m_jet_unfold_tr_dr[m_jet_unfold_tr_size] = dRmin;
+      }
+      else {
+        new((*m_jet_unfold_mu_reco_lorentzvector)[m_jet_unfold_tr_size]) TLorentzVector(PFpart[j]->px(), PFpart[j]->py(), PFpart[j]->pz(), PFpart[j]->energy());
+        new((*m_jet_unfold_mu_gen_lorentzvector)[m_jet_unfold_tr_size]) TLorentzVector(((*genParticles)[iGen]).px(), ((*genParticles)[iGen]).py(), ((*genParticles)[iGen]).pz(), ((*genParticles)[iGen]).energy());
+        new((*m_jet_unfold_tr_reco_lorentzvector)[m_jet_unfold_tr_size]) TLorentzVector(0., 0., 0., 0.);
+        new((*m_jet_unfold_tr_gen_lorentzvector)[m_jet_unfold_tr_size]) TLorentzVector(0., 0., 0., 0.);
+        m_jet_unfold_mu_recopt[m_jet_unfold_tr_size] = recoP.Pt();
+        m_jet_unfold_mu_recoeta[m_jet_unfold_tr_size] = recoP.Eta();
+        if (fabs(genP.Pt()) > 1e-6) {
+          m_jet_unfold_mu_genpt[m_jet_unfold_tr_size] = genP.Pt();
+          m_jet_unfold_mu_geneta[m_jet_unfold_tr_size] = genP.Eta();
+        } else {
+          m_jet_unfold_mu_genpt[m_jet_unfold_tr_size] = 0.;
+          m_jet_unfold_mu_geneta[m_jet_unfold_tr_size] = 0.;
+        }
+        m_jet_unfold_mu_dr[m_jet_unfold_tr_size] = dRmin;
+      }
+    } else {
+      m_jet_unfold_indjet[m_jet_unfold_tr_size] = index-1;
+      TLorentzVector recoP;
+      recoP.SetPxPyPzE(PFpart[j]->px(), PFpart[j]->py(), PFpart[j]->pz(), PFpart[j]->energy());
+      if (fabs(PFpart[j]->pdgId()) != 13) {
+        new((*m_jet_unfold_tr_reco_lorentzvector)[m_jet_unfold_tr_size]) TLorentzVector(PFpart[j]->px(), PFpart[j]->py(), PFpart[j]->pz(), PFpart[j]->energy());
+        new((*m_jet_unfold_tr_gen_lorentzvector)[m_jet_unfold_tr_size]) TLorentzVector(0., 0., 0., 0.);
+        new((*m_jet_unfold_mu_reco_lorentzvector)[m_jet_unfold_tr_size]) TLorentzVector(0., 0., 0., 0.);
+        new((*m_jet_unfold_mu_gen_lorentzvector)[m_jet_unfold_tr_size]) TLorentzVector(0., 0., 0., 0.);
+        m_jet_unfold_tr_recopt[m_jet_unfold_tr_size] = recoP.Pt();
+        m_jet_unfold_tr_recoeta[m_jet_unfold_tr_size] = recoP.Eta();
+        m_jet_unfold_tr_genpt[m_jet_unfold_tr_size] = 0.;
+        m_jet_unfold_tr_geneta[m_jet_unfold_tr_size] = 0.;
+        m_jet_unfold_tr_dr[m_jet_unfold_tr_size] = 200.;
+      }
+      else {
+        new((*m_jet_unfold_mu_reco_lorentzvector)[m_jet_unfold_tr_size]) TLorentzVector(PFpart[j]->px(), PFpart[j]->py(), PFpart[j]->pz(), PFpart[j]->energy());
+        new((*m_jet_unfold_mu_gen_lorentzvector)[m_jet_unfold_tr_size]) TLorentzVector(0., 0., 0., 0.);
+        new((*m_jet_unfold_tr_reco_lorentzvector)[m_jet_unfold_tr_size]) TLorentzVector(0., 0., 0., 0.);
+        new((*m_jet_unfold_tr_gen_lorentzvector)[m_jet_unfold_tr_size]) TLorentzVector(0., 0., 0., 0.);
+        m_jet_unfold_mu_recopt[m_jet_unfold_tr_size] = recoP.Pt();
+        m_jet_unfold_mu_recoeta[m_jet_unfold_tr_size] = recoP.Eta();
+        m_jet_unfold_mu_genpt[m_jet_unfold_tr_size] = 0.;
+        m_jet_unfold_mu_geneta[m_jet_unfold_tr_size] = 0.;
+        m_jet_unfold_mu_dr[m_jet_unfold_tr_size] = 200.;
+      }
+    }
+    ++m_jet_unfold_tr_size;
+  }
+  
 }
 
 void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSetup, const pat::MET& part, int index) 
@@ -582,6 +730,26 @@ void JetMETExtractor::reset()
     m_jet_algo_parton_flavor[i] = 0;
     m_jet_physics_parton_pdgid[i] = 0;
   }
+
+  m_jet_unfold_tr_size = 0;
+  m_jet_unfold_tr_reco_lorentzvector->Clear();
+  m_jet_unfold_tr_gen_lorentzvector->Clear();
+  m_jet_unfold_mu_reco_lorentzvector->Clear();
+  m_jet_unfold_mu_gen_lorentzvector->Clear();
+  for (int i = 0; i < m_unfold_Tr_MAX; ++i) {
+    m_jet_unfold_indjet[i] = 0;
+    m_jet_unfold_tr_recopt[i] = 0;
+    m_jet_unfold_tr_recoeta[i] = 0;
+    m_jet_unfold_tr_genpt[i] = 0;
+    m_jet_unfold_tr_geneta[i] = 0;
+    m_jet_unfold_tr_dr[i] = 0;
+    m_jet_unfold_mu_recopt[i] = 0;
+    m_jet_unfold_mu_recoeta[i] = 0;
+    m_jet_unfold_mu_genpt[i] = 0;
+    m_jet_unfold_mu_geneta[i] = 0;
+    m_jet_unfold_mu_dr[i] = 0;
+  }
+
   if (m_jet_lorentzvector)
     m_jet_lorentzvector->Clear();
   if (m_genjet_lorentzvector)

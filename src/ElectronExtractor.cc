@@ -13,6 +13,8 @@ ElectronExtractor::ElectronExtractor(const std::string& name, std::shared_ptr<Sc
 
   m_deltaR_cut = 0.5; // Maximum acceptable distance for MC matching
   m_ele_lorentzvector = new TClonesArray("TLorentzVector");
+  m_ele_lesup_lorentzvector = new TClonesArray("TLorentzVector");
+  m_ele_lesdown_lorentzvector = new TClonesArray("TLorentzVector");
 
   const auto& sfWorkingPoints = m_scaleFactorService->getElectronScaleFactorWorkingPoints();
   for (auto& it: sfWorkingPoints) {
@@ -36,6 +38,8 @@ ElectronExtractor::ElectronExtractor(const std::string& name, std::shared_ptr<Sc
     m_tree_electron     = new TTree(m_name.c_str(), "PAT PF electron info");  
     m_tree_electron->Branch("n_electrons",                       &m_size, "n_electrons/i");  
     m_tree_electron->Branch("electron_4vector","TClonesArray",   &m_ele_lorentzvector, 1000, 0);
+    m_tree_electron->Branch("electron_lesup_4vector","TClonesArray", &m_ele_lesup_lorentzvector, 1000, 0);
+    m_tree_electron->Branch("electron_lesdown_4vector","TClonesArray", &m_ele_lesdown_lorentzvector, 1000, 0);
     m_tree_electron->Branch("electron_vx",                       &m_ele_vx,     "electron_vx[n_electrons]/F");  
     m_tree_electron->Branch("electron_vy",                       &m_ele_vy,     "electron_vy[n_electrons]/F");  
     m_tree_electron->Branch("electron_vz",                       &m_ele_vz,     "electron_vz[n_electrons]/F");  
@@ -110,6 +114,8 @@ ElectronExtractor::ElectronExtractor(const std::string& name, std::shared_ptr<Sc
   m_OK = true;
 
   m_ele_lorentzvector = new TClonesArray("TLorentzVector");
+  m_ele_lesup_lorentzvector = new TClonesArray("TLorentzVector");
+  m_ele_lesdown_lorentzvector = new TClonesArray("TLorentzVector");
 
   // Branches definition (with safety check)
 
@@ -117,6 +123,10 @@ ElectronExtractor::ElectronExtractor(const std::string& name, std::shared_ptr<Sc
     m_tree_electron->SetBranchAddress("n_electrons",&m_size);
   if (m_tree_electron->FindBranch("electron_4vector"))
     m_tree_electron->SetBranchAddress("electron_4vector",&m_ele_lorentzvector);
+  if (m_tree_electron->FindBranch("electron_lesup_4vector"))
+    m_tree_electron->SetBranchAddress("electron_lesup_4vector",&m_ele_lesup_lorentzvector);
+  if (m_tree_electron->FindBranch("electron_lesdown_4vector"))
+    m_tree_electron->SetBranchAddress("electron_lesdown_4vector",&m_ele_lesdown_lorentzvector);
   if (m_tree_electron->FindBranch("electron_vx"))
     m_tree_electron->SetBranchAddress("electron_vx",&m_ele_vx);
   if (m_tree_electron->FindBranch("electron_vy"))
@@ -219,6 +229,8 @@ ElectronExtractor::ElectronExtractor(const std::string& name, std::shared_ptr<Sc
 ElectronExtractor::~ElectronExtractor() {
   //delete m_tree_electron;
   delete m_ele_lorentzvector;
+  delete m_ele_lesup_lorentzvector;
+  delete m_ele_lesdown_lorentzvector;
 }
 
 
@@ -235,6 +247,8 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
   const pat::Electron& part = static_cast<const pat::Electron&>(object);
 
   new((*m_ele_lorentzvector)[index]) TLorentzVector(part.px(),part.py(),part.pz(),part.energy());
+  new((*m_ele_lesup_lorentzvector)[index]) TLorentzVector(getLesUp(part.pt(),part.eta())*part.px(),getLesUp(part.pt(),part.eta())*part.py(),part.pz(),part.energy());
+  new((*m_ele_lesdown_lorentzvector)[index]) TLorentzVector(getLesDown(part.pt(),part.eta())*part.px(),part.py(),getLesDown(part.pt(),part.eta())*part.pz(),part.energy());
   m_ele_vx[index]                 = part.vx();
   m_ele_vy[index]                 = part.vy();
   m_ele_vz[index]                 = part.vz();
@@ -504,6 +518,8 @@ void ElectronExtractor::reset()
   }
 
   m_ele_lorentzvector->Clear();
+  m_ele_lesup_lorentzvector->Clear();
+  m_ele_lesdown_lorentzvector->Clear();
 }
 
 

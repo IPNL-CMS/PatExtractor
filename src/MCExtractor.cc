@@ -52,6 +52,8 @@ MCExtractor::MCExtractor(const std::string& name, bool doTree, bool doJpsi, bool
       m_tree_MC->Branch("MC_JPsi_4vector","TClonesArray",&m_MC_JPsi_lorentzvector, 1000, 0);
       m_tree_MC->Branch("MC_Bhad_4vector","TClonesArray",&m_MC_Bhad_lorentzvector, 1000, 0);
       m_tree_MC->Branch("MC_Bhad_id",  &m_MC_Bhad_id,   "MC_Bhad_id[n_MCs]/I");  
+      m_tree_MC->Branch("MC_BhadWithNuDaughter",  &m_MC_BhadWithNuDaughter, "MC_BhadWithNuDaughter[n_MCs]/B");  
+      m_tree_MC->Branch("MC_BhadWithoutNuDaughter",  &m_MC_BhadWithoutNuDaughter, "MC_BhadWithoutNuDaughter[n_MCs]/B");  
       m_tree_MC->Branch("MC_Bquark_4vector","TClonesArray",&m_MC_Bquark_lorentzvector, 1000, 0);
     }
     if (_doD0) {
@@ -142,6 +144,10 @@ MCExtractor::MCExtractor(const std::string& name, TFile *a_file, bool doJpsi, bo
       m_tree_MC->SetBranchAddress("MC_Bhad_4vector",&m_MC_Bhad_lorentzvector);
     if (m_tree_MC->FindBranch("MC_Bhad_id")) 
       m_tree_MC->SetBranchAddress("MC_Bhad_id",  &m_MC_Bhad_id);
+    if (m_tree_MC->FindBranch("MC_BhadWithNuDaughter"))
+      m_tree_MC->SetBranchAddress("MC_BhadWithNuDaughter",  &m_MC_BhadWithNuDaughter);  
+    if (m_tree_MC->FindBranch("MC_BhadWithoutNuDaughter"))
+      m_tree_MC->SetBranchAddress("MC_BhadWithoutNuDaughter",  &m_MC_BhadWithoutNuDaughter);  
     if (m_tree_MC->FindBranch("MC_Bquark_4vector")) 
       m_tree_MC->SetBranchAddress("MC_Bquark_4vector",&m_MC_Bquark_lorentzvector);
   }
@@ -290,6 +296,10 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
           if (ifrag==0) {
             new((*m_MC_Bhad_lorentzvector)[ipart]) TLorentzVector(mothertmp->px(),mothertmp->py(),mothertmp->pz(),mothertmp->energy());
             m_MC_Bhad_id[ipart] = mothertmp->pdgId();
+            for (unsigned int idau = 0; idau < mothertmp->numberOfDaughters(); idau++) {
+              if (isNeutrinoPdgId(mothertmp->daughter(idau)->pdgId())) m_MC_BhadWithNuDaughter[ipart] = true;
+            }
+            if (!m_MC_BhadWithNuDaughter) m_MC_BhadWithoutNuDaughter[ipart] = true;
           }
           if (abs(mothertmp->pdgId())==92 || abs(mothertmp->pdgId())==91) break;
         }
@@ -383,6 +393,8 @@ void MCExtractor::reset()
       m_MC_LeptonFromTop[i] = false;
       m_MC_LeptonFromAntiTop[i] = false;
       m_MC_Bhad_id[i] = 0;
+      m_MC_BhadWithNuDaughter[i] = false;
+      m_MC_BhadWithoutNuDaughter[i] = false;
     }
     if (_doD0) {
       m_MC_D0_daughter0_id[i] = 0;
