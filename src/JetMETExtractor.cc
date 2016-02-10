@@ -763,21 +763,40 @@ double JetMETExtractor::getResCorrFactor(const pat::Jet& jet) {
     }
   };
 
-  if (fabs(jet.eta()) > 0. && fabs(jet.eta()) <= 0.5) {
-    return getFactor(1.079, 1.053, 1.105);
-  } else if (fabs(jet.eta()) > 0.5 && fabs(jet.eta()) <= 1.1) {
-    return getFactor(1.099, 1.071, 1.127);
-  } else if (fabs(jet.eta()) > 1.1 && fabs(jet.eta()) <= 1.7) {
-    return getFactor(1.121, 1.092, 1.150);
-  } else if (fabs(jet.eta()) > 1.7 && fabs(jet.eta()) <= 2.3) {
-    return getFactor(1.208, 1.162, 1.254);
-  } else if (fabs(jet.eta()) > 2.3 && fabs(jet.eta()) <= 2.8) {
-    return getFactor(1.254, 1.192, 1.316);
-  } else if (fabs(jet.eta()) > 2.8 && fabs(jet.eta()) <= 3.2) {
-    return getFactor(1.395, 1.332, 1.458);
+  // JER Scaling factors and Uncertainty for 13 TeV (2015)
+  if (fabs(jet.eta()) > 0. && fabs(jet.eta()) <= 0.8) {
+    return getFactor(1.061, 1.038, 1.084);
+  } else if (fabs(jet.eta()) > 0.8 && fabs(jet.eta()) <= 1.3) {
+    return getFactor(1.088, 1.059, 1.117);
+  } else if (fabs(jet.eta()) > 1.3 && fabs(jet.eta()) <= 1.9) {
+    return getFactor(1.106, 1.076, 1.136);
+  } else if (fabs(jet.eta()) > 1.9 && fabs(jet.eta()) <= 2.5) {
+    return getFactor(1.126, 1.032, 1.220);
+  } else if (fabs(jet.eta()) > 2.5 && fabs(jet.eta()) <= 3.0) {
+    return getFactor(1.343, 1.220, 1.466);
+  } else if (fabs(jet.eta()) > 3.0 && fabs(jet.eta()) <= 3.2) {
+    return getFactor(1.303, 1.192, 1.414);
   } else if (fabs(jet.eta()) > 3.2 && fabs(jet.eta()) <= 5.0) {
-    return getFactor(1.056, 0.865, 1.247);
+    return getFactor(1.320, 1.034, 1.606);
   }
+
+
+  // JER Scaling factors and Uncertainty for 8 TeV (2012)
+/*  if (fabs(jet.eta()) > 0. && fabs(jet.eta()) <= 0.5) {*/
+    //return getFactor(1.079, 1.053, 1.105);
+  //} else if (fabs(jet.eta()) > 0.5 && fabs(jet.eta()) <= 1.1) {
+    //return getFactor(1.099, 1.071, 1.127);
+  //} else if (fabs(jet.eta()) > 1.1 && fabs(jet.eta()) <= 1.7) {
+    //return getFactor(1.121, 1.092, 1.150);
+  //} else if (fabs(jet.eta()) > 1.7 && fabs(jet.eta()) <= 2.3) {
+    //return getFactor(1.208, 1.162, 1.254);
+  //} else if (fabs(jet.eta()) > 2.3 && fabs(jet.eta()) <= 2.8) {
+    //return getFactor(1.254, 1.192, 1.316);
+  //} else if (fabs(jet.eta()) > 2.8 && fabs(jet.eta()) <= 3.2) {
+    //return getFactor(1.395, 1.332, 1.458);
+  //} else if (fabs(jet.eta()) > 3.2 && fabs(jet.eta()) <= 5.0) {
+    //return getFactor(1.056, 0.865, 1.247);
+  /*}*/
 
   return 1.;
 }
