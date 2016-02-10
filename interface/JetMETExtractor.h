@@ -208,6 +208,8 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
 
     static const int 	m_jets_MAX       = 200;
 
+    float m_rho;
+
     TClonesArray* m_jet_lorentzvector;
     TClonesArray* m_genjet_lorentzvector;
     TClonesArray* m_rawjet_lorentzvector;

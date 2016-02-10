@@ -114,6 +114,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
   m_tree_jet     = new TTree(jetsTreeName.c_str(), "PAT PF jet info");  
   m_tree_jet->SetAutoSave(0);
   m_tree_jet->Branch("n_jets",  &m_size,   "n_jets/i");  
+  m_tree_jet->Branch("rho", &m_rho, "rho/F");
   m_tree_jet->Branch("jet_4vector","TClonesArray",&m_jet_lorentzvector, 5000, 0);
   m_tree_jet->Branch("genjet_4vector","TClonesArray",&m_genjet_lorentzvector, 5000, 0);
   m_tree_jet->Branch("rawjet_4vector","TClonesArray",&m_rawjet_lorentzvector, 5000, 0);
@@ -224,6 +225,8 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const edm::ParameterSe
 
     if (m_tree_jet->FindBranch("n_jets")) 
       m_tree_jet->SetBranchAddress("n_jets",            &m_size);
+    if (m_tree_jet->FindBranch("rho"))
+      m_tree_jet->SetBranchAddress("rho",            &m_rho);
     if (m_tree_jet->FindBranch("jet_4vector")) 
       m_tree_jet->SetBranchAddress("jet_4vector",       &m_jet_lorentzvector);
     if (m_tree_jet->FindBranch("genjet_4vector")) 
@@ -614,6 +617,7 @@ void JetMETExtractor::getInfo(int ievt)
 void JetMETExtractor::reset()
 {
   m_size = 0;
+  m_rho = 10000.;
 
   m_scaleFactors.clear();
 
@@ -857,6 +861,7 @@ void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met,
   edm::Handle<double> rhos;
   iEvent.getByToken(m_rhoToken, rhos);
   double rho = *rhos;
+  m_rho = *rhos;
 
   // See https://indico.cern.ch/getFile.py/access?contribId=1&resId=0&materialId=slides&confId=174324 slide 4
   // and http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/CMSSW/JetMETCorrections/Type1MET/interface/PFJetMETcorrInputProducerT.h?revision=1.8&view=markup

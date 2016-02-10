@@ -51,7 +51,8 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
                 type = cms.string("event_extractor"),
                 enable = cms.bool(True),
                 parameters = cms.PSet(
-                    pileup_summary = cms.InputTag("addPileupInfo"),
+                    #pileup_summary = cms.InputTag("addPileupInfo"), # tag in miniAOD version 1
+                    pileup_summary = cms.InputTag("slimmedAddPileupInfo"), # tag in miniAOD version 2, see https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookMiniAOD2015#Pileup_Summary_Info
                     generator = cms.InputTag("generator")
                     )
                 ),
