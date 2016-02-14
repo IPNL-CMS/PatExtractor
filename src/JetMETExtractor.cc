@@ -390,7 +390,12 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
     edm::Handle<pat::METCollection> rawMetHandle;
     event.getByToken(m_rawMetToken, rawMetHandle);
 
-    if (rawMetHandle.isValid()) {
+    if (!rawMetHandle.isValid()) {
+#if DEBUG
+      std::cout << "WARNING! Raw MET handle is not valid. Use uncorrected info from MET instead..." << std::endl;
+#endif
+      correctMETWithTypeI(MET, p_jets, event, iSetup);
+    } else {
       const pat::MET& rawMet = rawMetHandle->back();
       correctMETWithTypeI(rawMet, MET, p_jets, event, iSetup);
     }
@@ -962,6 +967,108 @@ void JetMETExtractor::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met,
 #if DEBUG
     std::cout << "Handmade corrected MET et: " << met.et() << std::endl;
     std::cout << "Raw MET sumEt: " << rawMet.sumEt() << std::endl;
+    std::cout << "Handmade corrected MET sumEt: " << m_met_sumEt() << std::endl;
+#endif
+}
+
+void JetMETExtractor::correctMETWithTypeI(pat::MET& met, const pat::JetCollection& jets, const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+  double deltaPx = 0., deltaPy = 0., deltaPt = 0.;
+#if DEBUG
+    std::cout << "---" << std::endl;
+    std::cout << "Computing TypeI correction" << std::endl;
+    std::cout << "MET Raw pt: " << met.uncorPt() << std::endl;
+    std::cout << "PAT corrected MET pt: " << met.pt() << std::endl;
+#endif
+
+  edm::Handle<reco::VertexCollection>  vertexHandle;
+  iEvent.getByToken(m_primaryVerticesToken, vertexHandle);
+  reco::VertexCollection vertices = *vertexHandle;
+
+  edm::Handle<double> rhos;
+  iEvent.getByToken(m_rhoToken, rhos);
+  double rho = *rhos;
+  m_rho = *rhos;
+
+  // See https://indico.cern.ch/getFile.py/access?contribId=1&resId=0&materialId=slides&confId=174324 slide 4
+  // and http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/CMSSW/JetMETCorrections/Type1MET/interface/PFJetMETcorrInputProducerT.h?revision=1.8&view=markup
+  for (pat::JetCollection::const_iterator it = jets.begin(); it != jets.end(); ++it) {
+
+    pat::Jet jet;
+    pat::Jet rawJet = *(it->userData<pat::Jet>("rawJet"));
+    pat::Jet L1Jet;
+    if (! mUseType1Fix) {
+      jet = *it;
+      L1Jet  = *(it->userData<pat::Jet>("L1Jet"));
+    } else {
+      jet = rawJet;
+      L1Jet = rawJet;
+
+      const JetCorrector* globalTagCorrector = nullptr;
+      const JetCorrector* globalTagCorrectorForType1Fix = nullptr;
+
+      double jet_corrections = 0.;
+      double L1Jet_corrections = 0.;
+      if (mUseGlobalTagForType1Fix) {
+        globalTagCorrector = JetCorrector::getJetCorrector(mJetCorrectorLabel, iSetup);
+        globalTagCorrectorForType1Fix = JetCorrector::getJetCorrector(mJetCorrectorLabelForType1Fix, iSetup);
+        jet_corrections = globalTagCorrector->correction(jet, iEvent, iSetup);
+        jet_corrections = globalTagCorrectorForType1Fix->correction(L1Jet, iEvent, iSetup);
+      } else {
+        mTxtCorrector->setJetEta(jet.eta());
+        mTxtCorrector->setJetPt(jet.pt());
+        mTxtCorrector->setRho(rho);
+        mTxtCorrector->setJetA(rawJet.jetArea());
+        mTxtCorrector->setNPV(vertices.size());
+        jet_corrections = mTxtCorrector->getCorrection();
+
+        mTxtCorrector_L1ForType1Fix->setJetEta(L1Jet.eta());
+        mTxtCorrector_L1ForType1Fix->setJetPt(L1Jet.pt());
+        mTxtCorrector_L1ForType1Fix->setRho(rho);
+        mTxtCorrector_L1ForType1Fix->setJetA(rawJet.jetArea());
+        mTxtCorrector_L1ForType1Fix->setNPV(vertices.size());
+        L1Jet_corrections = mTxtCorrector_L1ForType1Fix->getCorrection();
+      }
+
+      jet.scaleEnergy(jet_corrections);
+      L1Jet.scaleEnergy(L1Jet_corrections);
+
+    }
+
+    if (jet.pt() > 10) {
+
+      double emEnergyFraction = rawJet.chargedEmEnergyFraction() + rawJet.neutralEmEnergyFraction();
+      if (emEnergyFraction > 0.90)
+        continue;
+
+      //reco::Candidate::LorentzVector rawJetP4 = rawJet->p4();
+      reco::Candidate::LorentzVector L1JetP4  = L1Jet.p4();
+
+      // Skip muons
+      /*std::vector<reco::PFCandidatePtr> cands = rawJet->getPFConstituents();
+        for (std::vector<reco::PFCandidatePtr>::const_iterator cand = cands.begin(); cand != cands.end(); ++cand) {
+        if ((*cand)->muonRef().isNonnull() && skipMuonSelection(*(*cand)->muonRef())) {
+        reco::Candidate::LorentzVector muonP4 = (*cand)->p4();
+        rawJetP4 -= muonP4;
+        }
+        }*/
+
+
+      deltaPx += (jet.px() - L1JetP4.px());
+      deltaPy += (jet.py() - L1JetP4.py());
+      deltaPt += (jet.pt() - L1JetP4.pt());
+    }
+  }
+
+  double correctedMetPx = met.uncorPx() - deltaPx;
+  double correctedMetPy = met.uncorPy() - deltaPy;
+  double correctedMetPt = sqrt(correctedMetPx * correctedMetPx + correctedMetPy * correctedMetPy);
+
+  met.setP4(reco::Candidate::LorentzVector(correctedMetPx, correctedMetPy, 0., correctedMetPt));
+  m_met_sumEt = met.uncorSumEt() + deltaPt;
+
+#if DEBUG
+    std::cout << "Handmade corrected MET et: " << met.et() << std::endl;
+    std::cout << "Raw MET sumEt: " << met.uncorSumEt() << std::endl;
     std::cout << "Handmade corrected MET sumEt: " << m_met_sumEt() << std::endl;
 #endif
 }
