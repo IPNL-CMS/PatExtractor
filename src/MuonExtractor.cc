@@ -263,7 +263,7 @@ void MuonExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iS
   m_muo_pfPhotonIso[index]        = part.photonIso();
 
   m_muo_relIsolation[index] = (part.chargedHadronIso() + part.neutralHadronIso() + part.photonIso()) / part.pt();
-  m_muo_deltaBetaCorrectedRelIsolation[index] = (part.chargedHadronIso() + std::max((part.neutralHadronIso() + part.photonIso()) - 0.5 * part.puChargedHadronIso(), 0.0)) / part.pt();
+  m_muo_deltaBetaCorrectedRelIsolation[index] = (part.pfIsolationR04().sumChargedHadronPt + std::max(0., part.pfIsolationR04().sumNeutralHadronEt + part.pfIsolationR04().sumPhotonEt - 0.5*part.pfIsolationR04().sumPUPt))/part.pt();
 
   if (m_isMC) {
     for (auto& it: m_scaleFactors) {
