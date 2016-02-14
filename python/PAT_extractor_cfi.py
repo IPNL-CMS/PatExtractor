@@ -109,7 +109,13 @@ PATextraction = cms.EDAnalyzer("PatExtractor",
                     vertices = cms.InputTag("offlinePrimaryVertices"),
                     conversions = cms.InputTag("allConversions"),
                     beamspot = cms.InputTag("offlineBeamSpot"),
-                    rho = cms.InputTag("kt6PFJets", "rho", "RECO")
+                    rho = cms.InputTag("kt6PFJets", "rho", "RECO"),
+                    eleVetoIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-veto"),
+                    eleLooseIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-loose"),
+                    eleMediumIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
+                    eleTightIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-tight"),
+                    # Effective areas for computing PU correction for isolations
+                    effAreasConfigFile = cms.FileInPath("RecoEgamma/ElectronIdentification/data/Spring15/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_25ns.txt")
                     )
                 ),
 

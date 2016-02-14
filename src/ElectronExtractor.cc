@@ -5,13 +5,20 @@
 #include <EgammaAnalysis/ElectronTools/interface/ElectronEffectiveArea.h>
 #include <DataFormats/RecoCandidate/interface/IsoDeposit.h>
 #include <DataFormats/RecoCandidate/interface/IsoDepositVetos.h>
+#include <DataFormats/EgammaCandidates/interface/GsfElectron.h>
+#include "DataFormats/Common/interface/ValueMap.h"
 
 ElectronExtractor::ElectronExtractor(const std::string& name, const edm::ParameterSet& parameters)
   : BaseExtractor(name, parameters), 
   m_allConversionsTag(parameters.getParameter<edm::InputTag>("conversions")),
-  m_offlineBeamSpotTag(parameters.getParameter<edm::InputTag>("beamspot")),
   m_primaryVerticesTag(parameters.getParameter<edm::InputTag>("vertices")),
+  m_electronTag(parameters.getParameter<edm::InputTag>("input")),
   m_rhoTag(parameters.getParameter<edm::InputTag>("rho")),
+  m_eleVetoIdMapTag(parameters.getParameter<edm::InputTag>("eleVetoIdMap")),
+  m_eleLooseIdMapTag(parameters.getParameter<edm::InputTag>("eleLooseIdMap")),
+  m_eleMediumIdMapTag(parameters.getParameter<edm::InputTag>("eleMediumIdMap")),
+  m_eleTightIdMapTag(parameters.getParameter<edm::InputTag>("eleTightIdMap")),
+  effectiveAreas_( (parameters.getParameter<edm::FileInPath>("effAreasConfigFile")).fullPath() ),
   m_ele_lorentzvector(nullptr)
 {
   m_ele_lorentzvector = new TClonesArray("TLorentzVector");
@@ -71,7 +78,9 @@ ElectronExtractor::ElectronExtractor(const std::string& name, const edm::Paramet
 }
 
   ElectronExtractor::ElectronExtractor(const std::string& name, const edm::ParameterSet& settings, TFile* a_file)
-:  BaseExtractor(name, settings, a_file), m_ele_lorentzvector(nullptr)
+:  BaseExtractor(name, settings, a_file),
+  effectiveAreas_( (settings.getParameter<edm::FileInPath>("effAreasConfigFile")).fullPath() ),
+  m_ele_lorentzvector(nullptr)
 {
   m_file = a_file;
 
@@ -180,10 +189,14 @@ ElectronExtractor::~ElectronExtractor() {
 void ElectronExtractor::doConsumes(edm::ConsumesCollector&& collector) {
   BaseExtractor::doConsumes(std::forward<edm::ConsumesCollector>(collector));
 
+  m_token = collector.consumes<pat::ElectronCollection>(m_electronTag);
   m_allConversionsToken = collector.consumes<reco::ConversionCollection>(m_allConversionsTag);
-  m_offlineBeamSpotToken = collector.consumes<reco::BeamSpot>(m_offlineBeamSpotTag);
   m_primaryVerticesToken = collector.consumes<reco::VertexCollection>(m_primaryVerticesTag);
   m_rhoToken = collector.consumes<double>(m_rhoTag);
+  m_eleVetoIdMapToken = collector.consumes<edm::ValueMap<bool> >(m_eleVetoIdMapTag);
+  m_eleLooseIdMapToken = collector.consumes<edm::ValueMap<bool> >(m_eleLooseIdMapTag);
+  m_eleMediumIdMapToken = collector.consumes<edm::ValueMap<bool> >(m_eleMediumIdMapTag);
+  m_eleTightIdMapToken = collector.consumes<edm::ValueMap<bool> >(m_eleTightIdMapTag);
 }
 
 //
@@ -228,14 +241,29 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
   // See https://twiki.cern.ch/twiki/bin/viewauth/CMS/TWikiTopRefEventSel#Electrons
 
   {
+    edm::Handle<pat::ElectronCollection>  electronHandle;
+    event.getByToken(m_token, electronHandle);
+
+    edm::Handle<edm::ValueMap<bool> > veto_id_decisions;
+    edm::Handle<edm::ValueMap<bool> > loose_id_decisions;
+    edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
+    edm::Handle<edm::ValueMap<bool> > tight_id_decisions;
+    event.getByToken(m_eleVetoIdMapToken, veto_id_decisions);
+    event.getByToken(m_eleLooseIdMapToken, loose_id_decisions);
+    event.getByToken(m_eleMediumIdMapToken, medium_id_decisions);
+    event.getByToken(m_eleTightIdMapToken, tight_id_decisions);
+
+    pat::ElectronRef electronRef(electronHandle, index);
+
+    m_ele_passVetoID[index] = (*veto_id_decisions)[electronRef];
+    m_ele_passLooseID[index] = (*loose_id_decisions)[electronRef];
+    m_ele_passMediumID[index] = (*medium_id_decisions)[electronRef];
+    m_ele_passTightID[index] = (*tight_id_decisions)[electronRef];
+
+
     // Check if this electron pass VETO criteria
     edm::Handle<reco::ConversionCollection> hConversions;
     event.getByToken(m_allConversionsToken, hConversions);
-
-    // beam spot
-    edm::Handle<reco::BeamSpot> hBeamspot;
-    event.getByToken(m_offlineBeamSpotToken, hBeamspot);
-    const reco::BeamSpot &beamSpot = *hBeamspot;
 
     // vertices
     edm::Handle<reco::VertexCollection> hVtx;
@@ -264,76 +292,36 @@ void ElectronExtractor::writeInfo(const edm::Event& event, const edm::EventSetup
     //const double puChIso03 = part.isoDeposit(pat::PfPUChargedHadronIso)->depositWithin(0.3, chargedHadronVetos);
 
     // All of the above can be replaced with
-    const double chIso03 = part.chargedHadronIso();
-    const double nhIso03 = part.neutralHadronIso();
-    const double phIso03 = part.photonIso();
-    const double puChIso03 = part.puChargedHadronIso();
+/*    const double chIso03 = part.chargedHadronIso();*/
+    //const double nhIso03 = part.neutralHadronIso();
+    //const double phIso03 = part.photonIso();
+    //const double puChIso03 = part.puChargedHadronIso();
 
-    ElectronEffectiveArea::ElectronEffectiveAreaTarget ea = ElectronEffectiveArea::kEleEAData2012;
-    if (m_isMC)
-      ea = ElectronEffectiveArea::kEleEAFall11MC;
+    //ElectronEffectiveArea::ElectronEffectiveAreaTarget ea = ElectronEffectiveArea::kEleEAData2012;
+    //if (m_isMC)
+      //ea = ElectronEffectiveArea::kEleEAFall11MC;
 
-    m_ele_passVetoID[index] = EgammaCutBasedEleId::PassWP(
-        EgammaCutBasedEleId::VETO,
-        part,
-        hConversions,
-        beamSpot,
-        hVtx,
-        chIso03,
-        phIso03,
-        nhIso03,
-        rhoIso,
-        ea);
+    //// Compute effective area
+    //float AEff03 = ElectronEffectiveArea::GetElectronEffectiveArea(ElectronEffectiveArea::kEleGammaAndNeutralHadronIso03, part.superCluster()->eta(), ea);
 
-    m_ele_passLooseID[index] = EgammaCutBasedEleId::PassWP(
-        EgammaCutBasedEleId::LOOSE,
-        part,
-        hConversions,
-        beamSpot,
-        hVtx,
-        chIso03,
-        phIso03,
-        nhIso03,
-        rhoIso,
-        ea);
+    //m_ele_effectiveArea[index] = AEff03;
 
-    m_ele_passMediumID[index] = EgammaCutBasedEleId::PassWP(
-        EgammaCutBasedEleId::MEDIUM,
-        part,
-        hConversions,
-        beamSpot,
-        hVtx,
-        chIso03,
-        phIso03,
-        nhIso03,
-        rhoIso,
-        ea);
+    //const double relIso = (chIso03 + nhIso03 + phIso03) / part.pt();
+    //m_ele_relIsolation[index] = relIso;
 
-    m_ele_passTightID[index] = EgammaCutBasedEleId::PassWP(
-        EgammaCutBasedEleId::TIGHT,
-        part,
-        hConversions,
-        beamSpot,
-        hVtx,
-        chIso03,
-        phIso03,
-        nhIso03,
-        rhoIso,
-        ea);
+    //const double relIsoDeltaBetacCorrected = (chIso03 + std::max(0.0, (nhIso03 + phIso03) - 0.5 * puChIso03)) / part.pt();
+    /*m_ele_deltaBetaCorrectedRelIsolation[index] = relIsoDeltaBetacCorrected;*/
 
-    // Compute effective area
-    float AEff03 = ElectronEffectiveArea::GetElectronEffectiveArea(ElectronEffectiveArea::kEleGammaAndNeutralHadronIso03, part.superCluster()->eta(), ea);
+    //std::cout << "part.pfIsolationVariables();: " << part.pfIsolationVariables() << std::endl;
 
-    m_ele_effectiveArea[index] = AEff03;
+    // Isolation
+    //PflowIsolationVariables pfIso = part.pfIsolationVariables();
 
-    const double relIso = (chIso03 + nhIso03 + phIso03) / part.pt();
-    m_ele_relIsolation[index] = relIso;
-
-    const double relIsoRhoCorrected = (chIso03 + std::max(0.0, (nhIso03 + phIso03) - rhoIso * AEff03)) / part.pt();
+    // Compute combined relative PF isolation with the effective area correction for pile-up
+    float abseta =  abs(part.superCluster()->eta());
+    float eA = effectiveAreas_.getEffectiveArea(abseta);
+    const double relIsoRhoCorrected = ( part.pfIsolationVariables().sumChargedHadronPt + std::max( 0.0, part.pfIsolationVariables().sumNeutralHadronEt + part.pfIsolationVariables().sumPhotonEt - eA*rhoIso) / part.pt() );
     m_ele_rhoCorrectedRelIsolation[index] = relIsoRhoCorrected;
-
-    const double relIsoDeltaBetacCorrected = (chIso03 + std::max(0.0, (nhIso03 + phIso03) - 0.5 * puChIso03)) / part.pt();
-    m_ele_deltaBetaCorrectedRelIsolation[index] = relIsoDeltaBetacCorrected;
   }
 
   if (m_isMC) {

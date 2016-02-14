@@ -19,6 +19,7 @@
 #include "../interface/MCExtractor.h"
 
 #include <Extractors/PatExtractor/interface/ScaleFactor.h>
+#include "RecoEgamma/EgammaTools/interface/EffectiveAreas.h"
 
 //Include std C++
 #include <iostream>
@@ -128,12 +129,25 @@ class ElectronExtractor: public BaseExtractor<pat::Electron>
     edm::InputTag m_allConversionsTag;
     edm::InputTag m_offlineBeamSpotTag;
     edm::InputTag m_primaryVerticesTag;
+    edm::InputTag m_electronTag;
     edm::InputTag m_rhoTag;
 
+    edm::InputTag m_eleVetoIdMapTag;
+    edm::InputTag m_eleLooseIdMapTag;
+    edm::InputTag m_eleMediumIdMapTag;
+    edm::InputTag m_eleTightIdMapTag;
+
+    EffectiveAreas effectiveAreas_;
+
     edm::EDGetTokenT<reco::ConversionCollection> m_allConversionsToken;
-    edm::EDGetTokenT<reco::BeamSpot> m_offlineBeamSpotToken;
     edm::EDGetTokenT<reco::VertexCollection> m_primaryVerticesToken;
     edm::EDGetTokenT<double> m_rhoToken;
+    edm::EDGetTokenT<pat::ElectronCollection> m_token;
+    // ID decision objects
+    edm::EDGetTokenT<edm::ValueMap<bool> > m_eleVetoIdMapToken;
+    edm::EDGetTokenT<edm::ValueMap<bool> > m_eleLooseIdMapToken;
+    edm::EDGetTokenT<edm::ValueMap<bool> > m_eleMediumIdMapToken;
+    edm::EDGetTokenT<edm::ValueMap<bool> > m_eleTightIdMapToken;
 
     TTree* m_tree_electron;
 
