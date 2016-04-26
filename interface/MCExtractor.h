@@ -103,6 +103,10 @@ class MCExtractor: public SuperBaseExtractor
   int   m_MC_D0_daughter0_id[m_MCs_MAX];
   TClonesArray *m_MC_D0_daughter1_lorentzvector;
   int   m_MC_D0_daughter1_id[m_MCs_MAX];
+  TClonesArray *m_MC_D0_Bhad_lorentzvector;
+  int  m_MC_D0_Bhad_id[m_MCs_MAX];
+
+  std::vector<int> idBHadrons;
 
   void constructGeneration(int gene, int npart);
 };

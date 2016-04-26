@@ -210,6 +210,28 @@ void printOut(const RefCountedKinematicTree& myTree)
     m_jpsikvf_mu2_muon_scaleFactors[name] = ScaleFactorCollection();
     m_jpsikvf_mu2_muon_scaleFactors[name].setWriteMode();
   }
+  m_jpsiconskvf_lorentzvector             = new TClonesArray("TLorentzVector");
+  m_jpsiconskvf_lesup_lorentzvector       = new TClonesArray("TLorentzVector");
+  m_jpsiconskvf_lesdown_lorentzvector     = new TClonesArray("TLorentzVector");
+  m_jpsiconskvf_raw_lorentzvector         = new TClonesArray("TLorentzVector");
+  m_jpsiconskvf_mu1_lorentzvector         = new TClonesArray("TLorentzVector");
+  m_jpsiconskvf_mu1_lesup_lorentzvector   = new TClonesArray("TLorentzVector");
+  m_jpsiconskvf_mu1_lesdown_lorentzvector = new TClonesArray("TLorentzVector");
+  m_jpsiconskvf_mu1_raw_lorentzvector     = new TClonesArray("TLorentzVector");
+  for (auto& it: sfWorkingPoints) {
+    std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
+    m_jpsiconskvf_mu1_muon_scaleFactors[name] = ScaleFactorCollection();
+    m_jpsiconskvf_mu1_muon_scaleFactors[name].setWriteMode();
+  }
+  m_jpsiconskvf_mu2_lorentzvector         = new TClonesArray("TLorentzVector");
+  m_jpsiconskvf_mu2_lesup_lorentzvector   = new TClonesArray("TLorentzVector");
+  m_jpsiconskvf_mu2_lesdown_lorentzvector = new TClonesArray("TLorentzVector");
+  m_jpsiconskvf_mu2_raw_lorentzvector     = new TClonesArray("TLorentzVector");
+  for (auto& it: sfWorkingPoints) {
+    std::string name = "muon_scaleFactor_" + ScaleFactorService::workingPointToString(it.first) + "eff_" + ScaleFactorService::workingPointToString(it.second) + "iso";
+    m_jpsiconskvf_mu2_muon_scaleFactors[name] = ScaleFactorCollection();
+    m_jpsiconskvf_mu2_muon_scaleFactors[name].setWriteMode();
+  }
 
   m_mujet_jet_lorentzvector           = new TClonesArray("TLorentzVector");
   m_mujet_jet_scaleFactors.setWriteMode();
@@ -228,6 +250,14 @@ void printOut(const RefCountedKinematicTree& myTree)
   m_tree_jpsi = new TTree(name_jpsi.c_str(), "Jpsi info");  
   m_tree_jpsi->Branch("n_jpsi", &m_jpsi_size, "n_jpsi/I");
   m_tree_jpsi->Branch("jpsi_indjet", &m_jpsi_indjet, "jpsi_indjet[n_jpsi]/I");
+  m_tree_jpsi->Branch("jpsi_jet_charge", &m_jpsi_jet_charge, "jpsi_jet_charge[n_jpsi]/I");
+  m_tree_jpsi->Branch("jpsi_jet_chmult", &m_jpsi_jet_chmult, "jpsi_jet_chmult[n_jpsi]/I");
+  m_tree_jpsi->Branch("jpsi_jet_chmuEfrac",  &m_jpsi_jet_chmuEfrac,  "jpsi_jet_chmuEfrac[n_jpsi]/F");
+  m_tree_jpsi->Branch("jpsi_jet_chemEfrac",  &m_jpsi_jet_chemEfrac,  "jpsi_jet_chemEfrac[n_jpsi]/F");
+  m_tree_jpsi->Branch("jpsi_jet_chhadEfrac", &m_jpsi_jet_chhadEfrac, "jpsi_jet_chhadEfrac[n_jpsi]/F");
+  m_tree_jpsi->Branch("jpsi_jet_nemEfrac",   &m_jpsi_jet_nemEfrac,   "jpsi_jet_nemEfrac[n_jpsi]/F");
+  m_tree_jpsi->Branch("jpsi_jet_nhadEfrac",  &m_jpsi_jet_nhadEfrac,  "jpsi_jet_nhadEfrac[n_jpsi]/F");
+  m_tree_jpsi->Branch("jpsi_jet_algo_parton_flavor", &m_jpsi_jet_algo_parton_flavor, "jpsi_jet_algo_parton_flavor[n_jpsi]/I");
   m_tree_jpsi->Branch("jpsi_jet_btag_CSV", &m_jpsi_jet_btag_CSV, "jpsi_jet_btag_CSV[n_jpsi]/F");
   m_tree_jpsi->Branch("jpsi_jet_4vector", "TClonesArray", &m_jpsi_jet_lorentzvector, 1000, 0);
   m_tree_jpsi->Branch("jpsi_jet_scaleFactor", &m_jpsi_jet_scaleFactors.getBackingArray());
@@ -274,6 +304,35 @@ void printOut(const RefCountedKinematicTree& myTree)
   m_tree_jpsi->Branch("jpsi_L3D",	&m_jpsikvf_L3D,	"jpsikvf_L3D[n_jpsi]/F");  
   m_tree_jpsi->Branch("jpsi_sigmaL3D", &m_jpsikvf_sigmaL3D, "jpsikvf_sigmaL3D[n_jpsi]/F");  
   m_tree_jpsi->Branch("jpsi_L3DoverSigmaL3D", &m_jpsikvf_L3DoverSigmaL3D, "jpsikvf_L3DoverSigmaL3D[n_jpsi]/F");  
+  m_tree_jpsi->Branch("jpsicons_4vector", "TClonesArray", &m_jpsiconskvf_lorentzvector, 1000, 0);
+  m_tree_jpsi->Branch("jpsicons_lesup_4vector", "TClonesArray", &m_jpsiconskvf_lesup_lorentzvector, 1000, 0);
+  m_tree_jpsi->Branch("jpsicons_lesdown_4vector", "TClonesArray", &m_jpsiconskvf_lesdown_lorentzvector, 1000, 0);
+  m_tree_jpsi->Branch("jpsicons_raw_4vector", "TClonesArray", &m_jpsiconskvf_raw_lorentzvector, 1000, 0);
+  m_tree_jpsi->Branch("jpsicons_mu1_4vector", "TClonesArray", &m_jpsiconskvf_mu1_lorentzvector, 1000, 0);
+  m_tree_jpsi->Branch("jpsicons_mu1_lesup_4vector", "TClonesArray", &m_jpsiconskvf_mu1_lesup_lorentzvector, 1000, 0);
+  m_tree_jpsi->Branch("jpsicons_mu1_lesdown_4vector", "TClonesArray", &m_jpsiconskvf_mu1_lesdown_lorentzvector, 1000, 0);
+  m_tree_jpsi->Branch("jpsicons_mu1_raw_4vector", "TClonesArray", &m_jpsiconskvf_mu1_raw_lorentzvector, 1000, 0);
+  m_tree_jpsi->Branch("jpsicons_mu1_pdgid", &m_jpsiconskvf_mu1_pdgid, "jpsicons_mu1_pdgid[n_jpsi]/I"); 
+  for (auto& it: m_jpsiconskvf_mu1_muon_scaleFactors) {
+    m_tree_jpsi->Branch(("jpsicons_mu1_"+it.first).c_str(), & it.second.getBackingArray());
+  }
+  m_tree_jpsi->Branch("jpsicons_mu2_4vector", "TClonesArray", &m_jpsiconskvf_mu2_lorentzvector, 1000, 0);
+  m_tree_jpsi->Branch("jpsicons_mu2_lesup_4vector", "TClonesArray", &m_jpsiconskvf_mu2_lesup_lorentzvector, 1000, 0);
+  m_tree_jpsi->Branch("jpsicons_mu2_lesdown_4vector", "TClonesArray", &m_jpsiconskvf_mu2_lesdown_lorentzvector, 1000, 0);
+  m_tree_jpsi->Branch("jpsicons_mu2_raw_4vector", "TClonesArray", &m_jpsiconskvf_mu2_raw_lorentzvector, 1000, 0);
+  m_tree_jpsi->Branch("jpsicons_mu2_pdgid", &m_jpsiconskvf_mu2_pdgid, "jpsicons_mu2_pdgid[n_jpsi]/I"); 
+  for (auto& it: m_jpsiconskvf_mu2_muon_scaleFactors) {
+    m_tree_jpsi->Branch(("jpsicons_mu2_"+it.first).c_str(), & it.second.getBackingArray());
+  }
+  m_tree_jpsi->Branch("jpsicons_vx", &m_jpsiconskvf_vx,	"jpsiconskvf_vx[n_jpsi]/F");  
+  m_tree_jpsi->Branch("jpsicons_vy", &m_jpsiconskvf_vy,	"jpsiconskvf_vy[n_jpsi]/F");  
+  m_tree_jpsi->Branch("jpsicons_vz", &m_jpsiconskvf_vz,	"jpsiconskvf_vz[n_jpsi]/F");
+  m_tree_jpsi->Branch("jpsicons_vtxvalid", &m_jpsiconskvf_vtxvalid, "jpsiconskvf_vtxvalid[n_jpsi]/O");
+  m_tree_jpsi->Branch("jpsicons_vtxchi2", &m_jpsiconskvf_vtxchi2,  "jpsiconskvf_vtxchi2[n_jpsi]/F");
+  m_tree_jpsi->Branch("jpsicons_ndf",	&m_jpsiconskvf_ndf,	"jpsiconskvf_ndf[n_jpsi]/F");  
+  m_tree_jpsi->Branch("jpsicons_L3D",	&m_jpsiconskvf_L3D,	"jpsiconskvf_L3D[n_jpsi]/F");  
+  m_tree_jpsi->Branch("jpsicons_sigmaL3D", &m_jpsiconskvf_sigmaL3D, "jpsiconskvf_sigmaL3D[n_jpsi]/F");  
+  m_tree_jpsi->Branch("jpsicons_L3DoverSigmaL3D", &m_jpsiconskvf_L3DoverSigmaL3D, "jpsiconskvf_L3DoverSigmaL3D[n_jpsi]/F");  
 
   m_tree_mujet = NULL;
   m_tree_mujet = new TTree("muTaggedJet_PF", "Mu-tagged jet info");  
@@ -401,6 +460,22 @@ void KVFExtractor::beginJob() {
       m_tree_jpsi->Branch("n_jpsi", &m_jpsi_size);
     if (m_tree_jpsi->FindBranch("jpsi_indjet")) 
       m_tree_jpsi->Branch("jpsi_indjet", &m_jpsi_indjet);
+    if (m_tree_jpsi->FindBranch("jpsi_jet_charge")) 
+      m_tree_jpsi->SetBranchAddress("jpsi_jet_charge",     &m_jpsi_jet_charge);
+    if (m_tree_jpsi->FindBranch("jpsi_jet_chmult")) 
+      m_tree_jpsi->SetBranchAddress("jpsi_jet_chmult",     &m_jpsi_jet_chmult);
+    if (m_tree_jpsi->FindBranch("jpsi_jet_chmuEfrac")) 
+      m_tree_jpsi->SetBranchAddress("jpsi_jet_chmuEfrac",  &m_jpsi_jet_chmuEfrac);
+    if (m_tree_jpsi->FindBranch("jpsi_jet_chemEfrac")) 
+      m_tree_jpsi->SetBranchAddress("jpsi_jet_chemEfrac",  &m_jpsi_jet_chemEfrac);
+    if (m_tree_jpsi->FindBranch("jpsi_jet_chhadEfrac")) 
+      m_tree_jpsi->SetBranchAddress("jpsi_jet_chhadEfrac", &m_jpsi_jet_chhadEfrac);
+    if (m_tree_jpsi->FindBranch("jpsi_jet_nemEfrac")) 
+      m_tree_jpsi->SetBranchAddress("jpsi_jet_nemEfrac",   &m_jpsi_jet_nemEfrac);
+    if (m_tree_jpsi->FindBranch("jpsi_jet_nhadEfrac")) 
+      m_tree_jpsi->SetBranchAddress("jpsi_jet_nhadEfrac",  &m_jpsi_jet_nhadEfrac);
+    if (m_tree_jpsi->FindBranch("jpsi_jet_algo_parton_flavor"))
+      m_tree_jpsi->SetBranchAddress("jpis_jet_algo_parton_flavor", &m_jpsi_jet_algo_parton_flavor);    
     if (m_tree_jpsi->FindBranch("jpsi_jet_btag_CSV")) 
       m_tree_jpsi->Branch("jpsi_jet_btag_CSV", &m_jpsi_jet_btag_CSV);
     if (m_tree_jpsi->FindBranch("jpsi_jet_4vector")) 
@@ -722,7 +797,7 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
     ParticleMass muon_mass  = 0.1056583;
     float        muon_sigma = 0.0000001;
 
-    // ParticleMass jpsi_mass  = 3.09687;
+    ParticleMass jpsi_mass  = 3.09687;
     // float        jpsi_sigma = 0.00009;
 
     // To transform Track to TransientTrack, first need to get the builder:
@@ -793,6 +868,14 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
 
           // Fill tree info for links between Jpsi and jet
           m_jpsi_indjet[nJpsi-1] = i;
+          m_jpsi_jet_charge[nJpsi-1]     = PFpart[0]->charge();
+          m_jpsi_jet_chmult[nJpsi-1]     = p_jets.at(i).chargedMultiplicity();
+          m_jpsi_jet_chmuEfrac[nJpsi-1]  = p_jets.at(i).chargedMuEnergyFraction();
+          m_jpsi_jet_chemEfrac[nJpsi-1]  = p_jets.at(i).chargedEmEnergyFraction();
+          m_jpsi_jet_chhadEfrac[nJpsi-1] = p_jets.at(i).chargedHadronEnergyFraction();
+          m_jpsi_jet_nemEfrac[nJpsi-1]   = p_jets.at(i).neutralEmEnergyFraction();
+          m_jpsi_jet_nhadEfrac[nJpsi-1]  = p_jets.at(i).neutralHadronEnergyFraction();
+          m_jpsi_jet_algo_parton_flavor[nJpsi-1] = p_jets.at(i).partonFlavour();
           m_jpsi_jet_btag_CSV[nJpsi-1] = p_jets.at(i).bDiscriminator("combinedSecondaryVertexBJetTags");
           new((*m_jpsi_jet_lorentzvector)[nJpsi-1]) TLorentzVector((p_jets.at(i)).px(),(p_jets.at(i)).py(),(p_jets.at(i)).pz(),(p_jets.at(i)).energy());
           if (m_isMC) {
@@ -848,7 +931,7 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
           reco::TransientTrack tr1 = (*theMuB).build(PFpart[j]->trackRef());
           reco::TransientTrack tr2 = (*theMuB).build(PFpart[k]->trackRef());
 
-          // A complicated Kalman fit :
+          // A Kalman fit :
           //---------------------------
 
           //Creating a KinematicParticleFactory
@@ -868,8 +951,8 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
            * The KinematicParticleVertexFitter fits the final state particles to their vertex and
            * reconstructs the decayed state
            */
-
-          // creating the vertex fitter
+ 
+          //creating the fitter
           KinematicParticleVertexFitter fitter;
           // reconstructing a J/Psi decay
           RefCountedKinematicTree vertexFitTree = fitter.fit(muonParticles);
@@ -891,7 +974,7 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
             new((*m_jpsikvf_mu2_lesdown_lorentzvector)[nJpsi-1]) TLorentzVector(0,0,0,0);
             new((*m_jpsikvf_mu2_raw_lorentzvector)[nJpsi-1]) TLorentzVector(0,0,0,0);
 
-            continue;
+            // continue;
 
           } else {
             //accessing the tree components, move pointer to top
@@ -1040,7 +1123,194 @@ void KVFExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSe
             else 
               std::cout << "J/psi decay vertex Not valid" << std::endl;
 
-          } // vertex is not valid
+          } // vertex is valid
+
+          //initial chi2 and ndf before kinematic fits. The chi2 of the reconstruction is not considered
+          chi = 0.;
+          ndf = 0.;
+
+          /* Example of a simple vertex fit, without a mass constraint
+           * The reconstructed decay tree is a result of the kinematic fit
+           * The KinematicParticleVertexFitter fits the final state particles to their vertex and
+           * reconstructs the decayed state
+           */
+
+          //creating the two track mass constraint 
+          MultiTrackKinematicConstraint* j_psi_c = new TwoTrackMassKinematicConstraint(jpsi_mass);
+
+          //creating the fitter
+          KinematicConstrainedVertexFitter kcvFitter;
+          // reconstructing a J/Psi decay
+          RefCountedKinematicTree vertexConsFitTree = kcvFitter.fit(muonParticles, j_psi_c);     
+
+          if (!vertexConsFitTree->isValid()) {
+            std::cout <<"J/psi vertexConsTree is invalid. Fit failed." << std::endl;
+
+            // Need to fill empty quantities : OK for tables, but need to create empty TLorentzVector
+            new((*m_jpsiconskvf_lorentzvector)[nJpsi-1]) TLorentzVector(0,0,0,0);
+            new((*m_jpsiconskvf_lesup_lorentzvector)[nJpsi-1]) TLorentzVector(0,0,0,0);
+            new((*m_jpsiconskvf_lesdown_lorentzvector)[nJpsi-1]) TLorentzVector(0,0,0,0);
+            new((*m_jpsiconskvf_raw_lorentzvector)[nJpsi-1]) TLorentzVector(0,0,0,0);
+            new((*m_jpsiconskvf_mu1_lorentzvector)[nJpsi-1]) TLorentzVector(0,0,0,0);
+            new((*m_jpsiconskvf_mu1_lesup_lorentzvector)[nJpsi-1]) TLorentzVector(0,0,0,0);
+            new((*m_jpsiconskvf_mu1_lesdown_lorentzvector)[nJpsi-1]) TLorentzVector(0,0,0,0);
+            new((*m_jpsiconskvf_mu1_raw_lorentzvector)[nJpsi-1]) TLorentzVector(0,0,0,0);
+            new((*m_jpsiconskvf_mu2_lorentzvector)[nJpsi-1]) TLorentzVector(0,0,0,0);
+            new((*m_jpsiconskvf_mu2_lesup_lorentzvector)[nJpsi-1]) TLorentzVector(0,0,0,0);
+            new((*m_jpsiconskvf_mu2_lesdown_lorentzvector)[nJpsi-1]) TLorentzVector(0,0,0,0);
+            new((*m_jpsiconskvf_mu2_raw_lorentzvector)[nJpsi-1]) TLorentzVector(0,0,0,0);
+
+            // continue;
+
+          } else {
+            //accessing the tree components, move pointer to top
+            vertexConsFitTree->movePointerToTheTop();
+
+            //We are now at the top of the decay tree getting the jpsi reconstructed KinematicPartlcle
+            RefCountedKinematicParticle jpsi1 = vertexConsFitTree->currentParticle();
+            AlgebraicVector7 par0 = jpsi1->currentState().kinematicParameters().vector();
+            double e0 = jpsi1->currentState().kinematicParameters().energy();
+            new((*m_jpsiconskvf_raw_lorentzvector)[nJpsi-1]) TLorentzVector(par0(3),par0(4),par0(5),e0);
+
+            RefCountedKinematicVertex jpsi1_vertex = vertexConsFitTree->currentDecayVertex();
+            if (jpsi1_vertex->vertexIsValid()) {
+
+              m_jpsiconskvf_vx[nJpsi-1] = jpsi1_vertex->position().x();
+              m_jpsiconskvf_vy[nJpsi-1] = jpsi1_vertex->position().y();
+              m_jpsiconskvf_vz[nJpsi-1] = jpsi1_vertex->position().z();
+              m_jpsiconskvf_vtxvalid[nJpsi-1] = true;
+              m_jpsiconskvf_vtxchi2[nJpsi-1] = jpsi1_vertex->chiSquared();
+              m_jpsiconskvf_ndf[nJpsi-1] = jpsi1_vertex->degreesOfFreedom();
+
+              // Compute the distance between the PV and the Jpsi vertex :
+              //----------------------------------------------------------
+
+              const reco::VertexCollection vtx = *(pvHandle.product());
+
+              GlobalPoint svPos    = jpsi1_vertex->position();
+              GlobalError svPosErr = jpsi1_vertex->error();
+
+              // If the  PV does not exist, compute distance wrt to the detector center (0,0,0)
+
+              double sigmax = 0.;
+              double sigmay = 0.;
+              double sigmaz = 0.;
+              if (vtx.size() > 0) {
+                sigmax = sqrt(vtx[0].xError()*vtx[0].xError() + svPosErr.cxx()*svPosErr.cxx());
+                sigmay = sqrt(vtx[0].yError()*vtx[0].yError() + svPosErr.cyy()*svPosErr.cyy());
+                sigmaz = sqrt(vtx[0].zError()*vtx[0].zError() + svPosErr.czz()*svPosErr.czz());
+              }  else {
+                sigmax = sqrt(svPosErr.cxx()*svPosErr.cxx());
+                sigmay = sqrt(svPosErr.cyy()*svPosErr.cyy());
+                sigmaz = sqrt(svPosErr.czz()*svPosErr.czz());
+              }
+
+              double px  = par0(3);
+              double py  = par0(4);
+              double pz  = par0(5);
+              double nrj = e0;
+              double m = sqrt(nrj*nrj - px*px - py*py - pz*pz);
+
+              double interx = pow((px/m)/sigmax, 2.);
+              double intery = pow((py/m)/sigmay, 2.);
+              double interz = pow((pz/m)/sigmaz, 2.);
+
+              m_jpsiconskvf_sigmaL3D[nJpsi-1] = pow(interx + intery + interz , -0.5);
+              //std::cout << "sigmaL3D = " << m_jpsiconskvf_sigmaL3D[nJpsi-1] << std::endl;
+
+              double part1 = 0.;
+              double part2 = 0.;
+              double part3 = 0.;
+              if (vtx.size() >0) {
+                part1 = (px/m)*pow(m_jpsiconskvf_sigmaL3D[nJpsi-1]/sigmax,2.)*(svPos.x() - vtx[0].x());
+                part2 = (py/m)*pow(m_jpsiconskvf_sigmaL3D[nJpsi-1]/sigmay,2.)*(svPos.y() - vtx[0].y());
+                part3 = (pz/m)*pow(m_jpsiconskvf_sigmaL3D[nJpsi-1]/sigmaz,2.)*(svPos.z() - vtx[0].z());
+              }  else {
+                part1 = (px/m)*pow(m_jpsiconskvf_sigmaL3D[nJpsi-1]/sigmax,2.)*svPos.x();
+                part2 = (py/m)*pow(m_jpsiconskvf_sigmaL3D[nJpsi-1]/sigmay,2.)*svPos.y();
+                part3 = (pz/m)*pow(m_jpsiconskvf_sigmaL3D[nJpsi-1]/sigmaz,2.)*svPos.z();
+              }
+
+              m_jpsiconskvf_L3D[nJpsi-1] = fabs(part1 + part2 + part3);
+              //std::cout << "L3D = " << m_jpsiconskvf_L3D[nJpsi-1] << std::endl;  
+
+              m_jpsiconskvf_L3DoverSigmaL3D[nJpsi-1] = m_jpsiconskvf_L3D[nJpsi-1]/m_jpsiconskvf_sigmaL3D[nJpsi-1];
+              //std::cout << "(L/sigma)3D = " << m_jpsiconskvf_L3DoverSigmaL3D[nJpsi-1] << std::endl;    
+
+              if (!pvHandle.isValid()) {
+                std::cout << "KVFExtractor::writeInfo(): pvHandle is not valid..." << std::endl;
+              }
+
+              vector< RefCountedKinematicParticle > jpsi1_children = vertexConsFitTree->finalStateParticles();
+              if (jpsi1_children.size() != 2) {
+                std::cout << " Warning Jpsi1 children size not equal to 2..." << std::endl;
+              } else {
+                TLorentzVector p_mu1(0, 0, 0, 0);
+                // Order is : x,y,z,px,py,pz,m
+                AlgebraicVector7 par1 = jpsi1_children[0]->currentState().kinematicParameters().vector();
+                double e1 = jpsi1_children[0]->currentState().kinematicParameters().energy();
+                new((*m_jpsiconskvf_mu1_raw_lorentzvector)[nJpsi-1]) TLorentzVector(par1(3),par1(4),par1(5),e1);
+                p_mu1.SetPxPyPzE(par1(3),par1(4),par1(5),e1);
+                m_jpsiconskvf_mu1_pdgid[nJpsi-1] = PFpart[j]->pdgId(); 
+                if (m_isMC) {
+                  for (auto& it: m_jpsiconskvf_mu1_muon_scaleFactors) {
+                    std::pair<ScaleFactorService::WorkingPoint, ScaleFactorService::WorkingPoint> workingPoints = ScaleFactorService::getWorkingPointFromName(it.first);
+                    it.second.push_back(m_scaleFactorService->getMuonScaleFactor(workingPoints.first, workingPoints.second, p_mu1.Pt(), p_mu1.Eta()));
+                  }
+                }
+
+                TLorentzVector p_mu2(0, 0, 0, 0);
+                AlgebraicVector7 par2 = jpsi1_children[1]->currentState().kinematicParameters().vector();
+                double e2 = jpsi1_children[1]->currentState().kinematicParameters().energy();
+                new((*m_jpsiconskvf_mu2_raw_lorentzvector)[nJpsi-1]) TLorentzVector(par2(3),par2(4),par2(5),e2);
+                p_mu2.SetPxPyPzE(par2(3),par2(4),par2(5),e2);
+                m_jpsiconskvf_mu2_pdgid[nJpsi-1] = PFpart[k]->pdgId(); 
+                if (m_isMC) {
+                  for (auto& it: m_jpsiconskvf_mu2_muon_scaleFactors) {
+                    std::pair<ScaleFactorService::WorkingPoint, ScaleFactorService::WorkingPoint> workingPoints = ScaleFactorService::getWorkingPointFromName(it.first);
+                    it.second.push_back(m_scaleFactorService->getMuonScaleFactor(workingPoints.first, workingPoints.second, p_mu2.Pt(), p_mu2.Eta()));
+                  }
+                }
+
+                if (PFpart[j]->pdgId() < 0)
+                  corrector->applyPtCorrection(p_mu1, -1);
+                else
+                  corrector->applyPtCorrection(p_mu1, 1);
+                if (PFpart[k]->pdgId() < 0)
+                  corrector->applyPtCorrection(p_mu2, -1);
+                else
+                  corrector->applyPtCorrection(p_mu2, 1);
+
+                if (m_isMC) {
+                  if (PFpart[j]->pdgId() < 0)
+                    corrector->applyPtSmearing(p_mu1, -1, false);
+                  else
+                    corrector->applyPtSmearing(p_mu1, 1, false);
+                  if (PFpart[k]->pdgId() < 0)
+                    corrector->applyPtSmearing(p_mu2, -1, false);
+                  else
+                    corrector->applyPtSmearing(p_mu2, 1, false);
+                }
+                new((*m_jpsiconskvf_mu1_lorentzvector)[nJpsi-1]) TLorentzVector(p_mu1.Px(), p_mu1.Py(), p_mu1.Pz(), p_mu1.E());
+                new((*m_jpsiconskvf_mu2_lorentzvector)[nJpsi-1]) TLorentzVector(p_mu2.Px(), p_mu2.Py(), p_mu2.Pz(), p_mu2.E());
+                new((*m_jpsiconskvf_lorentzvector)[nJpsi-1]) TLorentzVector((p_mu1+p_mu2).Px(), (p_mu1+p_mu2).Py(), (p_mu1+p_mu2).Pz(), (p_mu1+p_mu2).E());
+          
+                new((*m_jpsiconskvf_mu1_lesup_lorentzvector)[nJpsi-1]) TLorentzVector(getLesUp(p_mu1.Eta())*p_mu1.Px(), getLesUp(p_mu1.Eta())*p_mu1.Py(), p_mu1.Pz(), p_mu1.E());
+                new((*m_jpsiconskvf_mu2_lesup_lorentzvector)[nJpsi-1]) TLorentzVector(getLesUp(p_mu2.Eta())*p_mu2.Px(), getLesUp(p_mu2.Eta())*p_mu2.Py(), p_mu2.Pz(), p_mu2.E());
+                new((*m_jpsiconskvf_lesup_lorentzvector)[nJpsi-1]) TLorentzVector(getLesUp(p_mu1.Eta())*p_mu1.Px()+getLesUp(p_mu2.Eta())*p_mu2.Px(), getLesUp(p_mu1.Eta())*p_mu1.Py()+getLesUp(p_mu2.Eta())*p_mu2.Py(), (p_mu1+p_mu2).Pz(), (p_mu1+p_mu2).E());
+                
+                new((*m_jpsiconskvf_mu1_lesdown_lorentzvector)[nJpsi-1]) TLorentzVector(getLesDown(p_mu1.Eta())*p_mu1.Px(), getLesDown(p_mu1.Eta())*p_mu1.Py(), p_mu1.Pz(), p_mu1.E());
+                new((*m_jpsiconskvf_mu2_lesdown_lorentzvector)[nJpsi-1]) TLorentzVector(getLesDown(p_mu2.Eta())*p_mu2.Px(), getLesDown(p_mu2.Eta())*p_mu2.Py(), p_mu2.Pz(), p_mu2.E());
+                new((*m_jpsiconskvf_lesdown_lorentzvector)[nJpsi-1]) TLorentzVector(getLesDown(p_mu1.Eta())*p_mu1.Px()+getLesDown(p_mu2.Eta())*p_mu2.Px(), getLesDown(p_mu1.Eta())*p_mu1.Py()+getLesDown(p_mu2.Eta())*p_mu2.Py(), (p_mu1+p_mu2).Pz(), (p_mu1+p_mu2).E());
+
+              }
+
+            } 
+            else 
+              std::cout << "J/psi decay vertex Not valid" << std::endl;
+
+          } // vertex is valid
+
         } // mass condition
 
       } // end 2nd PF loop
@@ -1430,6 +1700,14 @@ void KVFExtractor::reset()
 
   for (int i = 0; i < m_jpsi_MAX; ++i) {
     m_jpsi_indjet[i] = 0;
+    m_jpsi_jet_charge[i] = 0;
+    m_jpsi_jet_chmult[i] = 0;
+    m_jpsi_jet_chmuEfrac[i] = 0.;
+    m_jpsi_jet_chemEfrac[i] = 0.;
+    m_jpsi_jet_chhadEfrac[i] = 0.;
+    m_jpsi_jet_nemEfrac[i] = 0.;
+    m_jpsi_jet_nhadEfrac[i] = 0.;
+    m_jpsi_jet_algo_parton_flavor[i] = 0;    
     m_jpsi_jet_btag_CSV[i] = 0;
     m_jpsi_indpf1[i] = 0;
     m_jpsi_indpf2[i] = 0;

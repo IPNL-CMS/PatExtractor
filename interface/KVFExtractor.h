@@ -165,6 +165,14 @@ class KVFExtractor: public BaseExtractor<pat::Jet>
     
     int           m_jpsi_size;
     int           m_jpsi_indjet[m_jpsi_MAX];
+    int           m_jpsi_jet_charge[m_jpsi_MAX];
+    int           m_jpsi_jet_chmult[m_jpsi_MAX];
+    float         m_jpsi_jet_chmuEfrac[m_jpsi_MAX];
+    float         m_jpsi_jet_chemEfrac[m_jpsi_MAX];
+    float         m_jpsi_jet_chhadEfrac[m_jpsi_MAX];
+    float         m_jpsi_jet_nemEfrac[m_jpsi_MAX];
+    float         m_jpsi_jet_nhadEfrac[m_jpsi_MAX];    
+    int           m_jpsi_jet_algo_parton_flavor[m_jpsi_MAX];
     float         m_jpsi_jet_btag_CSV[m_jpsi_MAX];
     TClonesArray* m_jpsi_jet_lorentzvector;
     ScaleFactorCollection m_jpsi_jet_scaleFactors;
@@ -207,6 +215,31 @@ class KVFExtractor: public BaseExtractor<pat::Jet>
     float         m_jpsikvf_L3D[m_jpsi_MAX];
     float         m_jpsikvf_sigmaL3D[m_jpsi_MAX];
     float         m_jpsikvf_L3DoverSigmaL3D[m_jpsi_MAX];
+    TClonesArray* m_jpsiconskvf_lorentzvector;
+    TClonesArray* m_jpsiconskvf_lesup_lorentzvector;
+    TClonesArray* m_jpsiconskvf_lesdown_lorentzvector;
+    TClonesArray* m_jpsiconskvf_raw_lorentzvector;
+    TClonesArray* m_jpsiconskvf_mu1_lorentzvector;
+    TClonesArray* m_jpsiconskvf_mu1_lesup_lorentzvector;
+    TClonesArray* m_jpsiconskvf_mu1_lesdown_lorentzvector;
+    TClonesArray* m_jpsiconskvf_mu1_raw_lorentzvector;
+    int           m_jpsiconskvf_mu1_pdgid[m_jpsi_MAX];
+    std::map<std::string, ScaleFactorCollection> m_jpsiconskvf_mu1_muon_scaleFactors;
+    TClonesArray* m_jpsiconskvf_mu2_lorentzvector;
+    TClonesArray* m_jpsiconskvf_mu2_lesup_lorentzvector;
+    TClonesArray* m_jpsiconskvf_mu2_lesdown_lorentzvector;
+    TClonesArray* m_jpsiconskvf_mu2_raw_lorentzvector;
+    int           m_jpsiconskvf_mu2_pdgid[m_jpsi_MAX];
+    std::map<std::string, ScaleFactorCollection> m_jpsiconskvf_mu2_muon_scaleFactors;
+    float         m_jpsiconskvf_vx[m_jpsi_MAX];
+    float         m_jpsiconskvf_vy[m_jpsi_MAX];
+    float         m_jpsiconskvf_vz[m_jpsi_MAX];
+    bool          m_jpsiconskvf_vtxvalid[m_jpsi_MAX];
+    float         m_jpsiconskvf_vtxchi2[m_jpsi_MAX];
+    float         m_jpsiconskvf_ndf[m_jpsi_MAX];
+    float         m_jpsiconskvf_L3D[m_jpsi_MAX];
+    float         m_jpsiconskvf_sigmaL3D[m_jpsi_MAX];
+    float         m_jpsiconskvf_L3DoverSigmaL3D[m_jpsi_MAX];
 
     // D0
 

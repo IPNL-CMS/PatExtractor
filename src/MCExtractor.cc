@@ -18,6 +18,7 @@ MCExtractor::MCExtractor(const std::string& name, bool doTree, bool doJpsi, bool
     m_MC_D0_lorentzvector = new TClonesArray("TLorentzVector");
     m_MC_D0_daughter0_lorentzvector = new TClonesArray("TLorentzVector");
     m_MC_D0_daughter1_lorentzvector = new TClonesArray("TLorentzVector");
+    m_MC_D0_Bhad_lorentzvector = new TClonesArray("TLorentzVector");
   }
   reset();
 
@@ -62,8 +63,54 @@ MCExtractor::MCExtractor(const std::string& name, bool doTree, bool doJpsi, bool
       m_tree_MC->Branch("MC_D0_daughter0_id",  &m_MC_D0_daughter0_id,   "MC_daughter0_id[n_MCs]/I");  
       m_tree_MC->Branch("MC_D0_daughter1_4vector","TClonesArray",&m_MC_D0_daughter1_lorentzvector, 1000, 0);
       m_tree_MC->Branch("MC_D0_daughter1_id",  &m_MC_D0_daughter1_id,   "MC_D0_daughter1_id[n_MCs]/I");  
+      m_tree_MC->Branch("MC_D0_Bhad_4vector","TClonesArray",&m_MC_D0_Bhad_lorentzvector, 1000, 0);
+      m_tree_MC->Branch("MC_D0_Bhad_id",  &m_MC_D0_Bhad_id,   "MC_Bhad_id[n_MCs]/I");  
     }
   }
+
+  idBHadrons.push_back(411); idBHadrons.push_back(421); idBHadrons.push_back(10411); idBHadrons.push_back(10421); 
+  idBHadrons.push_back(413); idBHadrons.push_back(423); idBHadrons.push_back(10413); idBHadrons.push_back(10423); 
+  idBHadrons.push_back(20413); idBHadrons.push_back(20423); idBHadrons.push_back(415); idBHadrons.push_back(425); 
+  idBHadrons.push_back(431); idBHadrons.push_back(10431); idBHadrons.push_back(433); idBHadrons.push_back(10433); 
+  idBHadrons.push_back(20433); idBHadrons.push_back(435); 
+  //bottom mesons
+  idBHadrons.push_back(511); idBHadrons.push_back(521); idBHadrons.push_back(10511); idBHadrons.push_back(10521); 
+  idBHadrons.push_back(513); idBHadrons.push_back(523); idBHadrons.push_back(10513); idBHadrons.push_back(10523); 
+  idBHadrons.push_back(20513); idBHadrons.push_back(20523); idBHadrons.push_back(515); idBHadrons.push_back(525); 
+  idBHadrons.push_back(531); idBHadrons.push_back(10531); idBHadrons.push_back(533); idBHadrons.push_back(10533); 
+  idBHadrons.push_back(20533); idBHadrons.push_back(535); idBHadrons.push_back(541); idBHadrons.push_back(10541); 
+  idBHadrons.push_back(543); idBHadrons.push_back(10543); idBHadrons.push_back(20543); idBHadrons.push_back(545); 
+  // ccbar mesons
+  idBHadrons.push_back(441); idBHadrons.push_back(10441); idBHadrons.push_back(100441); idBHadrons.push_back(443); 
+  idBHadrons.push_back(10443); idBHadrons.push_back(20443); idBHadrons.push_back(100443); idBHadrons.push_back(30443); 
+  idBHadrons.push_back(9000443); idBHadrons.push_back(9010443); idBHadrons.push_back(9020443); idBHadrons.push_back(445); 
+  idBHadrons.push_back(100445); 
+  //bbar mesons:w
+  idBHadrons.push_back(551); idBHadrons.push_back(100551); idBHadrons.push_back(110551); idBHadrons.push_back(200551); 
+  idBHadrons.push_back(210551); idBHadrons.push_back(553); idBHadrons.push_back(10553); idBHadrons.push_back(20553); 
+  idBHadrons.push_back(30553); idBHadrons.push_back(100553); idBHadrons.push_back(110553); idBHadrons.push_back(120553); 
+  idBHadrons.push_back(130553); idBHadrons.push_back(200553); idBHadrons.push_back(210553); idBHadrons.push_back(220553); 
+  idBHadrons.push_back(300553); idBHadrons.push_back(9000553); idBHadrons.push_back(9010553); idBHadrons.push_back(555); 
+  idBHadrons.push_back(10555); idBHadrons.push_back(20555); idBHadrons.push_back(100555); idBHadrons.push_back(110555); 
+  idBHadrons.push_back(120555); idBHadrons.push_back(200555); idBHadrons.push_back(557); idBHadrons.push_back(100557); 
+  // charmed baryons
+  idBHadrons.push_back(4122); idBHadrons.push_back(4222); idBHadrons.push_back(4212); idBHadrons.push_back(4112); 
+  idBHadrons.push_back(4224); idBHadrons.push_back(4214); idBHadrons.push_back(4114); idBHadrons.push_back(4232); 
+  idBHadrons.push_back(4132); idBHadrons.push_back(4322); idBHadrons.push_back(4312); idBHadrons.push_back(4324); 
+  idBHadrons.push_back(4314); idBHadrons.push_back(4332); idBHadrons.push_back(4334); idBHadrons.push_back(4412); 
+  idBHadrons.push_back(4422); idBHadrons.push_back(4414); idBHadrons.push_back(4424); idBHadrons.push_back(4432); 
+  idBHadrons.push_back(4434); idBHadrons.push_back(4444);  
+  // bottom baryons
+  idBHadrons.push_back(5122); idBHadrons.push_back(5112); idBHadrons.push_back(5212); idBHadrons.push_back(5222); 
+  idBHadrons.push_back(5114); idBHadrons.push_back(5214); idBHadrons.push_back(5224); idBHadrons.push_back(5132); 
+  idBHadrons.push_back(5232); idBHadrons.push_back(5312); idBHadrons.push_back(5322); idBHadrons.push_back(5314); 
+  idBHadrons.push_back(5324); idBHadrons.push_back(5332); idBHadrons.push_back(5334); idBHadrons.push_back(5142); 
+  idBHadrons.push_back(5242); idBHadrons.push_back(5412); idBHadrons.push_back(5422); idBHadrons.push_back(5414); 
+  idBHadrons.push_back(5424); idBHadrons.push_back(5342); idBHadrons.push_back(5432); idBHadrons.push_back(5434); 
+  idBHadrons.push_back(5442); idBHadrons.push_back(5444); idBHadrons.push_back(5512); idBHadrons.push_back(5522); 
+  idBHadrons.push_back(5514); idBHadrons.push_back(5524); idBHadrons.push_back(5532); idBHadrons.push_back(5534); 
+  idBHadrons.push_back(5542); idBHadrons.push_back(5544); idBHadrons.push_back(5554);  
+
 }
 
 MCExtractor::MCExtractor(const std::string& name, TFile *a_file, bool doJpsi, bool doD0)
@@ -95,6 +142,7 @@ MCExtractor::MCExtractor(const std::string& name, TFile *a_file, bool doJpsi, bo
     m_MC_D0_lorentzvector = new TClonesArray("TLorentzVector");
     m_MC_D0_daughter0_lorentzvector = new TClonesArray("TLorentzVector");
     m_MC_D0_daughter1_lorentzvector = new TClonesArray("TLorentzVector");
+    m_MC_D0_Bhad_lorentzvector = new TClonesArray("TLorentzVector");
   }
 
   if (m_tree_MC->FindBranch("n_MCs")) 
@@ -162,7 +210,55 @@ MCExtractor::MCExtractor(const std::string& name, TFile *a_file, bool doJpsi, bo
       m_tree_MC->SetBranchAddress("MC_D0_daughter1_4vector",&m_MC_D0_daughter1_lorentzvector);
     if (m_tree_MC->FindBranch("MC_D0_daughter1_id")) 
       m_tree_MC->SetBranchAddress("MC_D0_daughter1_id",  &m_MC_D0_daughter1_id);
+    if (m_tree_MC->FindBranch("MC_D0_Bhad_4vector")) 
+      m_tree_MC->SetBranchAddress("MC_D0_Bhad_4vector",&m_MC_D0_Bhad_lorentzvector);
+    if (m_tree_MC->FindBranch("MC_D0_Bhad_id")) 
+      m_tree_MC->SetBranchAddress("MC_D0_Bhad_id",  &m_MC_D0_Bhad_id);
   }
+
+  idBHadrons.push_back(411); idBHadrons.push_back(421); idBHadrons.push_back(10411); idBHadrons.push_back(10421); 
+  idBHadrons.push_back(413); idBHadrons.push_back(423); idBHadrons.push_back(10413); idBHadrons.push_back(10423); 
+  idBHadrons.push_back(20413); idBHadrons.push_back(20423); idBHadrons.push_back(415); idBHadrons.push_back(425); 
+  idBHadrons.push_back(431); idBHadrons.push_back(10431); idBHadrons.push_back(433); idBHadrons.push_back(10433); 
+  idBHadrons.push_back(20433); idBHadrons.push_back(435); 
+  //bottom mesons
+  idBHadrons.push_back(511); idBHadrons.push_back(521); idBHadrons.push_back(10511); idBHadrons.push_back(10521); 
+  idBHadrons.push_back(513); idBHadrons.push_back(523); idBHadrons.push_back(10513); idBHadrons.push_back(10523); 
+  idBHadrons.push_back(20513); idBHadrons.push_back(20523); idBHadrons.push_back(515); idBHadrons.push_back(525); 
+  idBHadrons.push_back(531); idBHadrons.push_back(10531); idBHadrons.push_back(533); idBHadrons.push_back(10533); 
+  idBHadrons.push_back(20533); idBHadrons.push_back(535); idBHadrons.push_back(541); idBHadrons.push_back(10541); 
+  idBHadrons.push_back(543); idBHadrons.push_back(10543); idBHadrons.push_back(20543); idBHadrons.push_back(545); 
+  // ccbar mesons
+  idBHadrons.push_back(441); idBHadrons.push_back(10441); idBHadrons.push_back(100441); idBHadrons.push_back(443); 
+  idBHadrons.push_back(10443); idBHadrons.push_back(20443); idBHadrons.push_back(100443); idBHadrons.push_back(30443); 
+  idBHadrons.push_back(9000443); idBHadrons.push_back(9010443); idBHadrons.push_back(9020443); idBHadrons.push_back(445); 
+  idBHadrons.push_back(100445); 
+  //bbar mesons:w
+  idBHadrons.push_back(551); idBHadrons.push_back(100551); idBHadrons.push_back(110551); idBHadrons.push_back(200551); 
+  idBHadrons.push_back(210551); idBHadrons.push_back(553); idBHadrons.push_back(10553); idBHadrons.push_back(20553); 
+  idBHadrons.push_back(30553); idBHadrons.push_back(100553); idBHadrons.push_back(110553); idBHadrons.push_back(120553); 
+  idBHadrons.push_back(130553); idBHadrons.push_back(200553); idBHadrons.push_back(210553); idBHadrons.push_back(220553); 
+  idBHadrons.push_back(300553); idBHadrons.push_back(9000553); idBHadrons.push_back(9010553); idBHadrons.push_back(555); 
+  idBHadrons.push_back(10555); idBHadrons.push_back(20555); idBHadrons.push_back(100555); idBHadrons.push_back(110555); 
+  idBHadrons.push_back(120555); idBHadrons.push_back(200555); idBHadrons.push_back(557); idBHadrons.push_back(100557); 
+  // charmed baryons
+  idBHadrons.push_back(4122); idBHadrons.push_back(4222); idBHadrons.push_back(4212); idBHadrons.push_back(4112); 
+  idBHadrons.push_back(4224); idBHadrons.push_back(4214); idBHadrons.push_back(4114); idBHadrons.push_back(4232); 
+  idBHadrons.push_back(4132); idBHadrons.push_back(4322); idBHadrons.push_back(4312); idBHadrons.push_back(4324); 
+  idBHadrons.push_back(4314); idBHadrons.push_back(4332); idBHadrons.push_back(4334); idBHadrons.push_back(4412); 
+  idBHadrons.push_back(4422); idBHadrons.push_back(4414); idBHadrons.push_back(4424); idBHadrons.push_back(4432); 
+  idBHadrons.push_back(4434); idBHadrons.push_back(4444);  
+  // bottom baryons
+  idBHadrons.push_back(5122); idBHadrons.push_back(5112); idBHadrons.push_back(5212); idBHadrons.push_back(5222); 
+  idBHadrons.push_back(5114); idBHadrons.push_back(5214); idBHadrons.push_back(5224); idBHadrons.push_back(5132); 
+  idBHadrons.push_back(5232); idBHadrons.push_back(5312); idBHadrons.push_back(5322); idBHadrons.push_back(5314); 
+  idBHadrons.push_back(5324); idBHadrons.push_back(5332); idBHadrons.push_back(5334); idBHadrons.push_back(5142); 
+  idBHadrons.push_back(5242); idBHadrons.push_back(5412); idBHadrons.push_back(5422); idBHadrons.push_back(5414); 
+  idBHadrons.push_back(5424); idBHadrons.push_back(5342); idBHadrons.push_back(5432); idBHadrons.push_back(5434); 
+  idBHadrons.push_back(5442); idBHadrons.push_back(5444); idBHadrons.push_back(5512); idBHadrons.push_back(5522); 
+  idBHadrons.push_back(5514); idBHadrons.push_back(5524); idBHadrons.push_back(5532); idBHadrons.push_back(5534); 
+  idBHadrons.push_back(5542); idBHadrons.push_back(5544); idBHadrons.push_back(5554);  
+
 }
 
 
@@ -210,7 +306,20 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
     int iMo1 = -1;
     int iMo2 = -1;
 
-    if (st == 3 || (st >= 21 && st <= 29) || (_doJpsi && id == 443 && p.numberOfDaughters() == 2 && abs(p.daughter(0)->pdgId()) ==  13 && abs(p.daughter(1)->pdgId()) ==  13) || (_doD0 && id == 421 && p.numberOfDaughters() == 2 && ((abs(p.daughter(0)->pdgId()) ==  321 && abs(p.daughter(1)->pdgId()) ==  211) || (abs(p.daughter(0)->pdgId()) ==  211 && abs(p.daughter(1)->pdgId()) ==  321))))
+    bool isBhad = false;
+    for (unsigned int iBHad = 0; iBHad < idBHadrons.size(); iBHad++) {
+      if (abs(id) != idBHadrons[iBHad]) continue;
+      bool willRadiate = false;
+      for (unsigned int imb = 0; imb < p.numberOfDaughters(); imb++) {
+        if (p.daughter(imb) != 0 && abs(p.daughter(imb)->pdgId()) == 22) {
+          willRadiate = true;
+          break;
+        }
+      }
+      if (!willRadiate) isBhad = true;
+    }
+
+    if (st == 3 || (st >= 21 && st <= 29) || (_doJpsi && id == 443 && p.numberOfDaughters() == 2 && abs(p.daughter(0)->pdgId()) ==  13 && abs(p.daughter(1)->pdgId()) ==  13) || (_doD0 && id == 421 && p.numberOfDaughters() == 2 && ((abs(p.daughter(0)->pdgId()) ==  321 && abs(p.daughter(1)->pdgId()) ==  211) || (abs(p.daughter(0)->pdgId()) ==  211 && abs(p.daughter(1)->pdgId()) ==  321))) || isBhad)
     {
 
       // MC@NLO use different status code
@@ -286,6 +395,23 @@ void MCExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& iSet
         m_MC_D0_daughter0_id[ipart] = mothertmp->daughter(0)->pdgId();
         new((*m_MC_D0_daughter1_lorentzvector)[ipart]) TLorentzVector(mothertmp->daughter(1)->px(),mothertmp->daughter(1)->py(),mothertmp->daughter(1)->pz(),mothertmp->daughter(1)->energy());
         m_MC_D0_daughter1_id[ipart] = mothertmp->daughter(1)->pdgId();
+        for (int ifrag=0; ifrag<10; ifrag++) {
+          if (mothertmp->mother() == 0) break;
+          mothertmp = (reco::GenParticle*) mothertmp->mother();
+          if (ifrag==0) {
+            new((*m_MC_Bhad_lorentzvector)[ipart]) TLorentzVector(mothertmp->px(),mothertmp->py(),mothertmp->pz(),mothertmp->energy());
+            m_MC_Bhad_id[ipart] = mothertmp->pdgId();
+            for (unsigned int idau = 0; idau < mothertmp->numberOfDaughters(); idau++) {
+              if (isNeutrinoPdgId(mothertmp->daughter(idau)->pdgId())) m_MC_BhadWithNuDaughter[ipart] = true;
+            }
+            if (!m_MC_BhadWithNuDaughter) m_MC_BhadWithoutNuDaughter[ipart] = true;
+          }
+          if (mothertmp->mother() != 0 && (abs(mothertmp->mother()->pdgId())==92 || abs(mothertmp->mother()->pdgId())==91)) {
+            new((*m_MC_D0_Bhad_lorentzvector)[ipart]) TLorentzVector(mothertmp->px(),mothertmp->py(),mothertmp->pz(),mothertmp->energy());
+            m_MC_D0_Bhad_id[ipart] = mothertmp->pdgId();
+            break;
+          }
+        }
       }
       if (_doJpsi && id == 443) {
         mothertmp = &(*genParticles)[i];
@@ -399,6 +525,7 @@ void MCExtractor::reset()
     if (_doD0) {
       m_MC_D0_daughter0_id[i] = 0;
       m_MC_D0_daughter1_id[i] = 0;
+      m_MC_D0_Bhad_id[i] = 0;
     }
   }
   m_MC_lorentzvector->Clear();
@@ -411,6 +538,7 @@ void MCExtractor::reset()
     m_MC_D0_lorentzvector->Clear();
     m_MC_D0_daughter0_lorentzvector->Clear();
     m_MC_D0_daughter1_lorentzvector->Clear();
+    m_MC_D0_Bhad_lorentzvector->Clear();
   }
 }
 

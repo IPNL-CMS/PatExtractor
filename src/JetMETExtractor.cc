@@ -105,6 +105,10 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
   m_tree_jet->Branch("jet_vx",  &m_jet_vx,   "jet_vx[n_jets]/F");  
   m_tree_jet->Branch("jet_vy",  &m_jet_vy,   "jet_vy[n_jets]/F");  
   m_tree_jet->Branch("jet_vz",  &m_jet_vz,   "jet_vz[n_jets]/F"); 
+  m_tree_jet->Branch("jet_maincharge",    &m_jet_maincharge,   "jet_maincharge[n_jets]/I");
+  m_tree_jet->Branch("jet_mainpdgid",     &m_jet_mainpdgid,    "jet_mainpdgid[n_jets]/I");
+  m_tree_jet->Branch("jet_mainpt",        &m_jet_mainpt,       "jet_mainpt[n_jets]/F");
+  m_tree_jet->Branch("jet_charge",        &m_jet_charge,       "jet_charge[n_jets]/I");
   m_tree_jet->Branch("jet_chmult",        &m_jet_chmult,       "jet_chmult[n_jets]/I");
   m_tree_jet->Branch("jet_chmuEfrac",     &m_jet_chmuEfrac,    "jet_chmuEfrac[n_jets]/F");
   m_tree_jet->Branch("jet_chemEfrac",     &m_jet_chemEfrac,    "jet_chemEfrac[n_jets]/F");
@@ -201,6 +205,14 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
       m_tree_jet->SetBranchAddress("jet_vy",            &m_jet_vy);
     if (m_tree_jet->FindBranch("jet_vz")) 
       m_tree_jet->SetBranchAddress("jet_vz",            &m_jet_vz);
+    if (m_tree_jet->FindBranch("jet_maincharge")) 
+      m_tree_jet->SetBranchAddress("jet_maincharge",    &m_jet_maincharge);
+    if (m_tree_jet->FindBranch("jet_mainpdgid")) 
+      m_tree_jet->SetBranchAddress("jet_mainpdgid",     &m_jet_mainpdgid);
+    if (m_tree_jet->FindBranch("jet_mainpt")) 
+      m_tree_jet->SetBranchAddress("jet_mainpt",        &m_jet_mainpt);
+    if (m_tree_jet->FindBranch("jet_charge")) 
+      m_tree_jet->SetBranchAddress("jet_charge",        &m_jet_charge);
     if (m_tree_jet->FindBranch("jet_chmult")) 
       m_tree_jet->SetBranchAddress("jet_chmult",        &m_jet_chmult);
     if (m_tree_jet->FindBranch("jet_chmuEfrac")) 
@@ -303,6 +315,7 @@ JetMETExtractor::JetMETExtractor(const std::string& name, const std::string& met
 
   if (m_tree_met->FindBranch("unclustered_particle_4vector"))
     m_tree_met->SetBranchAddress("unclustered_particle_4vector", &m_unclustered_particle_lorentzvector);
+
 }
 
 
@@ -522,6 +535,8 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
 
   if (part.isPFJet())
   {
+
+    m_jet_charge[index]        = part.charge();
     m_jet_chmult[index]        = part.chargedMultiplicity();
     m_jet_chmuEfrac[index]     = part.chargedMuEnergyFraction();
     m_jet_chemEfrac[index]     = part.chargedEmEnergyFraction();
@@ -566,6 +581,15 @@ void JetMETExtractor::writeInfo(const edm::Event& event, const edm::EventSetup& 
   if (m_isMC)
     event.getByLabel("genParticles", genParticles);
   const std::vector<reco::PFCandidatePtr>& PFpart = part.getPFConstituents();
+  if (PFpart.size() > 0) {
+    m_jet_maincharge[index] = PFpart[0]->charge();
+    m_jet_mainpdgid[index] = PFpart[0]->pdgId();
+    m_jet_mainpt[index] = PFpart[0]->pt();
+  } else {
+    m_jet_maincharge[index] = 0;
+    m_jet_mainpdgid[index] = 0;
+    m_jet_mainpt[index] = 0.;
+  }
   for(unsigned int j = 0; j < PFpart.size(); ++j) {
     if (!PFpart[j]->trackRef()) continue;
 
@@ -703,10 +727,15 @@ void JetMETExtractor::reset()
 
   for (int i=0;i<m_jets_MAX;++i) 
   {
+
     m_jet_vx[i] = 0.;
     m_jet_vy[i] = 0.;
     m_jet_vz[i] = 0.;
 
+    m_jet_maincharge[i] = 0;
+    m_jet_mainpdgid[i] = 0;
+    m_jet_mainpt[i] = 0.;
+    m_jet_charge[i] = 0;
     m_jet_chmult[i] = 0;
     m_jet_chmuEfrac[i] = 0.;
     m_jet_chemEfrac[i] = 0.;

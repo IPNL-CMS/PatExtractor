@@ -213,6 +213,10 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
     float	m_jet_vx[m_jets_MAX];
     float	m_jet_vy[m_jets_MAX];
     float	m_jet_vz[m_jets_MAX];
+    int   m_jet_maincharge[m_jets_MAX];
+    int   m_jet_mainpdgid[m_jets_MAX];
+    float m_jet_mainpt[m_jets_MAX];
+    int   m_jet_charge[m_jets_MAX];
     int   m_jet_chmult[m_jets_MAX];
     float	m_jet_chmuEfrac[m_jets_MAX];
     float	m_jet_chemEfrac[m_jets_MAX];
@@ -254,6 +258,7 @@ class JetMETExtractor: public BaseExtractor<pat::Jet>
 
     std::shared_ptr<JetCorrectionUncertainty> jecUncertainty;
     std::string mJecFilename;
+
 };
 
 #endif 
